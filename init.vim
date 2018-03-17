@@ -35,3 +35,4 @@ Plug 'Xuyuanp/nerdtree-git-plugin'
 call plug#end()
 
 let g:airline_theme='zenburn'
+:let mapleader=","
