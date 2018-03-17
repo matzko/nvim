@@ -18,3 +18,10 @@ set foldmethod=indent
 set diffopt+=iwhite
 colorscheme zenburn
 colors zenburn
+
+let g:airline_theme = 'one'
+
+call plug#begin('~/.config/nvim/plugged')
+
+" Initialize plugin system
+call plug#end()
