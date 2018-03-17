@@ -28,3 +28,5 @@ Plug 'vim-airline/vim-airline-themes'
 
 " Initialize plugin system
 call plug#end()
+
+let g:airline_theme='zenburn'
