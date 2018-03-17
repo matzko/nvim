@@ -23,5 +23,8 @@ let g:airline_theme = 'one'
 
 call plug#begin('~/.config/nvim/plugged')
 
+Plug 'vim-airline/vim-airline'
+Plug 'vim-airline/vim-airline-themes'
+
 " Initialize plugin system
 call plug#end()
