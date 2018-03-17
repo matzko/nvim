@@ -43,3 +43,5 @@ map <Leader>s :TestNearest<CR>
 map <Leader>l :TestLast<CR>
 map <Leader>a :TestSuite<CR>
 map <Leader>v :TestVisit<CR>
+
+let test#strategy = "neovim"
