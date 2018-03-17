@@ -28,6 +28,9 @@ Plug 'vim-airline/vim-airline-themes'
 Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-rails'
 
+Plug 'scrooloose/nerdtree'
+Plug 'Xuyuanp/nerdtree-git-plugin'
+
 " Initialize plugin system
 call plug#end()
 
