@@ -51,3 +51,5 @@ let test#strategy = "neovim"
 
 let g:neomake_open_list = 2
 let g:neomake_elixir_enabled_makers = ['mix', 'credo']
+
+:set inccommand=split
