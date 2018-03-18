@@ -29,6 +29,7 @@ Plug 'sheerun/vim-polyglot'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rails'
 Plug 'janko-m/vim-test'
+Plug 'neomake/neomake'
 
 Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
@@ -46,3 +47,6 @@ map <Leader>a :TestSuite<CR>
 map <Leader>v :TestVisit<CR>
 
 let test#strategy = "neovim"
+
+let g:neomake_open_list = 2
+let g:neomake_elixir_enabled_makers = ['mix', 'credo']
