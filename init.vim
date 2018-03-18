@@ -23,6 +23,7 @@ let g:airline_theme = 'one'
 
 call plug#begin('~/.config/nvim/plugged')
 
+Plug 'mhinz/vim-grepper'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
 Plug 'sheerun/vim-polyglot'
@@ -53,4 +54,8 @@ let test#strategy = "neovim"
 let g:neomake_open_list = 2
 let g:neomake_elixir_enabled_makers = ['mix', 'credo']
 
+let g:grepper           = {}
+let g:grepper.highlight = 1
+
 :set inccommand=split
+
