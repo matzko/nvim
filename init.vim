@@ -59,4 +59,4 @@ let g:grepper           = {}
 let g:grepper.highlight = 1
 
 :set inccommand=split
-
+let g:tig_open_command = 'vnew'
