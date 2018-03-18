@@ -33,6 +33,7 @@ Plug 'tpope/vim-surround'
 Plug 'janko-m/vim-test'
 Plug 'machakann/vim-highlightedyank'
 Plug 'neomake/neomake'
+Plug 'codeindulgence/vim-tig'
 
 Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
