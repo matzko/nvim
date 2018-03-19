@@ -59,6 +59,8 @@ let g:neomake_elixir_enabled_makers = ['mix', 'credo']
 let g:grepper           = {}
 let g:grepper.highlight = 1
 
+let NERDTreeHijackNetrw=1
+
 :set inccommand=split
 let g:tig_open_command = 'vnew'
 
