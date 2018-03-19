@@ -24,6 +24,7 @@ let g:airline_theme = 'one'
 call plug#begin('~/.config/nvim/plugged')
 
 Plug 'AndrewRadev/splitjoin.vim'
+Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'mhinz/vim-grepper'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
@@ -52,6 +53,8 @@ map <Leader>a :TestSuite<CR>
 map <Leader>v :TestVisit<CR>
 
 let test#strategy = "neovim"
+
+let g:deoplete#enable_at_startup = 1
 
 let g:neomake_open_list = 2
 let g:neomake_elixir_enabled_makers = ['mix', 'credo']
