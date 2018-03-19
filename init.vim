@@ -56,6 +56,9 @@ map <Leader>v :TestVisit<CR>
 let test#strategy = "neovim"
 
 let g:deoplete#enable_at_startup = 1
+" deoplete select on tab
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
 let g:neomake_open_list = 2
 let g:neomake_elixir_enabled_makers = ['mix', 'credo']
