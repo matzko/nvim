@@ -26,6 +26,7 @@ let g:python3_host_prog = '/usr/bin/python3'
 call plug#begin('~/.config/nvim/plugged')
 
 Plug 'AndrewRadev/splitjoin.vim'
+Plug 'elmcast/elm-vim'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'fishbullet/deoplete-ruby'
 Plug 'mhinz/vim-grepper'
