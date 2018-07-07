@@ -29,6 +29,7 @@ Plug 'AndrewRadev/splitjoin.vim'
 Plug 'elmcast/elm-vim'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 Plug 'fishbullet/deoplete-ruby'
+Plug 'pbogut/deoplete-elm'
 Plug 'mhinz/vim-grepper'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'
