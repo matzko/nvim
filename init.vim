@@ -62,7 +62,8 @@ let g:deoplete#enable_at_startup = 1
 inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
-let g:neomake_open_list = 2
+let g:neomake_open_list = 0
+let g:neomake_list_height = 1
 let g:neomake_elixir_enabled_makers = ['mix', 'credo']
 
 let g:grepper           = {}
@@ -76,6 +77,6 @@ let g:tig_open_command = 'vnew'
 " When writing a buffer.
 call neomake#configure#automake('w')
 " When writing a buffer, and on normal mode changes (after 750ms).
-call neomake#configure#automake('nw', 750)
+" call neomake#configure#automake('nw', 750)
 " When reading a buffer (after 1s), and when writing.
-call neomake#configure#automake('rw', 1000)
+" call neomake#configure#automake('rw', 1000)
