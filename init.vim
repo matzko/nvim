@@ -74,6 +74,8 @@ let NERDTreeHijackNetrw=1
 :set inccommand=split
 let g:tig_open_command = 'vnew'
 
+let g:elm_format_autosave = 0
+
 " When writing a buffer.
 call neomake#configure#automake('w')
 " When writing a buffer, and on normal mode changes (after 750ms).
