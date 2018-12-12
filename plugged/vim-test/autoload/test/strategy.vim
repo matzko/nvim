@@ -20,6 +20,10 @@ function! test#strategy#make(cmd) abort
   call s:execute_with_compiler(a:cmd, 'make')
 endfunction
 
+function! test#strategy#make_bang(cmd) abort
+  call s:execute_with_compiler(a:cmd, 'make!')
+endfunction
+
 function! test#strategy#neomake(cmd) abort
   call s:execute_with_compiler(a:cmd, 'NeomakeProject')
 endfunction
@@ -45,7 +49,8 @@ function! test#strategy#vimproc(cmd) abort
 endfunction
 
 function! test#strategy#neovim(cmd) abort
-  botright new
+  let term_position = get(g:, 'test#neovim#term_position', 'botright')
+  execute term_position . ' new'
   call termopen(a:cmd)
   au BufDelete <buffer> wincmd p " switch back to last window
   startinsert
@@ -155,13 +160,5 @@ function! s:restorescreen() abort
     return &restorescreen
   else
     return !empty(&t_ti) || !empty(&t_te)
-  endif
-endfunction
-
-function! s:cat(filename) abort
-  if s:Windows()
-    return system('type '.a:filename)
-  else
-    return system('cat '.a:filename)
   endif
 endfunction

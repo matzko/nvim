@@ -5,7 +5,19 @@ let s:is_enabled = 0
 
 let s:match_base_priority = 10
 
-function! neomake#quickfix#enable() abort
+" args: a:1: force enabling?  (used in tests and for VimEnter callback)
+function! neomake#quickfix#enable(...) abort
+    if has('vim_starting') && !(a:0 && a:1)
+        " Delay enabling for our FileType autocommand to happen as late as
+        " possible, since placing signs triggers a redraw, and together with
+        " vim-qf_resize this causes flicker.
+        " https://github.com/vim/vim/issues/2763
+        augroup neomake_qf
+            autocmd!
+            autocmd VimEnter * call neomake#quickfix#enable(1)
+        augroup END
+        return
+    endif
     let s:is_enabled = 1
     augroup neomake_qf
         autocmd!
@@ -21,6 +33,10 @@ function! neomake#quickfix#disable() abort
     let s:is_enabled = 0
     if &filetype ==# 'qf'
         call neomake#quickfix#FormatQuickfix()
+    endif
+    if exists('#neomake_qf')
+        autocmd! neomake_qf
+        augroup! neomake_qf
     endif
 endfunction
 
@@ -73,6 +89,15 @@ function! s:set_qf_lines(lines) abort
 endfunction
 
 function! s:clean_qf_annotations() abort
+    if exists('b:_neomake_qf_orig_lines')
+        call s:set_qf_lines(b:_neomake_qf_orig_lines)
+        unlet b:_neomake_qf_orig_lines
+    endif
+    unlet b:neomake_qf
+    augroup neomake_qf
+        autocmd! * <buffer>
+    augroup END
+
     if exists('b:_neomake_maker_match_id')
         silent! call matchdelete(b:_neomake_maker_match_id)
     endif
@@ -85,6 +110,7 @@ function! s:clean_qf_annotations() abort
     if exists('b:_neomake_cursor_match_id')
         silent! call matchdelete(b:_neomake_cursor_match_id)
     endif
+    call neomake#signs#ResetFile(bufnr('%'))
 endfunction
 
 
@@ -92,36 +118,37 @@ function! neomake#quickfix#FormatQuickfix() abort
     let buf = bufnr('%')
     if !s:is_enabled || &filetype !=# 'qf'
         if exists('b:neomake_qf')
-            call neomake#signs#Clean(buf, 'file')
-            if exists('b:_neomake_qf_orig_lines')
-                call s:set_qf_lines(b:_neomake_qf_orig_lines)
-                unlet b:_neomake_qf_orig_lines
-            endif
-            unlet! b:neomake_qf
-            augroup neomake_qf
-                autocmd! * <buffer>
-            augroup END
             call s:clean_qf_annotations()
         endif
         return
     endif
 
     let src_buf = 0
-    let loclist = 1
-    let qflist = getloclist(0)
-    if empty(qflist)
-        let loclist = 0
-        let qflist = getqflist()
+    if has('patch-7.4.2215')
+        let is_loclist = getwininfo(win_getid())[0].loclist
+        if is_loclist
+            let qflist = getloclist(0)
+        else
+            let qflist = getqflist()
+        endif
+    else
+        let is_loclist = 1
+        let qflist = getloclist(0)
+        if empty(qflist)
+            let is_loclist = 0
+            let qflist = getqflist()
+        endif
     endif
 
     if empty(qflist) || qflist[0].text !~# ' nmcfg:{.\{-}}$'
-        call neomake#utils#DebugMessage('Resetting custom qf for non-Neomake change.')
-        call s:clean_qf_annotations()
-        set syntax=qf
+        if exists('b:neomake_qf')
+            call neomake#log#debug('Resetting custom qf for non-Neomake change.')
+            call s:clean_qf_annotations()
+        endif
         return
     endif
 
-    if loclist
+    if is_loclist
         let b:neomake_qf = 'file'
         let src_buf = qflist[0].bufnr
     else
@@ -150,7 +177,7 @@ function! neomake#quickfix#FormatQuickfix() abort
                     endif
                     let item.text = idx == 0 ? '' : item.text[:(idx-1)]
                 catch
-                    call neomake#utils#log_exception(printf(
+                    call neomake#log#exception(printf(
                                 \ 'Error when evaluating nmcfg (%s): %s.',
                                 \ config, v:exception))
                 endtry
@@ -189,11 +216,12 @@ function! neomake#quickfix#FormatQuickfix() abort
     endif
 
     " Count number of different buffers and cache their names.
-    let buffers = neomake#compat#uniq(sort(map(copy(qflist), 'v:val.bufnr')))
+    let buffers = neomake#compat#uniq(sort(
+                \ filter(map(copy(qflist), 'v:val.bufnr'), 'v:val != 0')))
     let buffer_names = {}
     if len(buffers) > 1
         for b in buffers
-            let bufname = b ? bufname(b) : ''
+            let bufname = bufname(b)
             if empty(bufname)
                 let bufname = 'buf:'.b
             else
@@ -215,7 +243,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         let i += 1
 
         let text = item.text
-        if !empty(buffer_names)
+        if item.bufnr != 0 && !empty(buffer_names)
             if last_bufnr != item.bufnr
                 let text = printf('[%s] %s', buffer_names[item.bufnr], text)
                 let last_bufnr = item.bufnr
@@ -246,7 +274,6 @@ function! neomake#quickfix#FormatQuickfix() abort
         let &breakindentopt = 'shift:'.(b:neomake_start_col + 1)
     endif
 
-    call neomake#signs#CleanOldSigns(buf, 'file')
     call neomake#signs#Reset(buf, 'file')
     call neomake#signs#PlaceSigns(buf, signs, 'file')
 
@@ -277,7 +304,7 @@ function! neomake#quickfix#FormatQuickfix() abort
         autocmd CursorMoved <buffer> call s:cursor_moved()
     augroup END
 
-    if loclist
+    if is_loclist
         let bufname = bufname(src_buf)
         if empty(bufname)
             let bufname = 'buf:'.src_buf

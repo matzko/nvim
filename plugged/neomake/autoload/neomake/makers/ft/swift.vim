@@ -12,10 +12,24 @@ endfunction
 function! neomake#makers#ft#swift#swiftpm() abort
     return {
         \ 'exe': 'swift',
-        \ 'args': ['build'],
+        \ 'args': ['build', '--build-tests'],
         \ 'append_file': 0,
         \ 'errorformat':
             \ '%E%f:%l:%c: error: %m,' .
+            \ '%W%f:%l:%c: warning: %m,' .
+            \ '%Z%\s%#^~%#,' .
+            \ '%-G%.%#',
+        \ }
+endfunction
+
+function! neomake#makers#ft#swift#swiftpmtest() abort
+    return {
+        \ 'exe': 'swift',
+        \ 'args': ['test'],
+        \ 'append_file': 0,
+        \ 'errorformat':
+            \ '%E%f:%l:%c: error: %m,' .
+            \ '%E%f:%l: error: %m,' .
             \ '%W%f:%l:%c: warning: %m,' .
             \ '%Z%\s%#^~%#,' .
             \ '%-G%.%#',

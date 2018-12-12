@@ -19,27 +19,28 @@ of tests from the command-line. Concrete test runners are then simply plugged
 in, so they all work in the same unified way. Currently the following test
 runners are supported:
 
-| Language       | Test Runners                                                     | Identifiers                                                                       |
-| -------------: | :--------------------------------------------------------------- | :-------------------------------------------------------------------------------- |
-| **C#**         | .NET                                                             | `xunit`, `dotnettest`                                                             |
-| **Clojure**    | Fireplace.vim                                                    | `fireplacetest`                                                                   |
-| **Crystal**    | Crystal                                                          | `crystalspec`                                                                     |
-| **Elixir**     | ESpec, ExUnit                                                    | `espec`, `exunit`                                                                 |
-| **Elm**        | elm-test                                                         | `elmtest`                                                                         |
-| **Erlang**     | CommonTest                                                       | `commontest`                                                                      |
-| **Go**         | Ginkgo, Go                                                       | `ginkgo`, `gotest`                                                                |
-| **Java**       | Maven                                                            | `maventest`                                                                       |
-| **JavaScript** | Ava, Intern, Jasmine, Jest, Karma, Lab, Mocha, TAP, WebdriverIO  | `ava`, `intern`, `jasmine`, `jest`, `karma`, `lab`, `mocha`, `tap`, `webdriverio` |
-| **Lua**        | Busted                                                           | `busted`                                                                          |
-| **PHP**        | Behat, Codeception, Kahlan, Peridot, PHPUnit, PHPSpec, Dusk      | `behat`, `codeception`, `dusk`, `kahlan`, `peridot`, `phpunit`, `phpspec`         |
-| **Perl**       | Prove                                                            | `prove`                                                                           |
-| **Python**     | Django, Nose, Nose2, PyTest, PyUnit                              | `djangotest`, `djangonose` `nose`, `nose2`, `pytest`, `pyunit`                    |
-| **Racket**     | RackUnit                                                         | `rackunit`                                                                        |
-| **Ruby**       | Cucumber, [M], [Minitest][minitest], Rails, RSpec                | `cucumber`, `m`, `minitest`, `rails`, `rspec`                                     |
-| **Rust**       | Cargo                                                            | `cargotest`                                                                       |
-| **Shell**      | Bats                                                             | `bats`                                                                            |
-| **Swift**      | Swift Package Manager                                            | `swiftpm`                                                                         |
-| **VimScript**  | Vader.vim, VSpec, Themis                                         | `vader`, `vspec`, `themis`                                                        |
+| Language       | Test Runners                                                                                | Identifiers                                                                                                     |
+| -------------: | :------------------------------------------------------------------------------------------ | :-------------------------------------------------------------------------------------------------------------- |
+| **C#**         | .NET                                                                                        | `xunit`, `dotnettest`                                                                                           |
+| **Clojure**    | Fireplace.vim                                                                               | `fireplacetest`                                                                                                 |
+| **Crystal**    | Crystal                                                                                     | `crystalspec`                                                                                                   |
+| **Elixir**     | ESpec, ExUnit                                                                               | `espec`, `exunit`                                                                                               |
+| **Elm**        | elm-test                                                                                    | `elmtest`                                                                                                       |
+| **Erlang**     | CommonTest                                                                                  | `commontest`                                                                                                    |
+| **Go**         | Ginkgo, Go                                                                                  | `ginkgo`, `gotest`                                                                                              |
+| **Java**       | Maven, Gradle                                                                               | `maventest`, `gradletest`                                                                                       |
+| **JavaScript** | Ava, Cucumber.js, Intern, Jasmine, Jest, ReactScripts, Karma, Lab, Mocha, TAP, WebdriverIO  | `ava`, `cucumberjs`, `intern`, `jasmine`, `jest`, `reactscripts`, `karma`, `lab`, `mocha`, `tap`, `webdriverio` |
+| **Lua**        | Busted                                                                                      | `busted`                                                                                                        |
+| **PHP**        | Behat, Codeception, Kahlan, Peridot, PHPUnit, PHPSpec, Dusk                                 | `behat`, `codeception`, `dusk`, `kahlan`, `peridot`, `phpunit`, `phpspec`                                       |
+| **Perl**       | Prove                                                                                       | `prove`                                                                                                         |
+| **Python**     | Django, Nose, Nose2, PyTest, PyUnit                                                         | `djangotest`, `djangonose` `nose`, `nose2`, `pytest`, `pyunit`                                                  |
+| **Racket**     | RackUnit                                                                                    | `rackunit`                                                                                                      |
+| **Ruby**       | Cucumber, [M], [Minitest][minitest], Rails, RSpec                                           | `cucumber`, `m`, `minitest`, `rails`, `rspec`                                                                   |
+| **Rust**       | Cargo                                                                                       | `cargotest`                                                                                                     |
+| **Scala**      | SBT                                                                                         | `sbttest`                                                                                                       |
+| **Shell**      | Bats                                                                                        | `bats`                                                                                                          |
+| **Swift**      | Swift Package Manager                                                                       | `swiftpm`                                                                                                       |
+| **VimScript**  | Vader.vim, VSpec, Themis                                                                    | `vader`, `vspec`, `themis`                                                                                      |
 
 ## Setup
 
@@ -53,11 +54,11 @@ Add your preferred mappings to your `.vimrc` file:
 
 ```vim
 " these "Ctrl mappings" work well when Caps Lock is mapped to Ctrl
-nmap <silent> t<C-n> :TestNearest<CR> " t Ctrl+n
-nmap <silent> t<C-f> :TestFile<CR>    " t Ctrl+f
-nmap <silent> t<C-s> :TestSuite<CR>   " t Ctrl+s
-nmap <silent> t<C-l> :TestLast<CR>    " t Ctrl+l
-nmap <silent> t<C-g> :TestVisit<CR>   " t Ctrl+g
+nmap <silent> t<C-n> :TestNearest<CR>
+nmap <silent> t<C-f> :TestFile<CR>
+nmap <silent> t<C-s> :TestSuite<CR>
+nmap <silent> t<C-l> :TestLast<CR>
+nmap <silent> t<C-g> :TestVisit<CR>
 ```
 
 | Command          | Description                                                                                                                                                                                                                                                                            |
@@ -81,7 +82,7 @@ let test#strategy = "dispatch"
 | Strategy                        | Identifier                       | Description                                                                      |
 | :-----:                         | :-----:                          | :----------                                                                      |
 | **Basic**&nbsp;(default)        | `basic`                          | Runs test commands with `:!` on Vim, and with `:terminal` on Neovim.             |
-| **Make**                        | `make`                           | Runs test commands with `:make`.                                                 |
+| **Make**                        | `make` `make_bang`               | Runs test commands with `:make` or `:make!`.                                     |
 | **Neovim**                      | `neovim`                         | Runs test commands with `:terminal` in a split window.                           |
 | **Vim8 Terminal**               | `vimterminal`                    | Runs test commands with `term_start()` in a split window.                        |
 | **[Dispatch]**                  | `dispatch` `dispatch_background` | Runs test commands with `:Dispatch` or `:Dispatch!`.                             |
@@ -120,6 +121,9 @@ disable this:
 let g:test#preserve_screen = 1
 ```
 
+The Vimux strategy will not clear the screen by default, but you can enable it
+by explicitly setting `test#preserve_screen` to `0`.
+
 On Neovim the "basic" and "neovim" strategies will run test commands using
 Neovim's terminal, and leave you in insert mode, so that you can just press
 "Enter" to close the terminal session and go back to editing. If you want to
@@ -130,7 +134,7 @@ which is difficult to press, so I recommend mapping it to `CTRL-o`:
 ```vim
 if has('nvim')
   tmap <C-o> <C-\><C-n>
-end
+endif
 ```
 
 ### Quickfix Strategies
@@ -248,6 +252,20 @@ let test#ruby#rspec#options = {
   \ 'suite':   '--tag ~slow',
 \}
 ```
+
+### Neovim terminal position
+
+The `neovim` strategy will open a split window on the bottom by default, but
+you can configure a different position:
+
+```vim
+let test#neovim#term_position = "topleft"
+" or
+let test#neovim#term_position = "belowright"
+```
+
+For full list of variants, see `:help opening-window`.
+
 ### Executable
 
 You can instruct test.vim to use a custom executable for a test runner.
@@ -303,6 +321,14 @@ the first available will be chosen, but you can force a specific one:
 let test#python#runner = 'pytest'
 " Runners available are 'pytest', 'nose', 'nose2', 'djangotest', 'djangonose' and Python's built-in 'unittest'
 ```
+#### Java
+
+For the same reason as Python, runner detection works the same for Java. To
+force a specific runner:
+
+``` vim
+let test#java#runner = 'gradletest'
+```
 
 #### Go
 
@@ -330,6 +356,12 @@ If binstubs are detected, but you don't want to use them, you can turn them off:
 let test#ruby#use_binstubs = 0
 ```
 
+If your binstubs are not instrumented with spring, you can turn on using the `spring` bin (`bin/spring`) directly using:
+
+```vim
+let test#ruby#use_spring_binstub = 1
+```
+
 #### JavaScript
 
 Test runner detection for JavaScript works by checking which runner is listed in the package.json dependencies. If you have globally installed the runner make sure it's also listed in the dependencies.
@@ -346,7 +378,7 @@ alternate application file is saved:
 augroup test
   autocmd!
   autocmd BufWrite * if test#exists() |
-    \   TestFile
+    \   TestFile |
     \ endif
 augroup END
 ```
@@ -356,6 +388,11 @@ augroup END
 If [projectionist.vim] is present, you can run a test command from an
 application file, and test.vim will automatically try to run the
 command on the "alternate" test file.
+
+You can disable this integration by doing
+```vim
+let g:test#no_alternate = 1
+```
 
 ## Extending
 
@@ -368,7 +405,7 @@ First, add your runner to the list in your `.vimrc`:
 
 ```vim
 " First letter of runner's name must be uppercase
-let test#runners = {'MyLanguage': ['MyRunner']}
+let test#custom_runners = {'MyLanguage': ['MyRunner']}
 ```
 
 Second, create `~/.vim/autoload/test/mylanguage/myrunner.vim`, and define the following
@@ -389,6 +426,19 @@ function! test#mylanguage#myrunner#executable()
 ```
 
 See [`autoload/test`](/autoload/test) for examples.
+
+## Choosing which runners to load
+
+All runners are loaded by default. To select which runners to load, set this
+option:
+
+```vim
+let test#enabled_runners = ["mylanguage#myrunner", "ruby#rspec"]
+```
+
+All other runners will not be loaded.
+
+Note that for your own custom runners, you still need to set `test#custom_runners`.
 
 ## Running tests
 

@@ -8,7 +8,8 @@
 import os
 import re
 from os.path import exists, dirname
-from .base import Base
+
+from deoplete.source.base import Base
 from deoplete.util import expand
 
 
@@ -22,12 +23,12 @@ class Source(Base):
         self.min_pattern_length = 0
         self.rank = 150
         self.events = ['InsertEnter']
+        self.vars = {
+            'enable_buffer_path': True,
+            'force_completion_length': -1,
+        }
 
         self._isfname = ''
-
-    def on_init(self, context):
-        self._buffer_path = context['vars'].get(
-            'deoplete#file#enable_buffer_path', 0)
 
     def on_event(self, context):
         self._isfname = self.vim.call(
@@ -36,13 +37,23 @@ class Source(Base):
 
     def get_complete_position(self, context):
         pos = context['input'].rfind('/')
+        if pos < 0 and self.get_var('force_completion_length') >= 0:
+            fmt = '[a-zA-Z0-9.-]{{{}}}$'.format(
+                self.get_var('force_completion_length'))
+            m = re.search(fmt, context['input'])
+            if m:
+                return m.start()
         return pos if pos < 0 else pos + 1
 
     def gather_candidates(self, context):
         if not self._isfname:
-            return []
+            self.on_event(context)
 
-        p = self._longest_path_that_exists(context, context['input'])
+        input_str = (context['input']
+                     if context['input'].rfind('/') >= 0
+                     else './')
+
+        p = self._longest_path_that_exists(context, input_str)
         if p in (None, []) or p == '/' or re.search('//+$', p):
             return []
         complete_str = self._substitute_path(context, dirname(p) + '/')
@@ -74,7 +85,7 @@ class Source(Base):
     def _substitute_path(self, context, path):
         m = re.match(r'(\.{1,2})/+', path)
         if m:
-            if self._buffer_path and context['bufpath']:
+            if self.get_var('enable_buffer_path') and context['bufpath']:
                 base = context['bufpath']
             else:
                 base = os.path.join(context['cwd'], 'x')

@@ -25,8 +25,8 @@ Here are some [completion sources](https://github.com/Shougo/deoplete.nvim/wiki/
 
 ## Install
 
-**Note:** deoplete requires Neovim (0.2.0+ and of course, **latest** is
-recommended) or Vim8 with Python3 and timers enabled.  See
+**Note:** deoplete requires Neovim (0.3.0+ and of course, **latest** is
+recommended) or Vim8 with Python3.5+ and timers enabled.  See
 [requirements](#requirements) if you aren't sure whether you have this.
 
 For vim-plug
@@ -69,7 +69,7 @@ If `:echo has("python3")` returns `1`, then you have python 3 support; otherwise
 
 You can enable Python3 interface with pip:
 
-    pip3 install neovim
+    pip3 install --user pynvim
 
 Please install nvim-yarp and vim-hug-neovim-rpc for Vim8.
 
@@ -82,11 +82,11 @@ If Deoplete was installed prior to Python support being added to Neovim,
 `:UpdateRemotePlugins` should be executed manually in order to enable
 auto-completion.
 
-**Note: deoplete needs neovim-python ver.0.1.8+.**
+**Note: deoplete needs neovim-python ver.0.2.4+.**
 
 You need update neovim-python module.
 
-    pip3 install --upgrade neovim
+    pip3 install --user --upgrade pynvim
 
 If you want to read the Neovim-python/python3 interface install documentation,
 you should read `:help provider-python` and the Wiki.
@@ -98,6 +98,8 @@ you should read `:help provider-python` and the Wiki.
 " Use deoplete.
 let g:deoplete#enable_at_startup = 1
 ```
+
+See `:help deoplete-options` for a complete list of options.
 
 ## Screenshots
 
@@ -139,3 +141,9 @@ Deoplete for JavaScript
 ![Html](https://user-images.githubusercontent.com/29815830/36537602-40b19848-1803-11e8-8ac8-49b3b9ba2094.png)
 
 ![My custom snippets](https://user-images.githubusercontent.com/29815830/36537646-6578262e-1803-11e8-9bff-64874a606150.png)
+
+![C++ with cquery lang server](https://user-images.githubusercontent.com/1750795/38780762-7c74e51e-40a9-11e8-92f9-dee921555865.png)
+
+![Rust using rls](https://user-images.githubusercontent.com/1750795/38780764-8524b0b8-40a9-11e8-91bc-6e4148c398a3.png)
+
+![Ruby dictionary completion](https://user-images.githubusercontent.com/1314340/44786516-5bb57a00-abcf-11e8-8687-492fa5f9f905.gif)

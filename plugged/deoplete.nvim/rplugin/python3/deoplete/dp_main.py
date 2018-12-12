@@ -7,7 +7,11 @@
 import sys
 import io
 
-from neovim import attach
+from importlib.util import find_spec
+if find_spec('pynvim'):
+    from pynvim import attach
+else:
+    from neovim import attach
 
 
 def attach_vim(serveraddr):
@@ -50,8 +54,8 @@ def main(serveraddr):
     try:
         child = Child(vim)
         child.main_loop(stdout)
-    except Exception:
-        error_tb(vim, 'Error in child')
+    except Exception as exc:
+        error_tb(vim, 'Error in child: %r' % exc)
 
 
 if __name__ == '__main__':

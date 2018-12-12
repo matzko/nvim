@@ -54,10 +54,10 @@ delfunction s:CommentKeywordMatch
 
 " Literals
 " Strings
-syntax region swiftString start=/"/ skip=/\\\\\|\\"/ end=/"/ contains=swiftMultilineInterpolatedWrapper oneline
+syntax region swiftString start=/"/ skip=/\\\\\|\\"/ end=/"/ contains=swiftInterpolatedWrapper oneline
 syntax region swiftMultilineString start=/"""/ end=/"""/ contains=swiftMultilineInterpolatedWrapper
-syntax region swiftMultilineInterpolatedWrapper start="\v\\\(\s*" end="\v\s*\)" contained containedin=swiftMultilineString contains=swiftInterpolatedString oneline
-syntax region swiftInterpolatedWrapper start="\v[^\\]\zs\\\(\s*" end="\v\s*\)" contained containedin=swiftString contains=swiftInterpolatedString,swiftString oneline
+syntax region swiftMultilineInterpolatedWrapper start='\v\zs\\\(\s*' end='\v\s*\)' contained containedin=swiftMultilineString contains=swiftInterpolatedString oneline
+syntax region swiftInterpolatedWrapper start='\v(^|[^\\])\zs\\\(\s*' end='\v\s*\)' contained containedin=swiftString contains=swiftInterpolatedString,swiftString oneline
 syntax match swiftInterpolatedString "\v\w+(\(\))?" contained containedin=swiftInterpolatedWrapper,swiftMultilineInterpolatedWrapper oneline
 
 " Numbers
@@ -140,6 +140,7 @@ syntax keyword swiftKeywords
       \ mutating
       \ nil
       \ nonmutating
+      \ open
       \ operator
       \ optional
       \ override
@@ -194,6 +195,7 @@ syntax keyword swiftAttributes
       \ @IBDesignable
       \ @IBInspectable
       \ @IBOutlet
+      \ @inlinable
       \ @noescape
       \ @nonobjc
       \ @noreturn
@@ -203,6 +205,7 @@ syntax keyword swiftAttributes
       \ @objc
       \ @testable
       \ @UIApplicationMain
+      \ @usableFromInline
       \ @warn_unused_result
 
 syntax keyword swiftConditionStatement #available

@@ -1,12 +1,24 @@
-" Function to wrap Compatibility across different (Neo)Vim versions.
+" Compatibility wrappers for different (Neo)Vim versions and platforms.
+
+if neomake#utils#IsRunningWindows()
+    let g:neomake#compat#dev_null = 'NUL'
+else
+    let g:neomake#compat#dev_null = '/dev/null'
+endif
 
 if v:version >= 704
     function! neomake#compat#getbufvar(buf, key, def) abort
         return getbufvar(a:buf, a:key, a:def)
     endfunction
+    function! neomake#compat#getwinvar(win, key, def) abort
+        return getwinvar(a:win, a:key, a:def)
+    endfunction
 else
     function! neomake#compat#getbufvar(buf, key, def) abort
         return get(getbufvar(a:buf, ''), a:key, a:def)
+    endfunction
+    function! neomake#compat#getwinvar(win, key, def) abort
+        return get(getwinvar(a:win, ''), a:key, a:def)
     endfunction
 endif
 
@@ -59,19 +71,21 @@ else
         " The following is inspired by https://github.com/MarcWeber/vim-addon-manager and
         " http://stackoverflow.com/questions/17751186/iterating-over-a-string-in-vimscript-or-parse-a-json-file/19105763#19105763
         " A hat tip to Marc Weber for this trick
-        if substitute(a:json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
+        " Replace newlines, which eval() does not like.
+        let json = substitute(a:json, "\n", '', 'g')
+        if substitute(json, '\v\"%(\\.|[^"\\])*\"|true|false|null|[+-]?\d+%(\.\d+%([Ee][+-]?\d+)?)?', '', 'g') !~# "[^,:{}[\\] \t]"
             " JSON artifacts
             let true = g:neomake#compat#json_true
             let false = g:neomake#compat#json_false
             let null = g:neomake#compat#json_null
 
             try
-                let object = eval(a:json)
+                let object = eval(json)
             catch
-                throw 'Neomake: Failed to parse JSON input'
+                throw 'Neomake: Failed to parse JSON input: '.v:exception
             endtry
         else
-            throw 'Neomake: Failed to parse JSON input'
+            throw 'Neomake: Failed to parse JSON input: invalid input'
         endif
 
         return object
@@ -160,17 +174,23 @@ function! neomake#compat#globpath_list(path, pattern, suf) abort
     return split(globpath(a:path, a:pattern, a:suf), '\n')
 endfunction
 
+function! neomake#compat#glob_list(pattern) abort
+    if v:version <= 703
+        return split(glob(a:pattern, 1), '\n')
+    endif
+    return glob(a:pattern, 1, 1)
+endfunction
+
 if neomake#utils#IsRunningWindows()
     " Windows needs a shell to handle PATH/%PATHEXT% etc.
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         let prefix = &shell.' '.&shellcmdflag.' '
         if a:args_is_list
-            let args = neomake#utils#ExpandArgs(a:args)
-            if a:exe ==# &shell && get(args, 0) ==# &shellcmdflag
+            if a:exe ==# &shell && get(a:args, 0) ==# &shellcmdflag
                 " Remove already existing &shell/&shellcmdflag from e.g. NeomakeSh.
-                let argv = join(args[1:])
+                let argv = join(a:args[1:])
             else
-                let argv = join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+                let argv = join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
             endif
         else
             let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
@@ -183,14 +203,14 @@ if neomake#utils#IsRunningWindows()
 elseif has('nvim')
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            return [a:exe] + neomake#utils#ExpandArgs(a:args)
+            return [a:exe] + a:args
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
 elseif neomake#has_async_support()  " Vim-async.
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            return [a:exe] + neomake#utils#ExpandArgs(a:args)
+            return [a:exe] + a:args
         endif
         " Use a shell to handle argv properly (Vim splits at spaces).
         let argv = a:exe . (empty(a:args) ? '' : ' '.a:args)
@@ -200,8 +220,7 @@ else
     " Vim (synchronously), via system().
     function! neomake#compat#get_argv(exe, args, args_is_list) abort
         if a:args_is_list
-            let args = neomake#utils#ExpandArgs(a:args)
-            return join(map(copy([a:exe] + args), 'neomake#utils#shellescape(v:val)'))
+            return join(map(copy([a:exe] + a:args), 'neomake#utils#shellescape(v:val)'))
         endif
         return a:exe . (empty(a:args) ? '' : ' '.a:args)
     endfunction
@@ -258,12 +277,16 @@ if exists('*win_getid')
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw_id, pw_id] = remove(s:prev_windows, 0)
         let pw = win_id2win(pw_id)
-        if pw && winnr() != pw
+        if !pw
+            call neomake#log#debug(printf(
+                  \ 'Cannot restore previous windows (previous window with ID %d not found).',
+                  \ pw_id))
+        elseif winnr() != pw
             let aw = win_id2win(aw_id)
             if aw
-                exec aw . 'wincmd w'
+                noautocmd exec aw . 'wincmd w'
             endif
-            exec pw . 'wincmd w'
+            noautocmd exec pw . 'wincmd w'
         endif
     endfunction
 else
@@ -274,11 +297,25 @@ else
     function! neomake#compat#restore_prev_windows() abort
         " Go back, maintaining the '#' window (CTRL-W_p).
         let [aw, pw] = remove(s:prev_windows, 0)
-        if winnr() != pw
+        if pw > winnr('$')
+            call neomake#log#debug(printf(
+                  \ 'Cannot restore previous windows (%d > %d).',
+                  \ pw, winnr('$')))
+        elseif winnr() != pw
             if aw
-                exec aw . 'wincmd w'
+                noautocmd exec aw . 'wincmd w'
             endif
-            exec pw . 'wincmd w'
+            noautocmd exec pw . 'wincmd w'
         endif
+    endfunction
+endif
+
+if v:version >= 704 || (v:version == 703 && has('patch442'))
+    function! neomake#compat#doautocmd(event) abort
+        exec 'doautocmd <nomodeline> ' . a:event
+    endfunction
+else
+    function! neomake#compat#doautocmd(event) abort
+        exec 'doautocmd ' . a:event
     endfunction
 endif

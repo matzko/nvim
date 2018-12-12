@@ -5,21 +5,12 @@
 " License: MIT license
 "=============================================================================
 
-function! s:check_neovim() abort
-  if has('nvim')
-    call health#report_ok('has("nvim") was successful')
-  else
-    call health#report_error('has("nvim") was not successful',
-          \ 'Deoplete only works for neovim!')
-  endif
-endfunction
-
 function! s:check_t_list() abort
   if exists('v:t_list')
     call health#report_ok('exists("v:t_list") was successful')
   else
     call health#report_error('exists("v:t_list") was not successful',
-          \ 'Deoplete requires neovim 0.2.0+!')
+          \ 'Deoplete requires neovim 0.3.0+!')
   endif
 endfunction
 
@@ -44,6 +35,14 @@ function! s:check_required_python_for_deoplete() abort
           \ ]
           \ )
   endif
+
+  if !deoplete#init#_python_version_check()
+    call health#report_ok('Python3.5+ was successful')
+  else
+    call health#report_error(
+          \ 'Python3.5+ was not successful',
+          \ 'Please use Python3.5+.')
+  endif
 endfunction
 
 function! s:still_have_issues() abort
@@ -61,7 +60,6 @@ endfunction
 function! health#deoplete#check() abort
   call health#report_start('deoplete.nvim')
 
-  call s:check_neovim()
   call s:check_t_list()
   call s:check_timers()
   call s:check_required_python_for_deoplete()

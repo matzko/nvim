@@ -2,6 +2,7 @@
 
 [![Build Status](https://circleci.com/gh/neomake/neomake.png?style=shield)](https://circleci.com/gh/neomake/neomake)
 [![codecov](https://codecov.io/gh/neomake/neomake/branch/master/graph/badge.svg)](https://codecov.io/gh/neomake/neomake)
+[![Coveralls](https://coveralls.io/repos/github/neomake/neomake/badge.svg)](https://coveralls.io/github/neomake/neomake)
 
 Neomake is a plugin for [Vim]/[Neovim] to asynchronously run programs.
 
@@ -39,17 +40,20 @@ Plug 'neomake/neomake'
 If you want to run Neomake automatically (in file mode), you can configure it
 in your `vimrc` by using `neomake#configure#automake`, e.g. by picking one of:
 
+```vim
+" When writing a buffer (no delay).
+call neomake#configure#automake('w')
+" When writing a buffer (no delay), and on normal mode changes (after 750ms).
+call neomake#configure#automake('nw', 750)
+" When reading a buffer (after 1s), and when writing (no delay).
+call neomake#configure#automake('rw', 1000)
+" Full config: when writing or reading a buffer, and on changes in insert and
+" normal mode (after 1s; no delay when writing).
+call neomake#configure#automake('nrwi', 500)
+```
+
 (Any function calls like these need to come after indicating the end of plugins
 to your plugin manager, e.g. after `call plug#end()` with vim-plug.)
-
-```vim
-" When writing a buffer.
-call neomake#configure#automake('w')
-" When writing a buffer, and on normal mode changes (after 750ms).
-call neomake#configure#automake('nw', 750)
-" When reading a buffer (after 1s), and when writing.
-call neomake#configure#automake('rw', 1000)
-```
 
 ### Advanced setup
 
@@ -69,7 +73,9 @@ endif
 ```
 
 See `:help neomake-automake` (in [doc/neomake.txt](doc/neomake.txt)) for more
-information, e.g. how to configure it based on certain autocommands explicitly.
+information, e.g. how to configure it based on certain autocommands explicitly,
+and for details about which events get used for the different string-based
+modes.
 
 ## Usage
 

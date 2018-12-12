@@ -5,9 +5,10 @@
 # ============================================================================
 
 import re
-from .base import Base
+
+from deoplete.source.base import Base
 from deoplete.util import (
-    get_buffer_config, convert2list, set_pattern, convert2candidates)
+    convert2list, set_pattern, convert2candidates)
 
 
 class Source(Base):
@@ -21,11 +22,15 @@ class Source(Base):
         self.is_bytepos = True
         self.min_pattern_length = 0
 
-        self._input_patterns = {}
-        set_pattern(self._input_patterns, 'css,less,scss,sass',
-                    [r'\w+', r'\w+[):;]?\s+\w*', r'[@!]'])
-        set_pattern(self._input_patterns, 'lua',
-                    [r'\w+[.:]\w*', r'require\s*\(?["'']\w*'])
+        input_patterns = {}
+        set_pattern(input_patterns, 'css,less,scss,sass',
+                    [r'\w{2}', r'\w+:?\s*\w*', r'[@!]'])
+        set_pattern(input_patterns, 'lua',
+                    [r'\w+[.:]\w*'])
+        self.vars = {
+            'input_patterns': input_patterns,
+            'functions': {},
+        }
 
     def get_complete_position(self, context):
         current_ft = self.vim.eval('&filetype')
@@ -39,21 +44,15 @@ class Source(Base):
 
     def _get_complete_position(self, context, current_ft, filetype):
         for omnifunc in convert2list(
-                get_buffer_config(context, filetype,
-                                  'deoplete_omni_functions',
-                                  'deoplete#omni#functions',
-                                  {'_': ''})):
+                self.get_filetype_var(filetype, 'functions')):
             if omnifunc == '' and (filetype == current_ft or
                                    filetype in ['css', 'javascript']):
-                omnifunc = context['omni__omnifunc']
+                omnifunc = self.vim.eval('&l:omnifunc')
             if omnifunc == '':
                 continue
             self._omnifunc = omnifunc
             for input_pattern in convert2list(
-                    get_buffer_config(context, filetype,
-                                      'deoplete_omni_input_patterns',
-                                      'deoplete#omni#input_patterns',
-                                      self._input_patterns)):
+                    self.get_filetype_var(filetype, 'input_patterns')):
 
                 m = re.search('(' + input_pattern + ')$', context['input'])
                 # self.debug(filetype)
@@ -71,7 +70,7 @@ class Source(Base):
                     return -1
                 try:
                     complete_pos = self.vim.call(self._omnifunc, 1, '')
-                except Exception as e:
+                except Exception:
                     self.print_error('Error occurred calling omnifunction: ' +
                                      self._omnifunc)
                     return -1
@@ -83,9 +82,9 @@ class Source(Base):
             candidates = self.vim.call(self._omnifunc, 0, '')
             if isinstance(candidates, dict):
                 candidates = candidates['words']
-            elif isinstance(candidates, int):
+            elif not isinstance(candidates, list):
                 candidates = []
-        except Exception as e:
+        except Exception:
             self.print_error('Error occurred calling omnifunction: ' +
                              self._omnifunc)
             candidates = []

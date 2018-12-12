@@ -6,7 +6,7 @@
 
 import re
 
-from .base import Base
+from deoplete.source.base import Base
 from deoplete.util import parse_buffer_pattern, getlines
 
 LINES_ABOVE = 20
@@ -27,26 +27,26 @@ class Source(Base):
         # lines above
         words = parse_buffer_pattern(
             reversed(getlines(self.vim, max([1, line - LINES_ABOVE]), line)),
-            context['keyword_patterns'])
+            context['keyword_pattern'])
         candidates += [{'word': x, 'menu': 'A'} for x in words]
 
         # grab ':changes' command output
         p = re.compile(r'[\s\d]+')
         lines = set()
-        for change_line in [x[p.search(x).span()[1]:] for x
-                            in self.vim.call(
-                                'execute', 'changes').split('\n')
-                            if p.search(x)]:
+        for change_line in [
+                x[p.search(x).span()[1]:] for x
+                in self.vim.call('execute', 'changes').split('\n')[2:]
+                if p.search(x)]:
             if change_line and change_line != '-invalid-':
                 lines.add(change_line)
 
-        words = parse_buffer_pattern(lines, context['keyword_patterns'])
+        words = parse_buffer_pattern(lines, context['keyword_pattern'])
         candidates += [{'word': x, 'menu': 'C'} for x in words]
 
         # lines below
         words = parse_buffer_pattern(
             getlines(self.vim, line, line + LINES_BELOW),
-            context['keyword_patterns'])
+            context['keyword_pattern'])
         candidates += [{'word': x, 'menu': 'B'} for x in words]
 
         return candidates

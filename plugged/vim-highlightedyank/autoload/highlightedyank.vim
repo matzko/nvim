@@ -1,212 +1,184 @@
 " highlighted-yank: Make the yanked region apparent!
 " FIXME: Highlight region is incorrect when an input ^V[count]l ranges
 "        multiple lines.
-let s:Const = highlightedyank#constant#import()
-let s:Feature = s:Const.Feature
-let s:Type = s:Const.Type
-let s:NULLREGION = s:Const.NULLREGION
-let s:MAXCOL = s:Const.MAXCOL
+let s:NULLPOS = [0, 0, 0, 0]
+let s:NULLREGION = [s:NULLPOS, s:NULLPOS, '']
+let s:MAXCOL = 2147483647
 let s:ON = 1
 let s:OFF = 0
+let s:HIGROUP = 'HighlightedyankRegion'
 
-let s:STATE = s:ON
 
 
-function! highlightedyank#debounce() abort
-  if s:STATE is s:OFF
+let s:timer = -1
+
+" Highlight the yanked region
+function! highlightedyank#debounce() abort "{{{
+  if s:state is s:OFF
     return
   endif
 
   let operator = v:event.operator
   let regtype = v:event.regtype
   let regcontents = v:event.regcontents
-  if exists('s:timer')
+  let marks = [line("'["), line("']"), col("'["), col("']")]
+  if s:timer isnot -1
     call timer_stop(s:timer)
   endif
-  let marks = [line("'["), line("']"), col("'["), col("']")]
-  let s:timer = timer_start(1, {-> highlightedyank#autocmd_highlight(operator, regtype, regcontents, marks)})
-endfunction
 
-function! highlightedyank#autocmd_highlight(operator, regtype, regcontents, marks) abort "{{{
-  if a:marks !=#  [line("'["), line("']"), col("'["), col("']")]
-    return
-  endif
-  if a:operator !=# 'y' || a:regtype ==# ''
-    return
-  endif
-
-  let view = winsaveview()
-  let region = s:derive_region(a:regtype, a:regcontents)
-  call s:modify_region(region)
-  call s:highlight_yanked_region(region)
-  call winrestview(view)
+  " NOTE: The timer callback is not called while vim is busy, thus the
+  "       highlight procedure starts after the control is returned to the user.
+  "       This makes complex-repeat faster because the highlight doesn't
+  "       performed during a macro execution.
+  let s:timer = timer_start(1, {-> s:highlight(operator, regtype, regcontents, marks)})
 endfunction "}}}
+
+
+let s:state = s:ON
+
 function! highlightedyank#on() abort "{{{
-  let s:STATE = s:ON
+  let s:state = s:ON
 endfunction "}}}
+
+
 function! highlightedyank#off() abort "{{{
-  let s:STATE = s:OFF
+  let s:state = s:OFF
 endfunction "}}}
+
+
 function! highlightedyank#toggle() abort "{{{
-  if s:STATE is s:ON
+  if s:state is s:ON
     call highlightedyank#off()
   else
     call highlightedyank#on()
   endif
 endfunction "}}}
-function! s:derive_region(regtype, regcontents) abort "{{{
-  if a:regtype ==# 'v'
-    let region = s:derive_region_char(a:regcontents)
-  elseif a:regtype ==# 'V'
-    let region = s:derive_region_line(a:regcontents)
-  elseif a:regtype[0] ==# "\<C-v>"
+
+
+function! s:highlight(operator, regtype, regcontents, marks) abort "{{{
+  let s:timer = -1
+  if a:operator isnot# 'y' || a:regtype is# ''
+    return
+  endif
+  if a:marks !=#  [line("'["), line("']"), col("'["), col("']")]
+    return
+  endif
+
+  let [start, end, type] = s:get_region(a:regtype, a:regcontents)
+  if empty(type)
+    return
+  endif
+
+  let maxlinenumber = s:get('max_lines', 10000)
+  if end[1] - start[1] + 1 > maxlinenumber
+    return
+  endif
+
+  let hi_duration = s:get('highlight_duration', 1000)
+  if hi_duration == 0
+    return
+  endif
+
+  call highlightedyank#highlight#add(s:HIGROUP, start, end, type, hi_duration)
+endfunction "}}}
+
+
+function! s:get_region(regtype, regcontents) abort "{{{
+  if a:regtype is# 'v'
+    return s:get_region_char(a:regcontents)
+  elseif a:regtype is# 'V'
+    return s:get_region_line(a:regcontents)
+  elseif a:regtype[0] is# "\<C-v>"
     " NOTE: the width from v:event.regtype is not correct if 'clipboard' is
     "       unnamed or unnamedplus in windows
     " let width = str2nr(a:regtype[1:])
-    let curcol = col('.') - 1
-    let width = max(map(copy(a:regcontents), 'strdisplaywidth(v:val, curcol)'))
-    let region = s:derive_region_block(a:regcontents, width)
-  else
-    let region = deepcopy(s:NULLREGION)
+    return s:get_region_block(a:regcontents)
   endif
-  return region
+  return s:NULLREGION
 endfunction "}}}
-function! s:derive_region_char(regcontents) abort "{{{
+
+
+function! s:get_region_char(regcontents) abort "{{{
   let len = len(a:regcontents)
-  let region = {}
-  let region.wise = 'char'
-  let region.head = getpos("'[")
-  let region.tail = copy(region.head)
+  let start = getpos("'[")
+  let end = copy(start)
   if len == 0
-    let region = deepcopy(s:NULLREGION)
+    return s:NULLREGION
   elseif len == 1
-    let region.tail[2] += strlen(a:regcontents[0]) - 1
+    let end[2] += strlen(a:regcontents[0]) - 1
   elseif len == 2 && empty(a:regcontents[1])
-    let region.tail[2] += strlen(a:regcontents[0])
+    let end[2] += strlen(a:regcontents[0])
   else
     if empty(a:regcontents[-1])
-      let region.tail[1] += len - 2
-      let region.tail[2] = strlen(a:regcontents[-2])
+      let end[1] += len - 2
+      let end[2] = strlen(a:regcontents[-2])
     else
-      let region.tail[1] += len - 1
-      let region.tail[2] = strlen(a:regcontents[-1])
+      let end[1] += len - 1
+      let end[2] = strlen(a:regcontents[-1])
     endif
   endif
-  return region
+  let end = s:modify_end(end)
+  return [start, end, 'v']
 endfunction "}}}
-function! s:derive_region_line(regcontents) abort "{{{
-  let region = {}
-  let region.wise = 'line'
-  let region.head = getpos("'[")
-  let region.tail = getpos("']")
-  if region.tail[2] == s:MAXCOL
-    let region.tail[2] = col([region.tail[1], '$'])
+
+
+function! s:get_region_line(regcontents) abort "{{{
+  let start = getpos("'[")
+  let end = getpos("']")
+  if end[2] == s:MAXCOL
+    let end[2] = col([end[1], '$'])
   endif
-  return region
+  return [start, end, 'V']
 endfunction "}}}
-function! s:derive_region_block(regcontents, width) abort "{{{
+
+
+function! s:get_region_block(regcontents) abort "{{{
   let len = len(a:regcontents)
   if len == 0
-    return deepcopy(s:NULLREGION)
+    return s:NULLREGION
   endif
 
-  let curpos = getpos('.')
-  let region = deepcopy(s:NULLREGION)
-  let region.wise = 'block'
-  let region.head = getpos("'[")
-  call setpos('.', region.head)
+  let view = winsaveview()
+  let curcol = col('.')
+  let width = max(map(copy(a:regcontents), 'strdisplaywidth(v:val, curcol)'))
+  let start = getpos("'[")
+  call setpos('.', start)
   if len > 1
     execute printf('normal! %sj', len - 1)
   endif
-  execute printf('normal! %s|', virtcol('.') + a:width - 1)
-  let region.tail = getpos('.')
-  let region.blockwidth = a:width
-  if strdisplaywidth(getline('.')) < a:width
-    let region.blockwidth = s:MAXCOL
+  execute printf('normal! %s|', virtcol('.') + width - 1)
+  let end = s:modify_end(getpos('.'))
+  call winrestview(view)
+
+  let blockwidth = width
+  if strdisplaywidth(getline('.')) < width
+    let blockwidth = s:MAXCOL
   endif
-  call setpos('.', curpos)
-  return region
+  let type = "\<C-v>" . blockwidth
+  return [start, end, type]
 endfunction "}}}
-function! s:modify_region(region) abort "{{{
+
+
+function! s:modify_end(end) abort "{{{
   " for multibyte characters
-  if a:region.tail[2] != col([a:region.tail[1], '$']) && a:region.tail[3] == 0
-    let cursor = getpos('.')
-    call setpos('.', a:region.tail)
-    call search('\%(^\|.\)', 'bc')
-    let a:region.tail = getpos('.')
-    call setpos('.', cursor)
-  endif
-  return a:region
-endfunction "}}}
-function! s:highlight_yanked_region(region) abort "{{{
-  let maxlinenumber = s:get('max_lines', 10000)
-  if a:region.tail[1] - a:region.head[1] + 1 > maxlinenumber
-    return
+  if a:end[2] == col([a:end[1], '$']) || a:end[3] != 0
+    return a:end
   endif
 
-  let keyseq = ''
-  let hi_group = 'HighlightedyankRegion'
-  let hi_duration = s:get('highlight_duration', 1000)
-  let timeout = s:get('timeout', 1000)
-  let highlight = highlightedyank#highlight#new(a:region, timeout)
-  if highlight.empty()
-    return
+  let cursor = getpos('.')
+  call setpos('.', a:end)
+  let letterhead = searchpos('\zs', 'bcn', line('.'))
+  if letterhead[1] > a:end[2]
+    " try again without 'c' flag if letterhead is behind the original
+    " position. It may look strange but it happens with &enc ==# 'cp932'
+    let letterhead = searchpos('\zs', 'bn', line('.'))
   endif
-  if hi_duration < 0
-    call s:persist(highlight, hi_group)
-  elseif hi_duration > 0
-    if s:Feature.TIMERS
-      call s:glow(highlight, hi_group, hi_duration)
-    else
-      let keyseq = s:blink(highlight, hi_group, hi_duration)
-      call feedkeys(keyseq, 'it')
-    endif
-  endif
+  let a:end[1:2] = letterhead
+  call setpos('.', cursor)
+  return a:end
 endfunction "}}}
-function! s:persist(highlight, hi_group) abort  "{{{
-  call highlightedyank#highlight#cancel()
-  if a:highlight.show(a:hi_group)
-    call a:highlight.persist()
-  endif
-endfunction "}}}
-function! s:blink(highlight, hi_group, duration) abort "{{{
-  let key = ''
-  if a:highlight.show(a:hi_group)
-    redraw
-    let key = s:wait_for_input(a:highlight, a:duration)
-  endif
-  return key
-endfunction "}}}
-function! s:glow(highlight, hi_group, duration) abort "{{{
-  call highlightedyank#highlight#cancel()
-  if a:highlight.show(a:hi_group)
-    call a:highlight.quench_timer(a:duration)
-  endif
-endfunction "}}}
-function! s:wait_for_input(highlight, duration) abort  "{{{
-  let clock = highlightedyank#clock#new()
-  try
-    let c = 0
-    call clock.start()
-    while empty(c)
-      let c = getchar(0)
-      if clock.started && clock.elapsed() > a:duration
-        break
-      endif
-      sleep 20m
-    endwhile
-  finally
-    call a:highlight.quench()
-    call clock.stop()
-  endtry
 
-  if c == 0
-    let c = ''
-  else
-    let c = type(c) == s:Type.NUM ? nr2char(c) : c
-  endif
-  return c
-endfunction "}}}
+
 function! s:get(name, default) abort  "{{{
   let identifier = 'highlightedyank_' . a:name
   return get(b:, identifier, get(g:, identifier, a:default))

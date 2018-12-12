@@ -19,9 +19,8 @@ import deoplete.filter  # noqa
 from deoplete import logger
 from deoplete.exceptions import SourceInitError
 from deoplete.util import (bytepos2charpos, charpos2bytepos, error, error_tb,
-                           import_plugin,
-                           get_buffer_config, get_custom,
-                           get_syn_names, convert2candidates)
+                           import_plugin, get_custom, get_syn_names,
+                           convert2candidates, uniq_list_dict)
 
 
 class Child(logger.LoggingMixin):
@@ -32,7 +31,6 @@ class Child(logger.LoggingMixin):
         self._vim = vim
         self._filters = {}
         self._sources = {}
-        self._custom = []
         self._profile_flag = None
         self._profile_start_time = 0
         self._loaded_sources = {}
@@ -58,19 +56,15 @@ class Child(logger.LoggingMixin):
                 return
 
             self._unpacker.feed(feed)
-            self.debug('_read: %d bytes', len(feed))
 
             for child_in in self._unpacker:
                 name = child_in['name']
                 args = child_in['args']
                 queue_id = child_in['queue_id']
-                self.debug('main_loop: %s begin', name)
 
                 ret = self.main(name, args, queue_id)
                 if ret:
                     self._write(stdout, ret)
-
-                self.debug('main_loop: end')
 
     def main(self, name, args, queue_id):
         ret = None
@@ -82,8 +76,6 @@ class Child(logger.LoggingMixin):
             self._add_filter(args[0])
         elif name == 'set_source_attributes':
             self._set_source_attributes(args[0])
-        elif name == 'set_custom':
-            self._set_custom(args[0])
         elif name == 'on_event':
             self._on_event(args[0])
         elif name == 'merge_results':
@@ -137,7 +129,7 @@ class Child(logger.LoggingMixin):
             f.path = path
             if f.name in self._loaded_filters:
                 # Duplicated name
-                error_tb(self._vim, 'duplicated filter: %s' % f.name)
+                error_tb(self._vim, 'Duplicated filter: %s' % f.name)
                 error_tb(self._vim, 'path: "%s" "%s"' %
                          (path, self._loaded_filters[f.name]))
                 f = None
@@ -151,29 +143,25 @@ class Child(logger.LoggingMixin):
                 self.debug('Loaded Filter: %s (%s)', f.name, path)
 
     def _merge_results(self, context, queue_id):
-        self.debug('merged_results: begin')
         results = self._gather_results(context)
 
         merged_results = []
         for result in [x for x in results
                        if not self._is_skip(x['context'], x['source'])]:
-            source_result = self._source_result(result, context['input'])
-            if source_result:
-                rank = get_custom(self._custom,
+            candidates = self._get_candidates(
+                result, context['input'], context['next_input'])
+            if candidates:
+                rank = get_custom(context['custom'],
                                   result['source'].name, 'rank',
                                   result['source'].rank)
                 merged_results.append({
-                    'complete_position': source_result['complete_position'],
-                    'mark': result['source'].mark,
-                    'dup': bool(result['source'].filetypes),
-                    'candidates': result['candidates'],
-                    'source_name': result['source'].name,
+                    'complete_position': result['complete_position'],
+                    'candidates': candidates,
                     'rank': rank,
                 })
 
         is_async = len([x for x in results if x['is_async']]) > 0
 
-        self.debug('merged_results: end')
         return {
             'queue_id': queue_id,
             'is_async': is_async,
@@ -181,88 +169,87 @@ class Child(logger.LoggingMixin):
         }
 
     def _gather_results(self, context):
+        if (context['changedtick'] !=
+                self._vim.current.buffer.vars.get('changedtick', 0)):
+            return []
         results = []
 
         for source in [x[1] for x in self._itersource(context)]:
             try:
-                if source.disabled_syntaxes and 'syntax_names' not in context:
-                    context['syntax_names'] = get_syn_names(self._vim)
-                ctx = copy.deepcopy(context)
-
-                charpos = source.get_complete_position(ctx)
-                if charpos >= 0 and source.is_bytepos:
-                    charpos = bytepos2charpos(
-                        ctx['encoding'], ctx['input'], charpos)
-
-                ctx['char_position'] = charpos
-                ctx['complete_position'] = charpos2bytepos(
-                    ctx['encoding'], ctx['input'], charpos)
-                ctx['complete_str'] = ctx['input'][ctx['char_position']:]
-
-                if charpos < 0 or self._is_skip(ctx, source):
-                    if source.name in self._prev_results:
-                        self._prev_results.pop(source.name)
-                    # Skip
+                result = self._get_result(context, source)
+                if not result:
                     continue
-
-                if (source.name in self._prev_results and
-                        self._use_previous_result(
-                            context, self._prev_results[source.name],
-                            source.is_volatile)):
-                    results.append(self._prev_results[source.name])
-                    continue
-
-                ctx['is_async'] = False
-                ctx['is_refresh'] = True
-                ctx['max_abbr_width'] = min(source.max_abbr_width,
-                                            ctx['max_abbr_width'])
-                ctx['max_kind_width'] = min(source.max_kind_width,
-                                            ctx['max_kind_width'])
-                ctx['max_menu_width'] = min(source.max_menu_width,
-                                            ctx['max_menu_width'])
-                if ctx['max_abbr_width'] > 0:
-                    ctx['max_abbr_width'] = max(20, ctx['max_abbr_width'])
-                if ctx['max_kind_width'] > 0:
-                    ctx['max_kind_width'] = max(10, ctx['max_kind_width'])
-                if ctx['max_menu_width'] > 0:
-                    ctx['max_menu_width'] = max(10, ctx['max_menu_width'])
-
-                # Gathering
-                self._profile_start(ctx, source.name)
-                ctx['candidates'] = source.gather_candidates(ctx)
-                self._profile_end(source.name)
-
-                if ctx['candidates'] is None:
-                    continue
-
-                ctx['candidates'] = convert2candidates(ctx['candidates'])
-
-                result = {
-                    'name': source.name,
-                    'source': source,
-                    'context': ctx,
-                    'is_async': ctx['is_async'],
-                    'prev_linenr': ctx['position'][1],
-                    'prev_input': ctx['input'],
-                    'input': ctx['input'],
-                    'complete_position': ctx['complete_position'],
-                    'candidates': ctx['candidates'],
-                }
                 self._prev_results[source.name] = result
                 results.append(result)
-            except Exception:
-                self._source_errors[source.name] += 1
-                if source.is_silent:
-                    continue
-                if self._source_errors[source.name] > 2:
-                    error(self._vim, 'Too many errors from "%s". '
-                          'This source is disabled until Neovim '
-                          'is restarted.' % source.name)
-                    self._ignore_sources.append(source.name)
-                    continue
-                error_tb(self._vim, 'Errors from: %s' % source.name)
+            except Exception as exc:
+                self._handle_source_exception(source, exc)
 
         return results
+
+    def _get_result(self, context, source):
+        if source.disabled_syntaxes and 'syntax_names' not in context:
+            context['syntax_names'] = get_syn_names(self._vim)
+
+        ctx = copy.deepcopy(context)
+
+        charpos = source.get_complete_position(ctx)
+        if charpos >= 0 and source.is_bytepos:
+            charpos = bytepos2charpos(
+                ctx['encoding'], ctx['input'], charpos)
+
+        ctx['char_position'] = charpos
+        ctx['complete_position'] = charpos2bytepos(
+            ctx['encoding'], ctx['input'], charpos)
+        ctx['complete_str'] = ctx['input'][ctx['char_position']:]
+
+        if charpos < 0 or self._is_skip(ctx, source):
+            if source.name in self._prev_results:
+                self._prev_results.pop(source.name)
+            # Skip
+            return {}
+
+        if (source.name in self._prev_results and
+                self._use_previous_result(
+                    context, self._prev_results[source.name],
+                    source.is_volatile)):
+            return self._prev_results[source.name]
+
+        ctx['is_async'] = False
+        ctx['is_refresh'] = True
+        ctx['max_abbr_width'] = min(source.max_abbr_width,
+                                    ctx['max_abbr_width'])
+        ctx['max_kind_width'] = min(source.max_kind_width,
+                                    ctx['max_kind_width'])
+        ctx['max_menu_width'] = min(source.max_menu_width,
+                                    ctx['max_menu_width'])
+        if ctx['max_abbr_width'] > 0:
+            ctx['max_abbr_width'] = max(20, ctx['max_abbr_width'])
+        if ctx['max_kind_width'] > 0:
+            ctx['max_kind_width'] = max(10, ctx['max_kind_width'])
+        if ctx['max_menu_width'] > 0:
+            ctx['max_menu_width'] = max(10, ctx['max_menu_width'])
+
+        # Gathering
+        self._profile_start(ctx, source.name)
+        ctx['candidates'] = source.gather_candidates(ctx)
+        self._profile_end(source.name)
+
+        if ctx['candidates'] is None:
+            return {}
+
+        ctx['candidates'] = convert2candidates(ctx['candidates'])
+
+        return {
+            'name': source.name,
+            'source': source,
+            'context': ctx,
+            'is_async': ctx['is_async'],
+            'prev_linenr': ctx['position'][1],
+            'prev_input': ctx['input'],
+            'input': ctx['input'],
+            'complete_position': ctx['complete_position'],
+            'candidates': ctx['candidates'],
+        }
 
     def _gather_async_results(self, result, source):
         try:
@@ -273,36 +260,48 @@ class Child(logger.LoggingMixin):
             if async_candidates is None:
                 return
             context['candidates'] += convert2candidates(async_candidates)
-        except Exception:
-            self._source_errors[source.name] += 1
-            if source.is_silent:
-                return
-            if self._source_errors[source.name] > 2:
-                error(self._vim, 'Too many errors from "%s". '
-                      'This source is disabled until Neovim '
-                      'is restarted.' % source.name)
-                self._ignore_sources.append(source.name)
-            else:
-                error_tb(self._vim, 'Errors from: %s' % source.name)
+        except Exception as exc:
+            self._handle_source_exception(source, exc)
 
-    def _process_filter(self, f, context):
+    def _handle_source_exception(self, source, exc):
+        if isinstance(exc, SourceInitError):
+            error(self._vim,
+                  'Error when loading source {}: {}. '
+                  'Ignoring.'.format(source.name, exc))
+            self._ignore_sources.append(source.name)
+            return
+
+        self._source_errors[source.name] += 1
+        if source.is_silent:
+            return
+        if self._source_errors[source.name] > 2:
+            error(self._vim, 'Too many errors from "%s". '
+                  'This source is disabled until Neovim '
+                  'is restarted.' % source.name)
+            self._ignore_sources.append(source.name)
+        else:
+            error_tb(self._vim, 'Error from %s: %r' % (source.name, exc))
+
+    def _process_filter(self, f, context, max_candidates):
         try:
             self._profile_start(context, f.name)
             if (isinstance(context['candidates'], dict) and
                     'sorted_candidates' in context['candidates']):
-                context_candidates = []
+                filtered = []
                 context['is_sorted'] = True
                 for candidates in context['candidates']['sorted_candidates']:
                     context['candidates'] = candidates
-                    context_candidates += f.filter(context)
-                context['candidates'] = context_candidates
+                    filtered += f.filter(context)
             else:
-                context['candidates'] = f.filter(context)
+                filtered = f.filter(context)
+            if max_candidates > 0:
+                filtered = filtered[: max_candidates]
+            context['candidates'] = filtered
             self._profile_end(f.name)
         except Exception:
             error_tb(self._vim, 'Errors from: %s' % f)
 
-    def _source_result(self, result, context_input):
+    def _get_candidates(self, result, context_input, next_input):
         source = result['source']
 
         # Gather async results
@@ -316,20 +315,41 @@ class Child(logger.LoggingMixin):
         ctx = copy.deepcopy(result['context'])
 
         ctx['input'] = context_input
+        ctx['next_input'] = next_input
         ctx['complete_str'] = context_input[ctx['char_position']:]
         ctx['is_sorted'] = False
 
         # Set ignorecase
         case = ctx['smartcase'] or ctx['camelcase']
-        if case and re.search(r'[A-Z]', ctx['complete_str']):
-            ctx['ignorecase'] = 0
+        if case:
+            if re.search(r'[A-Z]', ctx['complete_str']):
+                ctx['ignorecase'] = False
+            else:
+                ctx['ignorecase'] = True
         ignorecase = ctx['ignorecase']
 
-        # Filtering
-        for f in [self._filters[x] for x
-                  in source.matchers + source.sorters + source.converters
-                  if x in self._filters]:
-            self._process_filter(f, ctx)
+        # Match
+        matchers = [self._filters[x] for x
+                    in source.matchers if x in self._filters]
+        if source.matcher_key != '':
+            # Convert word key to matcher_key
+            for candidate in ctx['candidates']:
+                candidate['__save_word'] = candidate['word']
+                candidate['word'] = candidate[source.matcher_key]
+        for f in matchers:
+            self._process_filter(f, ctx, source.max_candidates)
+        if source.matcher_key != '':
+            # Restore word key
+            for candidate in ctx['candidates']:
+                candidate['word'] = candidate['__save_word']
+
+        # Sort and Convert
+        sorters = [self._filters[x] for x
+                   in source.sorters if x in self._filters]
+        converters = [self._filters[x] for x
+                      in source.converters if x in self._filters]
+        for f in sorters + converters:
+            self._process_filter(f, ctx, source.max_candidates)
 
         ctx['ignorecase'] = ignorecase
 
@@ -337,20 +357,32 @@ class Child(logger.LoggingMixin):
         if hasattr(source, 'on_post_filter'):
             ctx['candidates'] = source.on_post_filter(ctx)
 
-        result['candidates'] = ctx['candidates']
-        return result if result['candidates'] else None
+        mark = source.mark + ' '
+        dup = bool(source.filetypes)
+        for candidate in ctx['candidates']:
+            # Set default menu and icase
+            candidate['icase'] = 1
+            if (mark != ' ' and
+                    candidate.get('menu', '').find(mark) != 0):
+                candidate['menu'] = mark + candidate.get('menu', '')
+            if dup:
+                candidate['dup'] = 1
+        # Note: cannot use set() for dict
+        if dup:
+            # Remove duplicates
+            ctx['candidates'] = uniq_list_dict(ctx['candidates'])
+
+        return ctx['candidates']
 
     def _itersource(self, context):
         filetypes = context['filetypes']
         ignore_sources = set(self._ignore_sources)
         for ft in filetypes:
             ignore_sources.update(
-                get_buffer_config(context, ft,
-                                  'deoplete_ignore_sources',
-                                  'deoplete#ignore_sources',
-                                  {}))
+                self._vim.call('deoplete#custom#_get_filetype_option',
+                               'ignore_sources', ft, []))
 
-        for source_name, source in self._sources.items():
+        for source_name, source in self._get_sources().items():
             if source.filetypes is None or source_name in ignore_sources:
                 continue
             if context['sources'] and source_name not in context['sources']:
@@ -382,7 +414,8 @@ class Child(logger.LoggingMixin):
             return
 
         if not self._profile_flag:
-            self._profile_flag = context['vars']['deoplete#enable_profile']
+            self._profile_flag = self._vim.call(
+                'deoplete#custom#_get_option', 'profile')
             if self._profile_flag:
                 return self._profile_start(context, name)
         elif self._profile_flag:
@@ -395,8 +428,7 @@ class Child(logger.LoggingMixin):
                 name, time.clock() - self._profile_start_time))
 
     def _use_previous_result(self, context, result, is_volatile):
-        if (context['position'][1] != result['prev_linenr'] or
-                not result['candidates']):
+        if context['position'][1] != result['prev_linenr']:
             return False
         if is_volatile:
             return context['input'] == result['prev_input']
@@ -410,10 +442,11 @@ class Child(logger.LoggingMixin):
             p = re.compile('(' + '|'.join(source.disabled_syntaxes) + ')$')
             if next(filter(p.search, context['syntax_names']), None):
                 return True
-        if (source.input_pattern != '' and
-                re.search('(' + source.input_pattern + ')$',
-                          context['input'])):
-            return False
+        for ft in context['filetypes']:
+            input_pattern = source.get_input_pattern(ft)
+            if (input_pattern != '' and
+                    re.search('(' + input_pattern + ')$', context['input'])):
+                return False
         if context['event'] == 'Manual':
             return False
         return not (source.min_pattern_length <=
@@ -422,47 +455,63 @@ class Child(logger.LoggingMixin):
     def _set_source_attributes(self, context):
         """Set source attributes from the context.
 
-        Each item in `attrs` is the attribute name.  If the default value is in
-        context['vars'] under a different name, use a tuple.
+        Each item in `attrs` is the attribute name.
         """
         attrs = (
-            'filetypes',
-            'disabled_syntaxes',
-            'input_pattern',
-            ('min_pattern_length', 'deoplete#auto_complete_start_length'),
-            'max_pattern_length',
-            ('max_abbr_width', 'deoplete#max_abbr_width'),
-            ('max_kind_width', 'deoplete#max_menu_width'),
-            ('max_menu_width', 'deoplete#max_menu_width'),
-            'matchers',
-            'sorters',
             'converters',
-            'mark',
+            'disabled_syntaxes',
+            'filetypes',
+            'input_pattern',
             'is_debug_enabled',
             'is_silent',
+            'mark',
+            'matchers',
+            'max_abbr_width',
+            'max_candidates',
+            'max_kind_width',
+            'max_menu_width',
+            'max_pattern_length',
+            'min_pattern_length',
+            'sorters',
         )
 
-        for name, source in self._sources.items():
-            for attr in attrs:
-                if isinstance(attr, tuple):
-                    default_val = context['vars'][attr[1]]
-                    attr = attr[0]
-                else:
-                    default_val = None
-                source_attr = getattr(source, attr, default_val)
-                setattr(source, attr, get_custom(context['custom'],
-                                                 name, attr, source_attr))
+        for name, source in self._get_sources().items():
+            self.debug('Set Source attributes: %s', name)
 
-    def _set_custom(self, custom):
-        self._custom = custom
+            for attr in attrs:
+                source_attr = getattr(source, attr, None)
+                custom = get_custom(context['custom'],
+                                    name, attr, source_attr)
+                if custom and isinstance(source_attr, dict):
+                    # Update values if it is dict
+                    source_attr.update(custom)
+                else:
+                    setattr(source, attr, custom)
+
+                self.debug('Attribute: %s (%s)', attr, getattr(source, attr))
+
+            # Default min_pattern_length
+            if source.min_pattern_length < 0:
+                source.min_pattern_length = self._vim.call(
+                    'deoplete#custom#_get_option', 'min_pattern_length')
+
+            if not source.is_volatile:
+                source.is_volatile = bool(source.filetypes)
 
     def _on_event(self, context):
+        event = context['event']
         for source_name, source in self._itersource(context):
-            if not source.events or context['event'] in source.events:
-                self.debug('on_event: Source: %s', source_name)
+            if source.events is None or event in source.events:
                 try:
                     source.on_event(context)
                 except Exception as exc:
                     error_tb(self._vim, 'Exception during {}.on_event '
                              'for event {!r}: {}'.format(
-                                 source_name, context['event'], exc))
+                                 source.name, event, exc))
+
+        for f in self._filters.values():
+            f.on_event(context)
+
+    def _get_sources(self):
+        # Note: for the size change of "self._sources" error
+        return copy.copy(self._sources)

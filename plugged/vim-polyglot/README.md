@@ -1,4 +1,4 @@
-# vim-polyglot [![Build Status][travis-img-url]][travis-url] [![Maintenance](https://img.shields.io/maintenance/yes/2017.svg?maxAge=2592000)]()
+# vim-polyglot [![Build Status][travis-img-url]][travis-url] [![Maintenance](https://img.shields.io/maintenance/yes/2018.svg?maxAge=2592000)]()
 
 [travis-img-url]: https://travis-ci.org/sheerun/vim-polyglot.svg
 [travis-url]: https://travis-ci.org/sheerun/vim-polyglot
@@ -8,7 +8,7 @@ A collection of language packs for Vim.
 > One to rule them all, one to find them, one to bring them all and in the darkness bind them.
 
 - It **won't affect your startup time**, as scripts are loaded only on demand\*.
-- It **installs and updates 100+ times faster** than 100+ packages it consists of.
+- It **installs and updates 100+ times faster** than the <!--Package Count-->114<!--/Package Count--> packages it consists of.
 - Solid syntax and indentation support (other features skipped). Only the best language packs.
 - All unnecessary files are ignored (like enormous documentation from php support).
 - No support for esoteric languages, only most popular ones (modern too, like `slim`).
@@ -42,9 +42,10 @@ If you need full functionality of any plugin, please use it directly with your p
 
 ## Language packs
 
+<!--Language Packs-->
 - [ansible](https://github.com/pearofducks/ansible-vim) (syntax, indent, ftplugin)
 - [apiblueprint](https://github.com/sheerun/apiblueprint.vim) (syntax)
-- [applescript](https://github.com/vim-scripts/applescript.vim) (syntax)
+- [applescript](https://github.com/mityu/vim-applescript) (syntax, indent)
 - [arduino](https://github.com/sudar/vim-arduino-syntax) (syntax, indent)
 - [asciidoc](https://github.com/asciidoc/vim-asciidoc) (syntax)
 - [autohotkey](https://github.com/hnamikaw/vim-autohotkey) (indent)
@@ -68,6 +69,7 @@ If you need full functionality of any plugin, please use it directly with your p
 - [emberscript](https://github.com/yalesov/vim-ember-script) (syntax, indent, ftplugin)
 - [emblem](https://github.com/yalesov/vim-emblem) (syntax, indent, ftplugin)
 - [erlang](https://github.com/vim-erlang/vim-erlang-runtime) (syntax, indent)
+- [ferm](https://github.com/vim-scripts/ferm.vim) (syntax)
 - [fish](https://github.com/dag/vim-fish) (syntax, indent, compiler, autoload, ftplugin)
 - [fsharp](https://github.com/fsharp/vim-fsharp) (syntax, indent)
 - [git](https://github.com/tpope/vim-git) (syntax, indent, ftplugin)
@@ -75,9 +77,11 @@ If you need full functionality of any plugin, please use it directly with your p
 - [gmpl](https://github.com/maelvalais/gmpl.vim) (syntax)
 - [gnuplot](https://github.com/vim-scripts/gnuplot-syntax-highlighting) (syntax)
 - [go](https://github.com/fatih/vim-go) (syntax, compiler, indent)
+- [graphql](https://github.com/jparise/vim-graphql) (syntax, indent, ftplugin)
 - [groovy](https://github.com/vim-scripts/groovy.vim) (syntax)
 - [haml](https://github.com/sheerun/vim-haml) (syntax, indent, compiler, ftplugin)
 - [handlebars](https://github.com/mustache/vim-mustache-handlebars) (syntax, indent, ftplugin)
+- [haproxy](https://github.com/CH-DanReif/haproxy.vim) (syntax)
 - [haskell](https://github.com/neovimhaskell/haskell-vim) (syntax, indent, ftplugin)
 - [haxe](https://github.com/yaymukund/vim-haxe) (syntax)
 - [html5](https://github.com/othree/html5.vim) (syntax, indent, autoload, ftplugin)
@@ -101,7 +105,7 @@ If you need full functionality of any plugin, please use it directly with your p
 - [mathematica](https://github.com/rsmenon/vim-mathematica) (syntax, ftplugin)
 - [nginx](https://github.com/chr4/nginx.vim) (syntax, indent, ftplugin)
 - [nim](https://github.com/zah/nim.vim) (syntax, compiler, indent)
-- [nix](https://github.com/LnL7/vim-nix) (syntax, indent, ftplugin)
+- [nix](https://github.com/LnL7/vim-nix) (syntax, indent, compiler, ftplugin)
 - [objc](https://github.com/b4winckler/vim-objc) (ftplugin, syntax, indent)
 - [ocaml](https://github.com/jrk/vim-ocaml) (syntax, indent, ftplugin)
 - [octave](https://github.com/vim-scripts/octave.vim--) (syntax)
@@ -135,7 +139,7 @@ If you need full functionality of any plugin, please use it directly with your p
 - [stylus](https://github.com/wavded/vim-stylus) (syntax, indent, ftplugin)
 - [swift](https://github.com/keith/swift.vim) (syntax, indent, ftplugin)
 - [sxhkd](https://github.com/baskerville/vim-sxhkdrc) (syntax)
-- [systemd](https://github.com/kurayama/systemd-vim-syntax) (syntax)
+- [systemd](https://github.com/wgwoods/vim-systemd-syntax) (syntax)
 - [terraform](https://github.com/hashivim/vim-terraform) (syntax, indent, ftplugin)
 - [textile](https://github.com/timcharper/textile.vim) (syntax, ftplugin)
 - [thrift](https://github.com/solarnz/thrift.vim) (syntax)
@@ -153,6 +157,7 @@ If you need full functionality of any plugin, please use it directly with your p
 - [xls](https://github.com/vim-scripts/XSLT-syntax) (syntax)
 - [yaml](https://github.com/stephpy/vim-yaml) (syntax, ftplugin)
 - [yard](https://github.com/sheerun/vim-yardoc) (syntax)
+<!--/Language Packs-->
 
 ## Updating
 
@@ -169,13 +174,18 @@ Individual language packs can be disabled by setting `g:polyglot_disabled` as fo
 let g:polyglot_disabled = ['css']
 ```
 
-Note that disabiling languages won't make in general your vim startup any faster / slower (only for specific file type). Vim-polyglot is selection of language plugins that are loaded only on demand.
+Note that disabling languages won't make in general your vim startup any faster / slower (only for specific file type). Vim-polyglot is selection of language plugins that are loaded only on demand.
 
 ## Contributing
 
 Language packs are periodically updated using automated `build` script.
 
-Feel free to add your language, and send pull-request.
+Feel free to add your language, and send pull-request.  In your pull request, please include:
+1. How you chose the particular repo from which to pull support for this language.
+2. An updated https://github.com/sheerun/vim-polyglot/blob/master/build .
+3. If at all possible, absolutely nothing else (in particular, please don't run `build` and include that in your PR).
+
+The easier it is to validate that the new language won't do anything wacky, the faster it'll be merged.  In particular, languages that utilize global plugins (loaded for every filetype), or plugins with dangerous features (like `call` based on the contents of a file being edited), will never be merged, as they will be slow or dangerous, respectively.
 
 ## License
 
