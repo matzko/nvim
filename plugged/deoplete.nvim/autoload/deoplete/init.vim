@@ -206,12 +206,12 @@ function! deoplete#init#_option() abort
         \ 'auto_complete_delay': 0,
         \ 'auto_refresh_delay': 20,
         \ 'camel_case': v:false,
-        \ 'complete_method': 'complete',
         \ 'delimiters': ['/'],
         \ 'ignore_case': &ignorecase,
         \ 'ignore_sources': {},
+        \ 'candidate_marks': [],
         \ 'max_list': 500,
-        \ 'num_processes': has('win32') ? 1 : 4,
+        \ 'num_processes': 4,
         \ 'keyword_patterns': {'_': '[a-zA-Z_]\k*'},
         \ 'omni_patterns': {},
         \ 'on_insert_enter': v:true,
@@ -220,6 +220,7 @@ function! deoplete#init#_option() abort
         \ 'min_pattern_length': 2,
         \ 'refresh_always': v:true,
         \ 'skip_chars': ['(', ')'],
+        \ 'skip_multibyte': v:false,
         \ 'smart_case': &smartcase,
         \ 'sources': {},
         \ 'trigger_key': v:char,
@@ -231,6 +232,7 @@ function! deoplete#init#_prev_completion() abort
         \ 'event': '',
         \ 'input': '',
         \ 'candidates': [],
+        \ 'complete_position': -1,
         \ }
 endfunction
 

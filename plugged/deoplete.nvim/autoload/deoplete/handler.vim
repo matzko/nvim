@@ -63,6 +63,7 @@ function! deoplete#handler#_do_complete() abort
   let prev.event = context.event
   let prev.input = context.input
   let prev.candidates = context.candidates
+  let prev.complete_position = context.complete_position
 
   if context.event ==# 'Manual'
     let context.event = ''
@@ -70,16 +71,7 @@ function! deoplete#handler#_do_complete() abort
     call deoplete#mapping#_set_completeopt()
   endif
 
-  let complete_method = deoplete#custom#_get_option('complete_method')
-  if complete_method ==# 'complete'
-    call feedkeys("\<Plug>_", 'i')
-  elseif complete_method ==# 'completefunc'
-    let &l:completefunc = 'deoplete#mapping#_completefunc'
-    call feedkeys("\<C-x>\<C-u>", 'in')
-  elseif complete_method ==# 'omnifunc'
-    let &l:omnifunc = 'deoplete#mapping#_completefunc'
-    call feedkeys("\<C-x>\<C-o>", 'in')
-  endif
+  call feedkeys("\<Plug>_", 'i')
 endfunction
 
 function! deoplete#handler#_check_omnifunc(context) abort
@@ -194,16 +186,29 @@ function! s:is_skip(event) abort
         \ || (a:event !=# 'Manual' && a:event !=# 'Async' && !auto_complete)
         \ || (&l:completefunc !=# '' && &l:buftype =~# 'nofile')
         \ || (a:event !=# 'InsertEnter' && mode() !=# 'i')
-        \ || (exists('b:eskk') && !empty(b:eskk))
+        \ || (exists('b:eskk') && !empty(b:eskk)
+        \     && !s:check_eskk_phase_henkan())
     return 1
   endif
 
   return 0
 endfunction
+function! s:check_eskk_phase_henkan() abort
+  let preedit = eskk#get_preedit()
+  let phase = preedit.get_henkan_phase()
+  return phase is g:eskk#preedit#PHASE_HENKAN
+endfunction
 function! s:is_skip_text(event) abort
-  let context = g:deoplete#_context
   let input = deoplete#util#get_input(a:event)
 
+  let lastchar = matchstr(input, '.$')
+  let skip_multibyte = deoplete#custom#_get_option('skip_multibyte')
+  if skip_multibyte && len(lastchar) != strwidth(lastchar)
+        \ && empty(get(b:, 'eskk', []))
+    return 1
+  endif
+
+  let context = g:deoplete#_context
   if has_key(context, 'input')
         \ && a:event !=# 'Manual'
         \ && a:event !=# 'Async'
@@ -265,7 +270,7 @@ function! deoplete#handler#_skip_next_completion() abort
   endif
 
   let input = deoplete#util#get_input('CompleteDone')
-  if input[-1:] !=# '/'
+  if input !~# '[/.]$'
     let g:deoplete#_context.input = input
   endif
   call deoplete#init#_prev_completion()

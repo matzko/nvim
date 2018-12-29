@@ -363,14 +363,16 @@ if has('patch-7.3.1058')
 else
     " Older Vim does not handle s: function references across files.
     function! s:function(name) abort
-      return function(substitute(a:name,'^s:',matchstr(expand('<sfile>'), '.*\zs<SNR>\d\+_'),''))
+        return function(substitute(a:name,'^s:',matchstr(expand('<sfile>'), '.*\zs<SNR>\d\+_'),''))
     endfunction
 endif
 
 function! s:handle_hook(jobinfo, event, context) abort
     let context_str = string(map(copy(a:context),
-                \ "v:key ==# 'jobinfo' ? v:val.as_string()"
-                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)"))
+                \ "v:key ==# 'make_info' ? 'make_info #'.get(v:val, 'make_id')"
+                \ .": (v:key ==# 'options' && has_key(v:val, 'jobs') ? extend(copy(v:val), {'jobs': map(copy(v:val.jobs), 'v:val.maker.name')}, 'force')"
+                \ .": (v:key ==# 'jobinfo' ? v:val.as_string()"
+                \ .": (v:key ==# 'finished_jobs' ? map(copy(v:val), 'v:val.as_string()') : v:val)))"))
 
     if exists('g:neomake_hook_context')
         call neomake#log#debug(printf('Queuing User autocmd %s for nested invocation (%s).', a:event, context_str),
@@ -525,6 +527,9 @@ endfunction
 
 function! neomake#utils#fix_self_ref(obj, ...) abort
     if type(a:obj) != type({})
+        if type(a:obj) == type([])
+            return map(copy(a:obj), 'neomake#utils#fix_self_ref(v:val)')
+        endif
         return a:obj
     endif
     let obj = copy(a:obj)
@@ -563,6 +568,11 @@ function! neomake#utils#highlight_is_defined(group) abort
     return neomake#utils#parse_highlight(a:group) !=# 'cleared'
 endfunction
 
+" Get the root directory of the current project.
+" This is determined by looking for specific files (e.g. `.git` and
+" `Makefile`), and `g:neomake#makers#ft#X#project_root_files` (if defined for
+" filetype "X").
+" a:1 buffer number (defaults to current)
 function! neomake#utils#get_project_root(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
     let ft = getbufvar(bufnr, '&filetype')
@@ -713,3 +723,10 @@ else
         return ''
     endfunction
 endif
+
+function! neomake#utils#shorten_list_for_log(l, max) abort
+    if len(a:l) > a:max
+        return a:l[:a:max-1] + ['... ('.len(a:l).' total)']
+    endif
+    return a:l
+endfunction

@@ -66,7 +66,7 @@ You can enable Python3 interface with pip: >
 
     pip3 install --user pynvim
 
-Note: deoplete needs neovim-python ver.0.2.4+.
+Note: deoplete needs neovim-python ver.0.3.0+.
 You need update neovim-python module.
 >
     pip3 install --user --upgrade pynvim
@@ -131,17 +131,11 @@ camel_case
 
 		Default value: v:false
 
-					*deoplete-options-complete_method*
-complete_method
-		If it is "complete", deoplete use |complete()|.
+					*deoplete-options-candidate_marks*
+candidate_marks
+		The candidate additional marks.
 
-		If it is "completefunc", deoplete use |i_CTRL-X_CTRL-U|.
-		Note: It changes current 'completefunc' value.
-
-		If it is "omnifunc", deoplete use |i_CTRL-X_CTRL-O|.
-		Note: It changes current 'omnifunc' value.
-
-		Default value: "complete"
+		Default value: []
 
 						*deoplete-options-delimiters*
 delimiters
@@ -192,7 +186,7 @@ num_processes
 		If it is less than or equal to 0, the number of processes is
 		equal to that of sources.
 
-		Default value: 1 (Windows) or 4 (Others)
+		Default value: 4
 
 					*deoplete-options-omni_patterns*
 omni_patterns
@@ -248,6 +242,13 @@ refresh_always
 		Note: It increases the screen flicker.
 
 		Default value: v:true
+
+					*deoplete-options-skip_multibyte*
+skip_multibyte
+		Deoplete skip multibyte text completion automatically if this
+		value is True.
+
+		Default value: v:false
 
 						*deoplete-options-skip_chars*
 skip_chars
@@ -341,7 +342,6 @@ deoplete#initialize()
 		Note: You should call it in |VimEnter| autocmd.
 		User customization for deoplete must be set before
 		initialization of deoplete.
-
 						*deoplete#send_event()*
 deoplete#send_event({event}, [{sources}])
 		Call |deoplete-source-attribute-on_event| manually.
@@ -361,6 +361,7 @@ deoplete#custom#buffer_option({dict})
 
 					*deoplete#custom#buffer_var()*
 deoplete#custom#buffer_var({source-name}, {var-name}, {value})
+deoplete#custom#buffer_var({source-name}, {dict})
 		The buffer local version of |deoplete#custom#var()|.
 
 						*deoplete#custom#option()*
@@ -372,11 +373,14 @@ deoplete#custom#option({dict})
 
 						*deoplete#custom#source()*
 deoplete#custom#source({source-name}, {option-name}, {value})
+deoplete#custom#source({source-name}, {dict})
 		Set {source-name} source specialized {option-name}
 		to {value}. You may specify multiple sources with
 		separating "," in {source-name}.
 		If {source-name} is "_", sources default option will be
 		change.
+		If {dict} is available, the key is {option-name} and the value
+		is {value}.
 		Note: You must call it before using deoplete.
 >
 		" Examples:
@@ -427,9 +431,12 @@ deoplete#custom#source({source-name}, {option-name}, {value})
 <
 							*deoplete#custom#var()*
 deoplete#custom#var({source-name}, {var-name}, {value})
+deoplete#custom#var({source-name}, {dict})
 		Set {source-name} source specialized variable {variable-name}
 		to {value}.  You may specify multiple sources with the
 		separator "," in {source-name}.
+		If {dict} is available, the key is {option-name} and the value
+		is {value}.
 
 ------------------------------------------------------------------------------
 KEY MAPPINGS 					*deoplete-key-mappings*
@@ -443,6 +450,11 @@ deoplete#close_popup()
 deoplete#complete_common_string()
 		complete common string in candidates.  It will be convenient
 		when candidates have long common string.
+		Note: It must be in |map-<expr>|.
+
+						*deoplete#insert_candidate()*
+deoplete#insert_candidate({number})
+		Insert {number}th candidate.
 		Note: It must be in |map-<expr>|.
 
 					*deoplete#manual_complete()*
@@ -503,10 +515,6 @@ EXAMPLES						*deoplete-examples*
 	" Use smartcase.
 	call deoplete#custom#option('smart_case', v:true)
 
-	" <C-h>, <BS>: close popup and delete backword char.
-	inoremap <expr><C-h> deoplete#smart_close_popup()."\<C-h>"
-	inoremap <expr><BS>  deoplete#smart_close_popup()."\<C-h>"
-
 	" <CR>: close popup and save indent.
 	inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
 	function! s:my_cr_function() abort
@@ -525,9 +533,30 @@ around						    *deoplete-source-around*
 
 		Legend: You can see where the words came from. Next to the
 		source mark [~] these suffixes are used:
-		    A - above the cursor
-		    B - below the cursor
-		    C - in changes
+		    A - above the cursor 
+		    B - below the cursor 
+		    C - in changes       
+
+		By default, around has a fixed range of looking for words
+		20 lines above and below your cursor position. You are able
+		to customize its settings through custom source variables.
+		Note: There are no events for changing this. Configuration
+		should be done before the source initializes.
+>
+		" Using custom variables to configure values
+		" - range_above = Search for words N lines above.
+		" - range_below = Search for words N lines below.
+		" - mark_above = Mark shown for words N lines above.
+		" - mark_below = Mark shown for words N lines below.
+		" - mark_changes = Mark shown for words in the changelist.
+		call deoplete#custom#var('around', {
+		\   'range_above': 15,
+		\   'range_below': 15
+		\   'mark_above': '[↑]',
+		\   'mark_below': '[↓]',
+		\   'mark_changes': '[*]',
+		\})
+<
 
 		rank: 300
 
@@ -795,6 +824,15 @@ disabled_syntaxes
 
 		Default: []
 		Note: It means this feature is ignored.
+
+					*deoplete-source-attribute-dup*
+dup
+		(Bool)			(Optional)
+		The candidates will be added even when the same word is
+		already present.
+
+		Default: v:true if |deoplete-source-attribute-filetypes| is
+		set.
 
 					*deoplete-source-attribute-events*
 events		(List[str])			(Optional)
@@ -1430,7 +1468,7 @@ It is workaround. >
 
        call deoplete#custom#option('num_processes', 1)
 
-Q: "[deoplete] neovim-python 0.2.4+ is required." error
+Q: "[deoplete] neovim-python 0.3.0+ is required." error
 https://github.com/Shougo/deoplete.nvim/issues/694
 
 A: You must upgrade neovim-python client. >
@@ -1668,6 +1706,11 @@ A: https://github.com/zchee/deoplete-jedi/issues/35
 
 ==============================================================================
 COMPATIBILITY					*deoplete-compatibility*
+
+2018.12.24
+* neovim-python 0.3.0+ is needed for asyncio feature.
+* Change deoplete-options-num_processes default value in Windows.
+* Remove "complete_method" option.
 
 2018.12.10
 * Remove async_timeout option.
