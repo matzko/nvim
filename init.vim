@@ -7,6 +7,7 @@ set hlsearch
 " set the width that tabs appear to be
 set tabstop=2
 set shiftwidth=2
+autocmd FileType elm setlocal shiftwidth=4 tabstop=4
 set listchars=tab:·\ ,eol:˺
 set list
 " use spaces for tabs
