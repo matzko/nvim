@@ -80,7 +80,7 @@ let NERDTreeHijackNetrw=1
 :set inccommand=split
 let g:tig_open_command = 'vnew'
 
-let g:elm_format_autosave = 0
+let g:elm_format_autosave = 1
 let g:elm_make_output_file = "build/elm.js"
 
 " When writing a buffer.
