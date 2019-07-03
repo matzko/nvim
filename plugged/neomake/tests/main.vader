@@ -47,6 +47,7 @@ Include (Toggling): toggle.vader
 Include (Utils: project root): utils_projectroot.vader
 Include (Utils): utils.vader
 Include (Verbosity): verbosity.vader
+Include (Vim/Neovim behavior): vim_and_neovim_behavior.vader
 
 ~ Filetype specific
 Include (Asciidoc): ft_asciidoc.vader
@@ -56,6 +57,7 @@ Include (Elixir): ft_elixir.vader
 Include (Elm): ft_elm.vader
 Include (Erlang): ft_erlang.vader
 Include (Go): ft_go.vader
+Include (HTML): ft_html.vader
 Include (Haskell): ft_haskell.vader
 Include (Idris): ft_idris.vader
 Include (JavaScript): ft_javascript.vader

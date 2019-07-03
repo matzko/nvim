@@ -1,5 +1,7 @@
-if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'rust') == -1
-  
+if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'rust') != -1
+  finish
+endif
+
 " Author: Stephen Sugden <stephen@stephensugden.com>
 "
 " Adapted from https://github.com/fatih/vim-go
@@ -147,6 +149,7 @@ function! s:RunRustfmt(command, tmpname, fail_silently)
 
     call delete(l:stderr_tmpname)
 
+    let l:open_lwindow = 0
     if v:shell_error == 0
         " remove undo point caused via BufWritePre
         try | silent undojoin | catch | endtry
@@ -167,7 +170,7 @@ function! s:RunRustfmt(command, tmpname, fail_silently)
         if s:got_fmt_error
             let s:got_fmt_error = 0
             call setloclist(0, [])
-            lwindow
+            let l:open_lwindow = 1
         endif
     elseif g:rustfmt_fail_silently == 0 && a:fail_silently == 0
         " otherwise get the errors and put them in the location list
@@ -199,7 +202,7 @@ function! s:RunRustfmt(command, tmpname, fail_silently)
         endif
 
         let s:got_fmt_error = 1
-        lwindow
+        let l:open_lwindow = 1
     endif
 
     " Restore the current directory if needed
@@ -209,6 +212,11 @@ function! s:RunRustfmt(command, tmpname, fail_silently)
         else
             execute 'chdir! '.l:prev_cd
         endif
+    endif
+
+    " Open lwindow after we have changed back to the previous directory
+    if l:open_lwindow == 1
+        lwindow
     endif
 
     silent! loadview
@@ -232,6 +240,9 @@ function! rustfmt#Cmd()
 endfunction
 
 function! rustfmt#PreWrite()
+    if !filereadable(expand("%@"))
+        return
+    endif
     if rust#GetConfigVar('rustfmt_autosave_if_config_present', 0)
         if findfile('rustfmt.toml', '.;') !=# '' || findfile('.rustfmt.toml', '.;') !=# ''
             let b:rustfmt_autosave = 1
@@ -248,5 +259,3 @@ endfunction
 
 
 " vim: set et sw=4 sts=4 ts=8:
-
-endif

@@ -1,15 +1,19 @@
-if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'terraform') == -1
-  
-" Forked from Larry Gilbert's syntax file
-" github.com/L2G/vim-syntax-terraform
-
-if exists("b:current_syntax")
+if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'terraform') != -1
   finish
 endif
 
-" Include hyphens as keyword characters so that a keyword appearing as part of
-" a longer name doesn't get partially highlighted.
-setlocal iskeyword+=-
+" Forked from Larry Gilbert's syntax file
+" github.com/L2G/vim-syntax-terraform
+
+if exists('b:current_syntax')
+  finish
+endif
+
+" Identifiers are made up of alphanumeric characters, underscores, and
+" hyphens.
+if has('patch-7.4.1142')
+    syn iskeyword a-z,A-Z,48-57,_,-
+endif
 
 syn case match
 
@@ -19,25 +23,39 @@ syn keyword terraValueBool true false on off yes no
 """ data
 syn keyword terraDataTypeBI
           \ alicloud_account
+          \ alicloud_actiontrails
           \ alicloud_api_gateway_apis
           \ alicloud_api_gateway_apps
           \ alicloud_api_gateway_groups
+          \ alicloud_cas_certificates
           \ alicloud_cen_bandwidth_limits
           \ alicloud_cen_bandwidth_packages
           \ alicloud_cen_instances
           \ alicloud_cen_region_route_entries
           \ alicloud_cen_route_entries
+          \ alicloud_common_bandwidth_packages
+          \ alicloud_cr_namespaces
+          \ alicloud_cr_repos
+          \ alicloud_cs_kubernetes_clusters
+          \ alicloud_cs_managed_kubernetes_clusters
           \ alicloud_db_instances
+          \ alicloud_ddoscoo_instances
           \ alicloud_disks
           \ alicloud_dns_domain_groups
           \ alicloud_dns_domain_records
           \ alicloud_dns_domains
           \ alicloud_dns_groups
           \ alicloud_dns_records
+          \ alicloud_drds_instances
           \ alicloud_eips
+          \ alicloud_elasticsearch_instances
+          \ alicloud_ess_scaling_configurations
+          \ alicloud_ess_scaling_groups
+          \ alicloud_ess_scaling_rules
           \ alicloud_fc_functions
           \ alicloud_fc_services
           \ alicloud_fc_triggers
+          \ alicloud_forward_entries
           \ alicloud_images
           \ alicloud_instance_types
           \ alicloud_instances
@@ -48,9 +66,19 @@ syn keyword terraDataTypeBI
           \ alicloud_mns_topic_subscriptions
           \ alicloud_mns_topics
           \ alicloud_mongo_instances
+          \ alicloud_mongodb_instances
+          \ alicloud_nas_access_groups
+          \ alicloud_nas_access_rules
+          \ alicloud_nas_file_systems
+          \ alicloud_nas_mount_targets
+          \ alicloud_nas_protocols
+          \ alicloud_nat_gateways
           \ alicloud_network_interfaces
           \ alicloud_oss_bucket_objects
           \ alicloud_oss_buckets
+          \ alicloud_ots_instance_attachments
+          \ alicloud_ots_instances
+          \ alicloud_ots_tables
           \ alicloud_pvtz_zone_records
           \ alicloud_pvtz_zones
           \ alicloud_ram_account_alias
@@ -60,6 +88,8 @@ syn keyword terraDataTypeBI
           \ alicloud_ram_roles
           \ alicloud_ram_users
           \ alicloud_regions
+          \ alicloud_route_entries
+          \ alicloud_route_tables
           \ alicloud_router_interfaces
           \ alicloud_security_group_rules
           \ alicloud_security_groups
@@ -71,6 +101,10 @@ syn keyword terraDataTypeBI
           \ alicloud_slb_server_certificates
           \ alicloud_slb_server_groups
           \ alicloud_slbs
+          \ alicloud_snapshots
+          \ alicloud_snat_entries
+          \ alicloud_ssl_vpn_client_certs
+          \ alicloud_ssl_vpn_servers
           \ alicloud_vpcs
           \ alicloud_vpn_connections
           \ alicloud_vpn_customer_gateways
@@ -90,6 +124,7 @@ syn keyword terraDataTypeBI
           \ aws_api_gateway_resource
           \ aws_api_gateway_rest_api
           \ aws_api_gateway_vpc_link
+          \ aws_appsync_datasource
           \ aws_arn
           \ aws_autoscaling_group
           \ aws_autoscaling_groups
@@ -107,6 +142,7 @@ syn keyword terraDataTypeBI
           \ aws_cloudwatch_log_group
           \ aws_codecommit_repository
           \ aws_cognito_user_pools
+          \ aws_cur_report_definition
           \ aws_db_cluster_snapshot
           \ aws_db_event_categories
           \ aws_db_instance
@@ -119,6 +155,8 @@ syn keyword terraDataTypeBI
           \ aws_ec2_transit_gateway
           \ aws_ec2_transit_gateway_route_table
           \ aws_ec2_transit_gateway_vpc_attachment
+          \ aws_ec2_transit_gateway_vpn_attachment
+          \ aws_ecr_image
           \ aws_ecr_repository
           \ aws_ecs_cluster
           \ aws_ecs_container_definition
@@ -128,6 +166,8 @@ syn keyword terraDataTypeBI
           \ aws_efs_mount_target
           \ aws_eip
           \ aws_eks_cluster
+          \ aws_eks_cluster_auth
+          \ aws_elastic_beanstalk_application
           \ aws_elastic_beanstalk_hosted_zone
           \ aws_elastic_beanstalk_solution_stack
           \ aws_elasticache_cluster
@@ -158,6 +198,7 @@ syn keyword terraDataTypeBI
           \ aws_kms_secrets
           \ aws_lambda_function
           \ aws_lambda_invocation
+          \ aws_lambda_layer_version
           \ aws_launch_configuration
           \ aws_launch_template
           \ aws_lb
@@ -171,6 +212,7 @@ syn keyword terraDataTypeBI
           \ aws_partition
           \ aws_prefix_list
           \ aws_pricing_product
+          \ aws_ram_resource_share
           \ aws_rds_cluster
           \ aws_redshift_cluster
           \ aws_redshift_service_account
@@ -193,6 +235,7 @@ syn keyword terraDataTypeBI
           \ aws_storagegateway_local_disk
           \ aws_subnet
           \ aws_subnet_ids
+          \ aws_transfer_server
           \ aws_vpc
           \ aws_vpc_dhcp_options
           \ aws_vpc_endpoint
@@ -201,13 +244,26 @@ syn keyword terraDataTypeBI
           \ aws_vpcs
           \ aws_vpn_gateway
           \ aws_workspaces_bundle
+          \ azuread_user
           \ azurerm_api_management
+          \ azurerm_api_management_api
+          \ azurerm_api_management_group
+          \ azurerm_api_management_product
+          \ azurerm_api_management_user
           \ azurerm_app_service
           \ azurerm_app_service_plan
+          \ azurerm_application_insights
           \ azurerm_application_security_group
+          \ azurerm_automation_variable_bool
+          \ azurerm_automation_variable_datetime
+          \ azurerm_automation_variable_int
+          \ azurerm_automation_variable_string
+          \ azurerm_availability_set
           \ azurerm_azuread_application
           \ azurerm_azuread_service_principal
           \ azurerm_batch_account
+          \ azurerm_batch_certificate
+          \ azurerm_batch_pool
           \ azurerm_builtin_role_definition
           \ azurerm_cdn_profile
           \ azurerm_client_config
@@ -217,12 +273,18 @@ syn keyword terraDataTypeBI
           \ azurerm_dev_test_lab
           \ azurerm_dns_zone
           \ azurerm_eventhub_namespace
+          \ azurerm_express_route_circuit
+          \ azurerm_firewall
+          \ azurerm_hdinsight_cluster
           \ azurerm_image
           \ azurerm_key_vault
           \ azurerm_key_vault_access_policy
           \ azurerm_key_vault_key
           \ azurerm_key_vault_secret
           \ azurerm_kubernetes_cluster
+          \ azurerm_kubernetes_service_versions
+          \ azurerm_lb
+          \ azurerm_lb_backend_address_pool
           \ azurerm_log_analytics_workspace
           \ azurerm_logic_app_workflow
           \ azurerm_managed_disk
@@ -232,26 +294,32 @@ syn keyword terraDataTypeBI
           \ azurerm_monitor_log_profile
           \ azurerm_network_interface
           \ azurerm_network_security_group
+          \ azurerm_network_watcher
           \ azurerm_notification_hub
           \ azurerm_notification_hub_namespace
           \ azurerm_platform_image
+          \ azurerm_policy_definition
           \ azurerm_public_ip
           \ azurerm_public_ips
+          \ azurerm_recovery_services_protection_policy_vm
           \ azurerm_recovery_services_vault
           \ azurerm_resource_group
           \ azurerm_role_definition
           \ azurerm_route_table
           \ azurerm_scheduler_job_collection
+          \ azurerm_servicebus_namespace
           \ azurerm_shared_image
           \ azurerm_shared_image_gallery
           \ azurerm_shared_image_version
           \ azurerm_snapshot
           \ azurerm_storage_account
           \ azurerm_storage_account_sas
+          \ azurerm_stream_analytics_job
           \ azurerm_subnet
           \ azurerm_subscription
           \ azurerm_subscriptions
           \ azurerm_traffic_manager_geographical_location
+          \ azurerm_user_assigned_identity
           \ azurerm_virtual_machine
           \ azurerm_virtual_network
           \ azurerm_virtual_network_gateway
@@ -271,9 +339,11 @@ syn keyword terraDataTypeBI
           \ circonus_account
           \ circonus_collector
           \ cloudflare_ip_ranges
+          \ cloudflare_zones
           \ cloudstack_template
           \ consul_agent_config
           \ consul_agent_self
+          \ consul_autopilot_health
           \ consul_catalog_nodes
           \ consul_catalog_service
           \ consul_catalog_services
@@ -298,6 +368,7 @@ syn keyword terraDataTypeBI
           \ dns_a_record_set
           \ dns_aaaa_record_set
           \ dns_cname_record_set
+          \ dns_mx_record_set
           \ dns_ns_record_set
           \ dns_ptr_record_set
           \ dns_txt_record_set
@@ -305,6 +376,8 @@ syn keyword terraDataTypeBI
           \ external
           \ fastly_ip_ranges
           \ filter
+          \ flexibleengine_cce_cluster_v3
+          \ flexibleengine_cce_node_v3
           \ flexibleengine_compute_bms_flavors_v2
           \ flexibleengine_compute_bms_keypairs_v2
           \ flexibleengine_compute_bms_nic_v2
@@ -316,6 +389,8 @@ syn keyword terraDataTypeBI
           \ flexibleengine_dcs_maintainwindow_v1
           \ flexibleengine_dcs_product_v1
           \ flexibleengine_images_image_v2
+          \ flexibleengine_kms_data_key_v1
+          \ flexibleengine_kms_key_v1
           \ flexibleengine_networking_network_v2
           \ flexibleengine_networking_secgroup_v2
           \ flexibleengine_rds_flavors_v1
@@ -339,9 +414,11 @@ syn keyword terraDataTypeBI
           \ github_user
           \ gitlab_project
           \ gitlab_user
+          \ gitlab_users
           \ google_active_folder
           \ google_billing_account
           \ google_client_config
+          \ google_client_openid_userinfo
           \ google_cloudfunctions_function
           \ google_compute_address
           \ google_compute_backend_service
@@ -353,6 +430,7 @@ syn keyword terraDataTypeBI
           \ google_compute_instance_group
           \ google_compute_lb_ip_ranges
           \ google_compute_network
+          \ google_compute_node_types
           \ google_compute_region_instance_group
           \ google_compute_regions
           \ google_compute_ssl_policy
@@ -365,31 +443,47 @@ syn keyword terraDataTypeBI
           \ google_container_registry_repository
           \ google_dns_managed_zone
           \ google_folder
+          \ google_folder_organization_policy
           \ google_iam_policy
           \ google_iam_role
+          \ google_kms_crypto_key
+          \ google_kms_key_ring
           \ google_kms_secret
           \ google_netblock_ip_ranges
           \ google_organization
           \ google_project
+          \ google_project_organization_policy
           \ google_project_services
+          \ google_projects
           \ google_service_account
+          \ google_service_account_access_token
           \ google_service_account_key
           \ google_storage_bucket_object
           \ google_storage_object_signed_url
           \ google_storage_project_service_account
           \ google_storage_transfer_project_service_account
+          \ google_tpu_tensorflow_versions
+          \ grafana_data_source
+          \ gridscale_ipv4
+          \ gridscale_ipv6
+          \ gridscale_network
+          \ gridscale_sshkey
+          \ gridscale_storage
+          \ gridscale_template
           \ hcloud_datacenter
           \ hcloud_datacenters
           \ hcloud_floating_ip
           \ hcloud_image
           \ hcloud_location
           \ hcloud_locations
+          \ hcloud_server
           \ hcloud_ssh_key
           \ hcloud_volume
           \ heroku_addon
           \ heroku_app
           \ heroku_space
           \ heroku_space_peering_info
+          \ heroku_team
           \ http
           \ huaweicloud_antiddos_v1
           \ huaweicloud_cce_cluster_v3
@@ -397,10 +491,14 @@ syn keyword terraDataTypeBI
           \ huaweicloud_csbs_backup_policy_v1
           \ huaweicloud_csbs_backup_v1
           \ huaweicloud_cts_tracker_v1
+          \ huaweicloud_dcs_az_v1
+          \ huaweicloud_dcs_maintainwindow_v1
+          \ huaweicloud_dcs_product_v1
           \ huaweicloud_dms_az_v1
           \ huaweicloud_dms_maintainwindow_v1
           \ huaweicloud_dms_product_v1
           \ huaweicloud_iam_role_v3
+          \ huaweicloud_identity_role_v3
           \ huaweicloud_images_image_v2
           \ huaweicloud_kms_data_key_v1
           \ huaweicloud_kms_key_v1
@@ -421,12 +519,25 @@ syn keyword terraDataTypeBI
           \ huaweicloud_vpc_subnet_ids_v1
           \ huaweicloud_vpc_subnet_v1
           \ huaweicloud_vpc_v1
+          \ ignition_config
+          \ ignition_directory
+          \ ignition_disk
+          \ ignition_file
+          \ ignition_filesystem
+          \ ignition_group
+          \ ignition_link
+          \ ignition_networkd_unit
+          \ ignition_raid
+          \ ignition_systemd_unit
+          \ ignition_user
           \ kubernetes_secret
           \ kubernetes_service
           \ kubernetes_storage_class
           \ linode_account
+          \ linode_domain
           \ linode_image
           \ linode_instance_type
+          \ linode_networking_ip
           \ linode_profile
           \ linode_region
           \ linode_sshkey
@@ -435,7 +546,26 @@ syn keyword terraDataTypeBI
           \ logentries_logset
           \ logicmonitor_collectors
           \ logicmonitor_device_group
+          \ ncloud_access_control_group
+          \ ncloud_access_control_groups
+          \ ncloud_access_control_rule
+          \ ncloud_access_control_rules
+          \ ncloud_member_server_image
+          \ ncloud_member_server_images
+          \ ncloud_nas_volume
+          \ ncloud_nas_volumes
+          \ ncloud_port_forwarding_rule
+          \ ncloud_port_forwarding_rules
+          \ ncloud_public_ip
+          \ ncloud_regions
+          \ ncloud_root_password
+          \ ncloud_server_image
+          \ ncloud_server_images
+          \ ncloud_server_product
+          \ ncloud_server_products
+          \ ncloud_zones
           \ newrelic_alert_channel
+          \ newrelic_alert_policy
           \ newrelic_application
           \ newrelic_key_transaction
           \ newrelic_synthetics_monitor
@@ -444,6 +574,7 @@ syn keyword terraDataTypeBI
           \ nomad_namespaces
           \ nomad_regions
           \ ns1_datasource
+          \ ns1_zone
           \ nsxt_certificate
           \ nsxt_edge_cluster
           \ nsxt_logical_tier0_router
@@ -454,6 +585,7 @@ syn keyword terraDataTypeBI
           \ nsxt_switching_profile
           \ nsxt_transport_zone
           \ null_data_source
+          \ nutanix_category_key
           \ nutanix_cluster
           \ nutanix_clusters
           \ nutanix_image
@@ -462,6 +594,230 @@ syn keyword terraDataTypeBI
           \ nutanix_virtual_machine
           \ nutanix_volume_group
           \ nutanix_volume_groups
+          \ oci_audit_configuration
+          \ oci_audit_events
+          \ oci_autoscaling_auto_scaling_configuration
+          \ oci_autoscaling_auto_scaling_configurations
+          \ oci_budget_alert_rule
+          \ oci_budget_alert_rules
+          \ oci_budget_budget
+          \ oci_budget_budgets
+          \ oci_containerengine_cluster_kube_config
+          \ oci_containerengine_cluster_option
+          \ oci_containerengine_clusters
+          \ oci_containerengine_node_pool
+          \ oci_containerengine_node_pool_option
+          \ oci_containerengine_node_pools
+          \ oci_containerengine_work_request_errors
+          \ oci_containerengine_work_request_log_entries
+          \ oci_containerengine_work_requests
+          \ oci_core_app_catalog_listing
+          \ oci_core_app_catalog_listing_resource_version
+          \ oci_core_app_catalog_listing_resource_versions
+          \ oci_core_app_catalog_listings
+          \ oci_core_app_catalog_subscriptions
+          \ oci_core_boot_volume
+          \ oci_core_boot_volume_attachments
+          \ oci_core_boot_volume_backup
+          \ oci_core_boot_volume_backups
+          \ oci_core_boot_volumes
+          \ oci_core_console_histories
+          \ oci_core_console_history_data
+          \ oci_core_cpes
+          \ oci_core_cross_connect
+          \ oci_core_cross_connect_group
+          \ oci_core_cross_connect_groups
+          \ oci_core_cross_connect_locations
+          \ oci_core_cross_connect_port_speed_shapes
+          \ oci_core_cross_connect_status
+          \ oci_core_cross_connects
+          \ oci_core_dhcp_options
+          \ oci_core_drg_attachments
+          \ oci_core_drgs
+          \ oci_core_fast_connect_provider_service
+          \ oci_core_fast_connect_provider_service_key
+          \ oci_core_fast_connect_provider_services
+          \ oci_core_images
+          \ oci_core_instance
+          \ oci_core_instance_configuration
+          \ oci_core_instance_configurations
+          \ oci_core_instance_console_connections
+          \ oci_core_instance_credentials
+          \ oci_core_instance_devices
+          \ oci_core_instance_pool
+          \ oci_core_instance_pool_instances
+          \ oci_core_instance_pools
+          \ oci_core_instances
+          \ oci_core_internet_gateways
+          \ oci_core_ipsec_config
+          \ oci_core_ipsec_connections
+          \ oci_core_ipsec_status
+          \ oci_core_letter_of_authority
+          \ oci_core_listing_resource_version
+          \ oci_core_listing_resource_versions
+          \ oci_core_local_peering_gateways
+          \ oci_core_nat_gateway
+          \ oci_core_nat_gateways
+          \ oci_core_peer_region_for_remote_peerings
+          \ oci_core_private_ip
+          \ oci_core_private_ips
+          \ oci_core_public_ip
+          \ oci_core_public_ips
+          \ oci_core_remote_peering_connections
+          \ oci_core_route_tables
+          \ oci_core_security_lists
+          \ oci_core_service_gateways
+          \ oci_core_services
+          \ oci_core_shape
+          \ oci_core_shapes
+          \ oci_core_subnet
+          \ oci_core_subnets
+          \ oci_core_vcn
+          \ oci_core_vcns
+          \ oci_core_virtual_circuit
+          \ oci_core_virtual_circuit_bandwidth_shapes
+          \ oci_core_virtual_circuit_public_prefixes
+          \ oci_core_virtual_circuits
+          \ oci_core_vnic
+          \ oci_core_vnic_attachments
+          \ oci_core_volume
+          \ oci_core_volume_attachments
+          \ oci_core_volume_backup_policies
+          \ oci_core_volume_backup_policy_assignments
+          \ oci_core_volume_backups
+          \ oci_core_volume_group_backups
+          \ oci_core_volume_groups
+          \ oci_core_volumes
+          \ oci_database_autonomous_data_warehouse
+          \ oci_database_autonomous_data_warehouse_backup
+          \ oci_database_autonomous_data_warehouse_backups
+          \ oci_database_autonomous_data_warehouse_wallet
+          \ oci_database_autonomous_data_warehouses
+          \ oci_database_autonomous_database
+          \ oci_database_autonomous_database_backup
+          \ oci_database_autonomous_database_backups
+          \ oci_database_autonomous_database_wallet
+          \ oci_database_autonomous_databases
+          \ oci_database_backups
+          \ oci_database_data_guard_association
+          \ oci_database_data_guard_associations
+          \ oci_database_database
+          \ oci_database_databases
+          \ oci_database_db_home
+          \ oci_database_db_home_patch_history_entries
+          \ oci_database_db_home_patches
+          \ oci_database_db_homes
+          \ oci_database_db_node
+          \ oci_database_db_nodes
+          \ oci_database_db_system_patch_history_entries
+          \ oci_database_db_system_patches
+          \ oci_database_db_system_shapes
+          \ oci_database_db_systems
+          \ oci_database_db_versions
+          \ oci_database_exadata_iorm_config
+          \ oci_dns_records
+          \ oci_dns_steering_policies
+          \ oci_dns_steering_policy
+          \ oci_dns_steering_policy_attachment
+          \ oci_dns_steering_policy_attachments
+          \ oci_dns_zones
+          \ oci_email_sender
+          \ oci_email_senders
+          \ oci_email_suppression
+          \ oci_email_suppressions
+          \ oci_file_storage_export_sets
+          \ oci_file_storage_exports
+          \ oci_file_storage_file_systems
+          \ oci_file_storage_mount_targets
+          \ oci_file_storage_snapshot
+          \ oci_file_storage_snapshots
+          \ oci_health_checks_http_monitor
+          \ oci_health_checks_http_monitors
+          \ oci_health_checks_http_probe_results
+          \ oci_health_checks_ping_monitor
+          \ oci_health_checks_ping_monitors
+          \ oci_health_checks_ping_probe_results
+          \ oci_health_checks_vantage_points
+          \ oci_identity_api_keys
+          \ oci_identity_auth_tokens
+          \ oci_identity_authentication_policy
+          \ oci_identity_availability_domain
+          \ oci_identity_availability_domains
+          \ oci_identity_compartment
+          \ oci_identity_compartments
+          \ oci_identity_cost_tracking_tags
+          \ oci_identity_customer_secret_keys
+          \ oci_identity_dynamic_groups
+          \ oci_identity_fault_domains
+          \ oci_identity_group
+          \ oci_identity_groups
+          \ oci_identity_identity_provider_groups
+          \ oci_identity_identity_providers
+          \ oci_identity_idp_group_mappings
+          \ oci_identity_policies
+          \ oci_identity_region_subscriptions
+          \ oci_identity_regions
+          \ oci_identity_smtp_credentials
+          \ oci_identity_swift_passwords
+          \ oci_identity_tag_default
+          \ oci_identity_tag_defaults
+          \ oci_identity_tag_namespaces
+          \ oci_identity_tags
+          \ oci_identity_tenancy
+          \ oci_identity_user
+          \ oci_identity_user_group_memberships
+          \ oci_identity_users
+          \ oci_kms_decrypted_data
+          \ oci_kms_encrypted_data
+          \ oci_kms_key
+          \ oci_kms_key_version
+          \ oci_kms_key_versions
+          \ oci_kms_keys
+          \ oci_kms_vault
+          \ oci_kms_vaults
+          \ oci_load_balancer_backend_health
+          \ oci_load_balancer_backend_set_health
+          \ oci_load_balancer_backend_sets
+          \ oci_load_balancer_backends
+          \ oci_load_balancer_backendsets
+          \ oci_load_balancer_certificates
+          \ oci_load_balancer_health
+          \ oci_load_balancer_hostnames
+          \ oci_load_balancer_load_balancers
+          \ oci_load_balancer_path_route_sets
+          \ oci_load_balancer_policies
+          \ oci_load_balancer_protocols
+          \ oci_load_balancer_rule_set
+          \ oci_load_balancer_rule_sets
+          \ oci_load_balancer_shapes
+          \ oci_load_balancers
+          \ oci_monitoring_alarm
+          \ oci_monitoring_alarm_history_collection
+          \ oci_monitoring_alarm_statuses
+          \ oci_monitoring_alarms
+          \ oci_monitoring_metric_data
+          \ oci_monitoring_metrics
+          \ oci_objectstorage_bucket
+          \ oci_objectstorage_bucket_summaries
+          \ oci_objectstorage_namespace
+          \ oci_objectstorage_namespace_metadata
+          \ oci_objectstorage_object
+          \ oci_objectstorage_object_head
+          \ oci_objectstorage_object_lifecycle_policy
+          \ oci_objectstorage_objects
+          \ oci_objectstorage_preauthrequest
+          \ oci_objectstorage_preauthrequests
+          \ oci_ons_notification_topic
+          \ oci_ons_notification_topics
+          \ oci_ons_subscription
+          \ oci_ons_subscriptions
+          \ oci_streaming_stream
+          \ oci_streaming_streams
+          \ oci_waas_certificate
+          \ oci_waas_certificates
+          \ oci_waas_edge_subnets
+          \ oci_waas_waas_policies
+          \ oci_waas_waas_policy
           \ oneandone_instance_size
           \ opc_compute_image_list_entry
           \ opc_compute_ip_address_reservation
@@ -471,8 +827,10 @@ syn keyword terraDataTypeBI
           \ opc_compute_ssh_key
           \ opc_compute_storage_volume_snapshot
           \ opc_compute_vnic
+          \ openstack_blockstorage_availability_zones_v3
           \ openstack_blockstorage_snapshot_v2
           \ openstack_blockstorage_snapshot_v3
+          \ openstack_compute_availability_zones_v2
           \ openstack_compute_flavor_v2
           \ openstack_compute_keypair_v2
           \ openstack_containerinfra_cluster_v1
@@ -486,12 +844,20 @@ syn keyword terraDataTypeBI
           \ openstack_identity_role_v3
           \ openstack_identity_user_v3
           \ openstack_images_image_v2
+          \ openstack_networking_addressscope_v2
           \ openstack_networking_floatingip_v2
           \ openstack_networking_network_v2
+          \ openstack_networking_port_ids_v2
+          \ openstack_networking_port_v2
           \ openstack_networking_router_v2
           \ openstack_networking_secgroup_v2
           \ openstack_networking_subnet_v2
           \ openstack_networking_subnetpool_v2
+          \ openstack_networking_trunk_v2
+          \ openstack_sharedfilesystem_availability_zones_v2
+          \ openstack_sharedfilesystem_share_v2
+          \ openstack_sharedfilesystem_sharenetwork_v2
+          \ openstack_sharedfilesystem_snapshot_v2
           \ opentelekomcloud_antiddos_v1
           \ opentelekomcloud_cce_cluster_v3
           \ opentelekomcloud_cce_node_v3
@@ -507,12 +873,18 @@ syn keyword terraDataTypeBI
           \ opentelekomcloud_dcs_product_v1
           \ opentelekomcloud_deh_host_v1
           \ opentelekomcloud_deh_server_v1
+          \ opentelekomcloud_identity_group_v3
+          \ opentelekomcloud_identity_project_v3
+          \ opentelekomcloud_identity_role_v3
+          \ opentelekomcloud_identity_user_v3
           \ opentelekomcloud_images_image_v2
           \ opentelekomcloud_kms_data_key_v1
           \ opentelekomcloud_kms_key_v1
           \ opentelekomcloud_networking_network_v2
+          \ opentelekomcloud_networking_port_v2
           \ opentelekomcloud_networking_secgroup_v2
           \ opentelekomcloud_rds_flavors_v1
+          \ opentelekomcloud_rds_flavors_v3
           \ opentelekomcloud_rts_software_config_v1
           \ opentelekomcloud_rts_software_deployment_v1
           \ opentelekomcloud_rts_stack_resource_v1
@@ -553,6 +925,7 @@ syn keyword terraDataTypeBI
           \ profitbricks_location
           \ profitbricks_resource
           \ profitbricks_snapshot
+          \ rancher2_setting
           \ rancher_certificate
           \ rancher_environment
           \ rancher_setting
@@ -587,6 +960,10 @@ syn keyword terraDataTypeBI
           \ skytap_template
           \ telefonicaopencloud_csbs_backup_policy_v1
           \ telefonicaopencloud_csbs_backup_v1
+          \ telefonicaopencloud_cts_tracker_v1
+          \ telefonicaopencloud_dcs_az_v1
+          \ telefonicaopencloud_dcs_maintainwindow_v1
+          \ telefonicaopencloud_dcs_product_v1
           \ telefonicaopencloud_dns_zone_v2
           \ telefonicaopencloud_networking_network_v2
           \ telefonicaopencloud_networking_secgroup_v2
@@ -597,6 +974,8 @@ syn keyword terraDataTypeBI
           \ telefonicaopencloud_rts_stack_v1
           \ telefonicaopencloud_s3_bucket_object
           \ telefonicaopencloud_sfs_file_system_v2
+          \ telefonicaopencloud_vbs_backup_policy_v2
+          \ telefonicaopencloud_vbs_backup_v2
           \ telefonicaopencloud_vpc_subnet_ids_v1
           \ telefonicaopencloud_vpc_subnet_v1
           \ telefonicaopencloud_vpc_v1
@@ -605,15 +984,26 @@ syn keyword terraDataTypeBI
           \ tencentcloud_availability_zones
           \ tencentcloud_container_cluster_instances
           \ tencentcloud_container_clusters
+          \ tencentcloud_cos_bucket_object
+          \ tencentcloud_cos_buckets
           \ tencentcloud_eip
           \ tencentcloud_image
           \ tencentcloud_instance_types
+          \ tencentcloud_mysql_backup_list
+          \ tencentcloud_mysql_instance
+          \ tencentcloud_mysql_parameter_list
+          \ tencentcloud_mysql_zone_config
           \ tencentcloud_nats
           \ tencentcloud_route_table
           \ tencentcloud_security_group
           \ tencentcloud_subnet
           \ tencentcloud_vpc
           \ terraform_remote_state
+          \ tfe_ssh_key
+          \ tfe_team
+          \ tfe_team_access
+          \ tfe_workspace
+          \ tfe_workspace_ids
           \ tls_public_key
           \ triton_account
           \ triton_datacenter
@@ -622,16 +1012,34 @@ syn keyword terraDataTypeBI
           \ triton_image
           \ triton_network
           \ triton_package
+          \ ucloud_db_instances
+          \ ucloud_disks
           \ ucloud_eips
           \ ucloud_images
+          \ ucloud_instances
+          \ ucloud_lb_attachments
+          \ ucloud_lb_listeners
+          \ ucloud_lb_rules
+          \ ucloud_lb_ssls
+          \ ucloud_lbs
           \ ucloud_projects
+          \ ucloud_security_groups
+          \ ucloud_subnets
+          \ ucloud_vpcs
           \ ucloud_zones
+          \ vault_approle_auth_backend_role_id
+          \ vault_aws_access_credentials
+          \ vault_generic_secret
+          \ vault_kubernetes_auth_backend_config
+          \ vault_kubernetes_auth_backend_role
+          \ vault_policy_document
           \ vsphere_compute_cluster
           \ vsphere_custom_attribute
           \ vsphere_datacenter
           \ vsphere_datastore
           \ vsphere_datastore_cluster
           \ vsphere_distributed_virtual_switch
+          \ vsphere_folder
           \ vsphere_host
           \ vsphere_network
           \ vsphere_resource_pool
@@ -640,28 +1048,48 @@ syn keyword terraDataTypeBI
           \ vsphere_vapp_container
           \ vsphere_virtual_machine
           \ vsphere_vmfs_disks
+          \ yandex_compute_disk
+          \ yandex_compute_image
+          \ yandex_compute_instance
+          \ yandex_compute_snapshot
+          \ yandex_iam_policy
+          \ yandex_iam_role
+          \ yandex_iam_service_account
+          \ yandex_iam_user
+          \ yandex_resourcemanager_cloud
+          \ yandex_resourcemanager_folder
+          \ yandex_vpc_network
+          \ yandex_vpc_route_table
+          \ yandex_vpc_subnet
 """ end data sources
 
 """ resource
 syn keyword terraResourceTypeBI
           \ acme_certificate
           \ acme_registration
+          \ alicloud_actiontrail
           \ alicloud_api_gateway_api
           \ alicloud_api_gateway_app
           \ alicloud_api_gateway_app_attachment
           \ alicloud_api_gateway_group
           \ alicloud_api_gateway_vpc_access
+          \ alicloud_cas_certificate
           \ alicloud_cdn_domain
+          \ alicloud_cdn_domain_config
+          \ alicloud_cdn_domain_new
           \ alicloud_cen_bandwidth_limit
           \ alicloud_cen_bandwidth_package
           \ alicloud_cen_bandwidth_package_attachment
           \ alicloud_cen_instance
           \ alicloud_cen_instance_attachment
+          \ alicloud_cen_instance_grant
           \ alicloud_cen_route_entry
           \ alicloud_cms_alarm
           \ alicloud_common_bandwidth_package
           \ alicloud_common_bandwidth_package_attachment
           \ alicloud_container_cluster
+          \ alicloud_cr_namespace
+          \ alicloud_cr_repo
           \ alicloud_cs_application
           \ alicloud_cs_kubernetes
           \ alicloud_cs_managed_kubernetes
@@ -675,6 +1103,9 @@ syn keyword terraResourceTypeBI
           \ alicloud_db_connection
           \ alicloud_db_database
           \ alicloud_db_instance
+          \ alicloud_db_read_write_splitting_connection
+          \ alicloud_db_readonly_instance
+          \ alicloud_ddoscoo_instance
           \ alicloud_disk
           \ alicloud_disk_attachment
           \ alicloud_dns
@@ -683,6 +1114,7 @@ syn keyword terraResourceTypeBI
           \ alicloud_drds_instance
           \ alicloud_eip
           \ alicloud_eip_association
+          \ alicloud_elasticsearch_instance
           \ alicloud_ess_alarm
           \ alicloud_ess_attachment
           \ alicloud_ess_lifecycle_hook
@@ -702,14 +1134,24 @@ syn keyword terraResourceTypeBI
           \ alicloud_kms_key
           \ alicloud_kvstore_backup_policy
           \ alicloud_kvstore_instance
+          \ alicloud_launch_template
           \ alicloud_log_machine_group
           \ alicloud_log_project
           \ alicloud_log_store
           \ alicloud_log_store_index
+          \ alicloud_logtail_attachment
+          \ alicloud_logtail_config
           \ alicloud_mns_queue
           \ alicloud_mns_topic
           \ alicloud_mns_topic_subscription
+          \ alicloud_mongodb_instance
+          \ alicloud_mongodb_sharding_instance
+          \ alicloud_nas_access_group
+          \ alicloud_nas_access_rule
+          \ alicloud_nas_file_system
+          \ alicloud_nas_mount_target
           \ alicloud_nat_gateway
+          \ alicloud_network_acl
           \ alicloud_network_interface
           \ alicloud_network_interface_attachment
           \ alicloud_oss_bucket
@@ -748,6 +1190,8 @@ syn keyword terraResourceTypeBI
           \ alicloud_slb_rule
           \ alicloud_slb_server_certificate
           \ alicloud_slb_server_group
+          \ alicloud_snapshot
+          \ alicloud_snapshot_policy
           \ alicloud_snat_entry
           \ alicloud_ssl_vpn_client_cert
           \ alicloud_ssl_vpn_server
@@ -803,9 +1247,11 @@ syn keyword terraResourceTypeBI
           \ aws_appmesh_route
           \ aws_appmesh_virtual_node
           \ aws_appmesh_virtual_router
+          \ aws_appmesh_virtual_service
           \ aws_appsync_api_key
           \ aws_appsync_datasource
           \ aws_appsync_graphql_api
+          \ aws_appsync_resolver
           \ aws_athena_database
           \ aws_athena_named_query
           \ aws_autoscaling_attachment
@@ -814,12 +1260,17 @@ syn keyword terraResourceTypeBI
           \ aws_autoscaling_notification
           \ aws_autoscaling_policy
           \ aws_autoscaling_schedule
+          \ aws_backup_plan
+          \ aws_backup_selection
+          \ aws_backup_vault
           \ aws_batch_compute_environment
           \ aws_batch_job_definition
           \ aws_batch_job_queue
           \ aws_budgets_budget
           \ aws_cloud9_environment_ec2
           \ aws_cloudformation_stack
+          \ aws_cloudformation_stack_set
+          \ aws_cloudformation_stack_set_instance
           \ aws_cloudfront_distribution
           \ aws_cloudfront_origin_access_identity
           \ aws_cloudfront_public_key
@@ -861,6 +1312,7 @@ syn keyword terraResourceTypeBI
           \ aws_config_configuration_recorder
           \ aws_config_configuration_recorder_status
           \ aws_config_delivery_channel
+          \ aws_cur_report_definition
           \ aws_customer_gateway
           \ aws_datasync_agent
           \ aws_datasync_location_efs
@@ -873,6 +1325,7 @@ syn keyword terraResourceTypeBI
           \ aws_db_cluster_snapshot
           \ aws_db_event_subscription
           \ aws_db_instance
+          \ aws_db_instance_role_association
           \ aws_db_option_group
           \ aws_db_parameter_group
           \ aws_db_security_group
@@ -893,11 +1346,17 @@ syn keyword terraResourceTypeBI
           \ aws_dms_replication_instance
           \ aws_dms_replication_subnet_group
           \ aws_dms_replication_task
+          \ aws_docdb_cluster
+          \ aws_docdb_cluster_instance
+          \ aws_docdb_cluster_parameter_group
+          \ aws_docdb_cluster_snapshot
+          \ aws_docdb_subnet_group
           \ aws_dx_bgp_peer
           \ aws_dx_connection
           \ aws_dx_connection_association
           \ aws_dx_gateway
           \ aws_dx_gateway_association
+          \ aws_dx_gateway_association_proposal
           \ aws_dx_hosted_private_virtual_interface
           \ aws_dx_hosted_private_virtual_interface_accepter
           \ aws_dx_hosted_public_virtual_interface
@@ -912,6 +1371,8 @@ syn keyword terraResourceTypeBI
           \ aws_ebs_snapshot_copy
           \ aws_ebs_volume
           \ aws_ec2_capacity_reservation
+          \ aws_ec2_client_vpn_endpoint
+          \ aws_ec2_client_vpn_network_association
           \ aws_ec2_fleet
           \ aws_ec2_transit_gateway
           \ aws_ec2_transit_gateway_route
@@ -956,6 +1417,8 @@ syn keyword terraResourceTypeBI
           \ aws_gamelift_game_session_queue
           \ aws_glacier_vault
           \ aws_glacier_vault_lock
+          \ aws_globalaccelerator_accelerator
+          \ aws_globalaccelerator_listener
           \ aws_glue_catalog_database
           \ aws_glue_catalog_table
           \ aws_glue_classifier
@@ -965,6 +1428,7 @@ syn keyword terraResourceTypeBI
           \ aws_glue_security_configuration
           \ aws_glue_trigger
           \ aws_guardduty_detector
+          \ aws_guardduty_invite_accepter
           \ aws_guardduty_ipset
           \ aws_guardduty_member
           \ aws_guardduty_threatintelset
@@ -999,6 +1463,7 @@ syn keyword terraResourceTypeBI
           \ aws_iot_certificate
           \ aws_iot_policy
           \ aws_iot_policy_attachment
+          \ aws_iot_role_alias
           \ aws_iot_thing
           \ aws_iot_thing_principal_attachment
           \ aws_iot_thing_type
@@ -1008,11 +1473,14 @@ syn keyword terraResourceTypeBI
           \ aws_kinesis_firehose_delivery_stream
           \ aws_kinesis_stream
           \ aws_kms_alias
+          \ aws_kms_ciphertext
+          \ aws_kms_external_key
           \ aws_kms_grant
           \ aws_kms_key
           \ aws_lambda_alias
           \ aws_lambda_event_source_mapping
           \ aws_lambda_function
+          \ aws_lambda_layer_version
           \ aws_lambda_permission
           \ aws_launch_configuration
           \ aws_launch_template
@@ -1037,6 +1505,7 @@ syn keyword terraResourceTypeBI
           \ aws_macie_member_account_association
           \ aws_macie_s3_bucket_association
           \ aws_main_route_table_association
+          \ aws_media_package_channel
           \ aws_media_store_container
           \ aws_media_store_container_policy
           \ aws_mq_broker
@@ -1072,6 +1541,7 @@ syn keyword terraResourceTypeBI
           \ aws_opsworks_user_profile
           \ aws_organizations_account
           \ aws_organizations_organization
+          \ aws_organizations_organizational_unit
           \ aws_organizations_policy
           \ aws_organizations_policy_attachment
           \ aws_pinpoint_adm_channel
@@ -1087,6 +1557,9 @@ syn keyword terraResourceTypeBI
           \ aws_pinpoint_sms_channel
           \ aws_placement_group
           \ aws_proxy_protocol_policy
+          \ aws_ram_principal_association
+          \ aws_ram_resource_association
+          \ aws_ram_resource_share
           \ aws_rds_cluster
           \ aws_rds_cluster_endpoint
           \ aws_rds_cluster_instance
@@ -1098,11 +1571,15 @@ syn keyword terraResourceTypeBI
           \ aws_redshift_security_group
           \ aws_redshift_snapshot_copy_grant
           \ aws_redshift_subnet_group
+          \ aws_resourcegroups_group
           \ aws_route
           \ aws_route53_delegation_set
           \ aws_route53_health_check
           \ aws_route53_query_log
           \ aws_route53_record
+          \ aws_route53_resolver_endpoint
+          \ aws_route53_resolver_rule
+          \ aws_route53_resolver_rule_association
           \ aws_route53_zone
           \ aws_route53_zone_association
           \ aws_route_table
@@ -1115,6 +1592,11 @@ syn keyword terraResourceTypeBI
           \ aws_s3_bucket_object
           \ aws_s3_bucket_policy
           \ aws_s3_bucket_public_access_block
+          \ aws_sagemaker_endpoint
+          \ aws_sagemaker_endpoint_configuration
+          \ aws_sagemaker_model
+          \ aws_sagemaker_notebook_instance
+          \ aws_sagemaker_notebook_instance_lifecycle_configuration
           \ aws_secretsmanager_secret
           \ aws_secretsmanager_secret_version
           \ aws_security_group
@@ -1133,6 +1615,7 @@ syn keyword terraResourceTypeBI
           \ aws_ses_domain_identity
           \ aws_ses_domain_identity_verification
           \ aws_ses_domain_mail_from
+          \ aws_ses_email_identity
           \ aws_ses_event_destination
           \ aws_ses_identity_notification_topic
           \ aws_ses_receipt_filter
@@ -1141,6 +1624,7 @@ syn keyword terraResourceTypeBI
           \ aws_ses_template
           \ aws_sfn_activity
           \ aws_sfn_state_machine
+          \ aws_shield_protection
           \ aws_simpledb_domain
           \ aws_snapshot_create_volume_permission
           \ aws_sns_platform_application
@@ -1219,6 +1703,9 @@ syn keyword terraResourceTypeBI
           \ aws_wafregional_web_acl
           \ aws_wafregional_web_acl_association
           \ aws_wafregional_xss_match_set
+          \ aws_worklink_fleet
+          \ aws_worklink_website_certificate_authority_association
+          \ aws_xray_sampling_rule
           \ azure_affinity_group
           \ azure_data_disk
           \ azure_dns_server
@@ -1235,7 +1722,31 @@ syn keyword terraResourceTypeBI
           \ azure_storage_queue
           \ azure_storage_service
           \ azure_virtual_network
+          \ azuread_application
+          \ azuread_group
+          \ azuread_service_principal
+          \ azuread_service_principal_password
+          \ azuread_user
           \ azurerm_api_management
+          \ azurerm_api_management_api
+          \ azurerm_api_management_api_operation
+          \ azurerm_api_management_api_operation_policy
+          \ azurerm_api_management_api_policy
+          \ azurerm_api_management_api_schema
+          \ azurerm_api_management_api_version_set
+          \ azurerm_api_management_authorization_server
+          \ azurerm_api_management_certificate
+          \ azurerm_api_management_group
+          \ azurerm_api_management_group_user
+          \ azurerm_api_management_logger
+          \ azurerm_api_management_openid_connect_provider
+          \ azurerm_api_management_product
+          \ azurerm_api_management_product_api
+          \ azurerm_api_management_product_group
+          \ azurerm_api_management_product_policy
+          \ azurerm_api_management_property
+          \ azurerm_api_management_subscription
+          \ azurerm_api_management_user
           \ azurerm_app_service
           \ azurerm_app_service_active_slot
           \ azurerm_app_service_custom_hostname_binding
@@ -1243,6 +1754,8 @@ syn keyword terraResourceTypeBI
           \ azurerm_app_service_slot
           \ azurerm_application_gateway
           \ azurerm_application_insights
+          \ azurerm_application_insights_api_key
+          \ azurerm_application_insights_web_test
           \ azurerm_application_security_group
           \ azurerm_automation_account
           \ azurerm_automation_credential
@@ -1251,25 +1764,47 @@ syn keyword terraResourceTypeBI
           \ azurerm_automation_module
           \ azurerm_automation_runbook
           \ azurerm_automation_schedule
+          \ azurerm_automation_variable_bool
+          \ azurerm_automation_variable_datetime
+          \ azurerm_automation_variable_int
+          \ azurerm_automation_variable_string
           \ azurerm_autoscale_setting
           \ azurerm_availability_set
           \ azurerm_azuread_application
           \ azurerm_azuread_service_principal
           \ azurerm_azuread_service_principal_password
           \ azurerm_batch_account
+          \ azurerm_batch_certificate
+          \ azurerm_batch_pool
           \ azurerm_cdn_endpoint
           \ azurerm_cdn_profile
           \ azurerm_cognitive_account
+          \ azurerm_connection_monitor
           \ azurerm_container_group
           \ azurerm_container_registry
           \ azurerm_container_service
           \ azurerm_cosmosdb_account
+          \ azurerm_cosmosdb_cassandra_keyspace
+          \ azurerm_cosmosdb_mongo_collection
+          \ azurerm_cosmosdb_mongo_database
+          \ azurerm_cosmosdb_sql_database
+          \ azurerm_cosmosdb_table
+          \ azurerm_data_factory
+          \ azurerm_data_factory_dataset_mysql
+          \ azurerm_data_factory_dataset_postgresql
+          \ azurerm_data_factory_dataset_sql_server_table
+          \ azurerm_data_factory_linked_service_data_lake_storage_gen2
+          \ azurerm_data_factory_linked_service_mysql
+          \ azurerm_data_factory_linked_service_postgresql
+          \ azurerm_data_factory_linked_service_sql_server
+          \ azurerm_data_factory_pipeline
           \ azurerm_data_lake_analytics_account
           \ azurerm_data_lake_analytics_firewall_rule
           \ azurerm_data_lake_store
           \ azurerm_data_lake_store_file
           \ azurerm_data_lake_store_firewall_rule
           \ azurerm_databricks_workspace
+          \ azurerm_ddos_protection_plan
           \ azurerm_dev_test_lab
           \ azurerm_dev_test_linux_virtual_machine
           \ azurerm_dev_test_policy
@@ -1286,6 +1821,8 @@ syn keyword terraResourceTypeBI
           \ azurerm_dns_srv_record
           \ azurerm_dns_txt_record
           \ azurerm_dns_zone
+          \ azurerm_eventgrid_domain
+          \ azurerm_eventgrid_event_subscription
           \ azurerm_eventgrid_topic
           \ azurerm_eventhub
           \ azurerm_eventhub_authorization_rule
@@ -1296,11 +1833,22 @@ syn keyword terraResourceTypeBI
           \ azurerm_express_route_circuit_authorization
           \ azurerm_express_route_circuit_peering
           \ azurerm_firewall
+          \ azurerm_firewall_application_rule_collection
+          \ azurerm_firewall_nat_rule_collection
           \ azurerm_firewall_network_rule_collection
           \ azurerm_function_app
+          \ azurerm_hdinsight_hadoop_cluster
+          \ azurerm_hdinsight_hbase_cluster
+          \ azurerm_hdinsight_interactive_query_cluster
+          \ azurerm_hdinsight_kafka_cluster
+          \ azurerm_hdinsight_ml_services_cluster
+          \ azurerm_hdinsight_rserver_cluster
+          \ azurerm_hdinsight_spark_cluster
+          \ azurerm_hdinsight_storm_cluster
           \ azurerm_image
           \ azurerm_iothub
           \ azurerm_iothub_consumer_group
+          \ azurerm_iothub_shared_access_policy
           \ azurerm_key_vault
           \ azurerm_key_vault_access_policy
           \ azurerm_key_vault_certificate
@@ -1311,9 +1859,11 @@ syn keyword terraResourceTypeBI
           \ azurerm_lb_backend_address_pool
           \ azurerm_lb_nat_pool
           \ azurerm_lb_nat_rule
+          \ azurerm_lb_outbound_rule
           \ azurerm_lb_probe
           \ azurerm_lb_rule
           \ azurerm_local_network_gateway
+          \ azurerm_log_analytics_linked_service
           \ azurerm_log_analytics_solution
           \ azurerm_log_analytics_workspace
           \ azurerm_log_analytics_workspace_linked_service
@@ -1328,22 +1878,30 @@ syn keyword terraResourceTypeBI
           \ azurerm_management_lock
           \ azurerm_mariadb_database
           \ azurerm_mariadb_server
+          \ azurerm_media_services_account
           \ azurerm_metric_alertrule
           \ azurerm_monitor_action_group
           \ azurerm_monitor_activity_log_alert
+          \ azurerm_monitor_autoscale_setting
           \ azurerm_monitor_diagnostic_setting
           \ azurerm_monitor_log_profile
           \ azurerm_monitor_metric_alert
+          \ azurerm_monitor_metric_alertrule
           \ azurerm_mssql_elasticpool
           \ azurerm_mysql_configuration
           \ azurerm_mysql_database
           \ azurerm_mysql_firewall_rule
           \ azurerm_mysql_server
           \ azurerm_mysql_virtual_network_rule
+          \ azurerm_network_connection_monitor
+          \ azurerm_network_ddos_protection_plan
           \ azurerm_network_interface
           \ azurerm_network_interface_application_gateway_backend_address_pool_association
+          \ azurerm_network_interface_application_security_group_association
           \ azurerm_network_interface_backend_address_pool_association
           \ azurerm_network_interface_nat_rule_association
+          \ azurerm_network_packet_capture
+          \ azurerm_network_profile
           \ azurerm_network_security_group
           \ azurerm_network_security_rule
           \ azurerm_network_watcher
@@ -1360,6 +1918,7 @@ syn keyword terraResourceTypeBI
           \ azurerm_postgresql_server
           \ azurerm_postgresql_virtual_network_rule
           \ azurerm_public_ip
+          \ azurerm_public_ip_prefix
           \ azurerm_recovery_services_protected_vm
           \ azurerm_recovery_services_protection_policy_vm
           \ azurerm_recovery_services_vault
@@ -1403,6 +1962,14 @@ syn keyword terraResourceTypeBI
           \ azurerm_storage_queue
           \ azurerm_storage_share
           \ azurerm_storage_table
+          \ azurerm_stream_analytics_function_javascript_udf
+          \ azurerm_stream_analytics_job
+          \ azurerm_stream_analytics_output_blob
+          \ azurerm_stream_analytics_output_eventhub
+          \ azurerm_stream_analytics_output_servicebus_queue
+          \ azurerm_stream_analytics_stream_input_blob
+          \ azurerm_stream_analytics_stream_input_eventhub
+          \ azurerm_stream_analytics_stream_input_iothub
           \ azurerm_subnet
           \ azurerm_subnet_network_security_group_association
           \ azurerm_subnet_route_table_association
@@ -1461,6 +2028,7 @@ syn keyword terraResourceTypeBI
           \ bigip_ltm_pool_attachment
           \ bigip_ltm_profile_fasthttp
           \ bigip_ltm_profile_fastl4
+          \ bigip_ltm_profile_http
           \ bigip_ltm_profile_http2
           \ bigip_ltm_profile_httpcompress
           \ bigip_ltm_profile_oneconnect
@@ -1482,12 +2050,13 @@ syn keyword terraResourceTypeBI
           \ bitbucket_default_reviewers
           \ bitbucket_hook
           \ bitbucket_repository
+          \ brightbox_api_client
           \ brightbox_cloudip
-          \ brightbox_container
           \ brightbox_database_server
           \ brightbox_firewall_policy
           \ brightbox_firewall_rule
           \ brightbox_load_balancer
+          \ brightbox_orbit_container
           \ brightbox_server
           \ brightbox_server_group
           \ chef_acl
@@ -1505,6 +2074,13 @@ syn keyword terraResourceTypeBI
           \ circonus_metric_cluster
           \ circonus_rule_set
           \ circonus_worksheet
+          \ ciscoasa_access_in_rules
+          \ ciscoasa_access_out_rules
+          \ ciscoasa_acl
+          \ ciscoasa_network_object
+          \ ciscoasa_network_object_group
+          \ ciscoasa_network_service_group
+          \ ciscoasa_static_route
           \ clc_group
           \ clc_load_balancer
           \ clc_load_balancer_pool
@@ -1514,15 +2090,18 @@ syn keyword terraResourceTypeBI
           \ cloudflare_access_policy
           \ cloudflare_access_rule
           \ cloudflare_account_member
+          \ cloudflare_argo
           \ cloudflare_custom_pages
           \ cloudflare_filter
           \ cloudflare_firewall_rule
           \ cloudflare_load_balancer
           \ cloudflare_load_balancer_monitor
           \ cloudflare_load_balancer_pool
+          \ cloudflare_logpush_job
           \ cloudflare_page_rule
           \ cloudflare_rate_limit
           \ cloudflare_record
+          \ cloudflare_spectrum_application
           \ cloudflare_waf_rule
           \ cloudflare_worker_route
           \ cloudflare_worker_script
@@ -1531,6 +2110,7 @@ syn keyword terraResourceTypeBI
           \ cloudflare_zone_settings_override
           \ cloudscale_floating_ip
           \ cloudscale_server
+          \ cloudscale_volume
           \ cloudstack_affinity_group
           \ cloudstack_disk
           \ cloudstack_egress_firewall
@@ -1561,7 +2141,10 @@ syn keyword terraResourceTypeBI
           \ cobbler_repo
           \ cobbler_snippet
           \ cobbler_system
+          \ consul_acl_policy
+          \ consul_acl_token
           \ consul_agent_service
+          \ consul_autopilot_config
           \ consul_catalog_entry
           \ consul_intention
           \ consul_key_prefix
@@ -1572,12 +2155,16 @@ syn keyword terraResourceTypeBI
           \ datadog_downtime
           \ datadog_integration_aws
           \ datadog_integration_gcp
+          \ datadog_integration_pagerduty
           \ datadog_metric_metadata
           \ datadog_monitor
           \ datadog_screenboard
+          \ datadog_synthetics_test
           \ datadog_timeboard
           \ datadog_user
+          \ digitalocean_cdn
           \ digitalocean_certificate
+          \ digitalocean_database_cluster
           \ digitalocean_domain
           \ digitalocean_droplet
           \ digitalocean_droplet_snapshot
@@ -1587,7 +2174,9 @@ syn keyword terraResourceTypeBI
           \ digitalocean_kubernetes_cluster
           \ digitalocean_kubernetes_node_pool
           \ digitalocean_loadbalancer
+          \ digitalocean_project
           \ digitalocean_record
+          \ digitalocean_spaces_bucket
           \ digitalocean_ssh_key
           \ digitalocean_tag
           \ digitalocean_volume
@@ -1597,8 +2186,10 @@ syn keyword terraResourceTypeBI
           \ dns_a_record_set
           \ dns_aaaa_record_set
           \ dns_cname_record
+          \ dns_mx_record_set
           \ dns_ns_record_set
           \ dns_ptr_record
+          \ dns_txt_record_set
           \ dnsimple_record
           \ docker_config
           \ docker_container
@@ -1614,11 +2205,14 @@ syn keyword terraResourceTypeBI
           \ flexibleengine_as_group_v1
           \ flexibleengine_as_policy_v1
           \ flexibleengine_blockstorage_volume_v2
+          \ flexibleengine_cce_cluster_v3
+          \ flexibleengine_cce_node_v3
           \ flexibleengine_ces_alarmrule
           \ flexibleengine_compute_bms_server_v2
           \ flexibleengine_compute_floatingip_associate_v2
           \ flexibleengine_compute_floatingip_v2
           \ flexibleengine_compute_instance_v2
+          \ flexibleengine_compute_interface_attach_v2
           \ flexibleengine_compute_keypair_v2
           \ flexibleengine_compute_servergroup_v2
           \ flexibleengine_compute_volume_attach_v2
@@ -1639,7 +2233,10 @@ syn keyword terraResourceTypeBI
           \ flexibleengine_fw_policy_v2
           \ flexibleengine_fw_rule_v2
           \ flexibleengine_images_image_v2
+          \ flexibleengine_kms_key_v1
           \ flexibleengine_lb_certificate_v2
+          \ flexibleengine_lb_l7policy_v2
+          \ flexibleengine_lb_l7rule_v2
           \ flexibleengine_lb_listener_v2
           \ flexibleengine_lb_loadbalancer_v2
           \ flexibleengine_lb_member_v2
@@ -1648,6 +2245,7 @@ syn keyword terraResourceTypeBI
           \ flexibleengine_mls_instance_v1
           \ flexibleengine_mrs_cluster_v1
           \ flexibleengine_mrs_job_v1
+          \ flexibleengine_nat_dnat_rule_v2
           \ flexibleengine_nat_gateway_v2
           \ flexibleengine_nat_snat_rule_v2
           \ flexibleengine_networking_floatingip_associate_v2
@@ -1664,6 +2262,7 @@ syn keyword terraResourceTypeBI
           \ flexibleengine_networking_vip_v2
           \ flexibleengine_rds_instance_v1
           \ flexibleengine_rts_software_config_v1
+          \ flexibleengine_rts_stack_resource_v1
           \ flexibleengine_rts_stack_v1
           \ flexibleengine_s3_bucket
           \ flexibleengine_s3_bucket_object
@@ -1679,9 +2278,34 @@ syn keyword terraResourceTypeBI
           \ flexibleengine_vpc_route_v2
           \ flexibleengine_vpc_subnet_v1
           \ flexibleengine_vpc_v1
+          \ fortios_firewall_object_address
+          \ fortios_firewall_object_addressgroup
+          \ fortios_firewall_object_ippool
+          \ fortios_firewall_object_service
+          \ fortios_firewall_object_servicegroup
+          \ fortios_firewall_object_vip
+          \ fortios_firewall_object_vipgroup
+          \ fortios_firewall_security_policy
+          \ fortios_log_fortianalyzer_setting
+          \ fortios_log_syslog_setting
+          \ fortios_networking_interface_port
+          \ fortios_networking_route_static
+          \ fortios_system_admin_administrator
+          \ fortios_system_admin_profiles
+          \ fortios_system_apiuser_setting
+          \ fortios_system_license_forticare
+          \ fortios_system_license_vdom
+          \ fortios_system_license_vm
+          \ fortios_system_setting_dns
+          \ fortios_system_setting_global
+          \ fortios_system_setting_ntp
+          \ fortios_system_vdom_setting
+          \ fortios_vpn_ipsec_phase1interface
+          \ fortios_vpn_ipsec_phase2interface
           \ github_branch_protection
           \ github_issue_label
           \ github_membership
+          \ github_organization_block
           \ github_organization_project
           \ github_organization_webhook
           \ github_project_column
@@ -1696,26 +2320,36 @@ syn keyword terraResourceTypeBI
           \ github_user_gpg_key
           \ github_user_invitation_accepter
           \ github_user_ssh_key
+          \ gitlab_branch_protection
           \ gitlab_deploy_key
           \ gitlab_group
           \ gitlab_group_membership
           \ gitlab_group_variable
           \ gitlab_label
+          \ gitlab_pipeline_trigger
           \ gitlab_project
+          \ gitlab_project_cluster
           \ gitlab_project_hook
           \ gitlab_project_membership
           \ gitlab_project_variable
+          \ gitlab_service_slack
+          \ gitlab_tag_protection
           \ gitlab_user
           \ google_access_context_manager_access_level
           \ google_access_context_manager_access_policy
           \ google_access_context_manager_service_perimeter
           \ google_app_engine_application
+          \ google_app_engine_firewall_rule
           \ google_bigquery_dataset
           \ google_bigquery_table
           \ google_bigtable_instance
           \ google_bigtable_table
+          \ google_billing_account_iam_binding
+          \ google_billing_account_iam_member
+          \ google_billing_account_iam_policy
           \ google_binary_authorization_attestor
           \ google_binary_authorization_policy
+          \ google_cloud_scheduler_job
           \ google_cloudbuild_trigger
           \ google_cloudfunctions_function
           \ google_cloudiot_registry
@@ -1724,7 +2358,9 @@ syn keyword terraResourceTypeBI
           \ google_compute_attached_disk
           \ google_compute_autoscaler
           \ google_compute_backend_bucket
+          \ google_compute_backend_bucket_signed_url_key
           \ google_compute_backend_service
+          \ google_compute_backend_service_signed_url_key
           \ google_compute_disk
           \ google_compute_firewall
           \ google_compute_forwarding_rule
@@ -1738,10 +2374,17 @@ syn keyword terraResourceTypeBI
           \ google_compute_instance_from_template
           \ google_compute_instance_group
           \ google_compute_instance_group_manager
+          \ google_compute_instance_iam_binding
+          \ google_compute_instance_iam_member
+          \ google_compute_instance_iam_policy
           \ google_compute_instance_template
           \ google_compute_interconnect_attachment
+          \ google_compute_managed_ssl_certificate
           \ google_compute_network
+          \ google_compute_network_endpoint_group
           \ google_compute_network_peering
+          \ google_compute_node_group
+          \ google_compute_node_template
           \ google_compute_project_metadata
           \ google_compute_project_metadata_item
           \ google_compute_region_autoscaler
@@ -1760,8 +2403,12 @@ syn keyword terraResourceTypeBI
           \ google_compute_ssl_certificate
           \ google_compute_ssl_policy
           \ google_compute_subnetwork
+          \ google_compute_subnetwork_iam_binding
+          \ google_compute_subnetwork_iam_member
+          \ google_compute_subnetwork_iam_policy
           \ google_compute_target_http_proxy
           \ google_compute_target_https_proxy
+          \ google_compute_target_instance
           \ google_compute_target_pool
           \ google_compute_target_ssl_proxy
           \ google_compute_target_tcp_proxy
@@ -1773,50 +2420,99 @@ syn keyword terraResourceTypeBI
           \ google_container_node_pool
           \ google_dataflow_job
           \ google_dataproc_cluster
+          \ google_dataproc_cluster_iam_binding
+          \ google_dataproc_cluster_iam_member
+          \ google_dataproc_cluster_iam_policy
           \ google_dataproc_job
+          \ google_dataproc_job_iam_binding
+          \ google_dataproc_job_iam_member
+          \ google_dataproc_job_iam_policy
           \ google_dns_managed_zone
+          \ google_dns_policy
           \ google_dns_record_set
           \ google_endpoints_service
           \ google_filestore_instance
+          \ google_firestore_index
           \ google_folder
+          \ google_folder_iam_binding
+          \ google_folder_iam_member
+          \ google_folder_iam_policy
           \ google_folder_organization_policy
+          \ google_iap_tunnel_instance_iam_binding
+          \ google_iap_tunnel_instance_iam_member
+          \ google_iap_tunnel_instance_iam_policy
           \ google_kms_crypto_key
+          \ google_kms_crypto_key_iam_binding
+          \ google_kms_crypto_key_iam_member
           \ google_kms_key_ring
+          \ google_kms_key_ring_iam_binding
+          \ google_kms_key_ring_iam_member
+          \ google_kms_key_ring_iam_policy
+          \ google_logging_billing_account_exclusion
           \ google_logging_billing_account_sink
+          \ google_logging_folder_exclusion
           \ google_logging_folder_sink
+          \ google_logging_metric
+          \ google_logging_organization_exclusion
           \ google_logging_organization_sink
+          \ google_logging_project_exclusion
           \ google_logging_project_sink
           \ google_monitoring_alert_policy
           \ google_monitoring_group
           \ google_monitoring_notification_channel
           \ google_monitoring_uptime_check_config
+          \ google_organization_iam_binding
           \ google_organization_iam_custom_role
+          \ google_organization_iam_member
+          \ google_organization_iam_policy
           \ google_organization_policy
           \ google_project
+          \ google_project_iam_audit_config
+          \ google_project_iam_binding
           \ google_project_iam_custom_role
+          \ google_project_iam_member
           \ google_project_iam_policy
           \ google_project_organization_policy
           \ google_project_service
           \ google_project_services
           \ google_project_usage_export_bucket
           \ google_pubsub_subscription
+          \ google_pubsub_subscription_iam_binding
+          \ google_pubsub_subscription_iam_member
+          \ google_pubsub_subscription_iam_policy
           \ google_pubsub_topic
+          \ google_pubsub_topic_iam_binding
+          \ google_pubsub_topic_iam_member
+          \ google_pubsub_topic_iam_policy
           \ google_redis_instance
           \ google_resource_manager_lien
           \ google_runtimeconfig_config
           \ google_runtimeconfig_variable
+          \ google_security_scanner_scan_config
           \ google_service_account
+          \ google_service_account_iam_binding
+          \ google_service_account_iam_member
+          \ google_service_account_iam_policy
           \ google_service_account_key
           \ google_service_networking_connection
           \ google_sourcerepo_repository
           \ google_spanner_database
+          \ google_spanner_database_iam_binding
+          \ google_spanner_database_iam_member
+          \ google_spanner_database_iam_policy
           \ google_spanner_instance
+          \ google_spanner_instance_iam_binding
+          \ google_spanner_instance_iam_member
+          \ google_spanner_instance_iam_policy
           \ google_sql_database
           \ google_sql_database_instance
           \ google_sql_ssl_cert
           \ google_sql_user
           \ google_storage_bucket
           \ google_storage_bucket_acl
+          \ google_storage_bucket_iam_binding
+          \ google_storage_bucket_iam_member
+          \ google_storage_bucket_iam_policy
           \ google_storage_bucket_object
           \ google_storage_default_object_access_control
           \ google_storage_default_object_acl
@@ -1824,6 +2520,18 @@ syn keyword terraResourceTypeBI
           \ google_storage_object_access_control
           \ google_storage_object_acl
           \ google_storage_transfer_job
+          \ google_tpu_node
+          \ grafana_alert_notification
+          \ grafana_dashboard
+          \ grafana_data_source
+          \ grafana_folder
+          \ grafana_organization
+          \ gridscale_ipv4
+          \ gridscale_ipv6
+          \ gridscale_network
+          \ gridscale_server
+          \ gridscale_sshkey
+          \ gridscale_storage
           \ hcloud_floating_ip
           \ hcloud_floating_ip_assignment
           \ hcloud_rdns
@@ -1841,10 +2549,12 @@ syn keyword terraResourceTypeBI
           \ heroku_addon
           \ heroku_addon_attachment
           \ heroku_app
+          \ heroku_app_config_association
           \ heroku_app_feature
           \ heroku_app_release
           \ heroku_build
           \ heroku_cert
+          \ heroku_config
           \ heroku_domain
           \ heroku_drain
           \ heroku_formation
@@ -1875,11 +2585,13 @@ syn keyword terraResourceTypeBI
           \ huaweicloud_csbs_backup_policy_v1
           \ huaweicloud_csbs_backup_v1
           \ huaweicloud_cts_tracker_v1
+          \ huaweicloud_dcs_instance_v1
           \ huaweicloud_dms_group_v1
           \ huaweicloud_dms_instance_v1
           \ huaweicloud_dms_queue_v1
           \ huaweicloud_dns_recordset_v2
           \ huaweicloud_dns_zone_v2
+          \ huaweicloud_dws_cluster
           \ huaweicloud_elb_backendecs
           \ huaweicloud_elb_healthcheck
           \ huaweicloud_elb_listener
@@ -1888,15 +2600,27 @@ syn keyword terraResourceTypeBI
           \ huaweicloud_fw_policy_v2
           \ huaweicloud_fw_rule_v2
           \ huaweicloud_iam_agency_v3
+          \ huaweicloud_identity_group_membership_v3
+          \ huaweicloud_identity_group_v3
+          \ huaweicloud_identity_project_v3
+          \ huaweicloud_identity_role_assignment_v3
+          \ huaweicloud_identity_user_v3
           \ huaweicloud_images_image_v2
           \ huaweicloud_kms_key_v1
+          \ huaweicloud_lb_l7policy_v2
+          \ huaweicloud_lb_l7rule_v2
           \ huaweicloud_lb_listener_v2
           \ huaweicloud_lb_loadbalancer_v2
           \ huaweicloud_lb_member_v2
           \ huaweicloud_lb_monitor_v2
           \ huaweicloud_lb_pool_v2
+          \ huaweicloud_maas_task_v1
+          \ huaweicloud_mls_instance
+          \ huaweicloud_mrs_cluster_v1
+          \ huaweicloud_mrs_job_v1
           \ huaweicloud_nat_gateway_v2
           \ huaweicloud_nat_snat_rule_v2
+          \ huaweicloud_networking_floatingip_associate_v2
           \ huaweicloud_networking_floatingip_v2
           \ huaweicloud_networking_network_v2
           \ huaweicloud_networking_port_v2
@@ -1908,6 +2632,7 @@ syn keyword terraResourceTypeBI
           \ huaweicloud_networking_subnet_v2
           \ huaweicloud_rds_instance_v1
           \ huaweicloud_rts_software_config_v1
+          \ huaweicloud_rts_stack_resource_v1
           \ huaweicloud_rts_stack_v1
           \ huaweicloud_s3_bucket
           \ huaweicloud_s3_bucket_object
@@ -1929,31 +2654,51 @@ syn keyword terraResourceTypeBI
           \ icinga2_notification
           \ icinga2_service
           \ icinga2_user
-          \ ignition_config
-          \ ignition_directory
-          \ ignition_disk
-          \ ignition_file
-          \ ignition_filesystem
-          \ ignition_group
-          \ ignition_link
-          \ ignition_networkd_unit
-          \ ignition_raid
-          \ ignition_systemd_unit
-          \ ignition_user
           \ influxdb_continuous_query
           \ influxdb_database
           \ influxdb_user
+          \ jdcloud_availability_group
+          \ jdcloud_disk
+          \ jdcloud_disk_attachment
+          \ jdcloud_eip
+          \ jdcloud_eip_association
+          \ jdcloud_instance
+          \ jdcloud_instance_template
+          \ jdcloud_key_pairs
+          \ jdcloud_network_acl
+          \ jdcloud_network_interface
+          \ jdcloud_network_interface_attachment
+          \ jdcloud_network_security_group
+          \ jdcloud_network_security_group_rules
+          \ jdcloud_oss_bucket
+          \ jdcloud_oss_bucket_upload
+          \ jdcloud_rds_account
+          \ jdcloud_rds_database
+          \ jdcloud_rds_instance
+          \ jdcloud_rds_privilege
+          \ jdcloud_route_table
+          \ jdcloud_route_table_association
+          \ jdcloud_route_table_rules
+          \ jdcloud_subnet
+          \ jdcloud_vpc
+          \ kubernetes_cluster_role
           \ kubernetes_cluster_role_binding
           \ kubernetes_config_map
+          \ kubernetes_daemonset
           \ kubernetes_deployment
+          \ kubernetes_endpoints
           \ kubernetes_horizontal_pod_autoscaler
+          \ kubernetes_ingress
           \ kubernetes_limit_range
           \ kubernetes_namespace
+          \ kubernetes_network_policy
           \ kubernetes_persistent_volume
           \ kubernetes_persistent_volume_claim
           \ kubernetes_pod
           \ kubernetes_replication_controller
           \ kubernetes_resource_quota
+          \ kubernetes_role
+          \ kubernetes_role_binding
           \ kubernetes_secret
           \ kubernetes_service
           \ kubernetes_service_account
@@ -1971,6 +2716,7 @@ syn keyword terraResourceTypeBI
           \ linode_nodebalancer
           \ linode_nodebalancer_config
           \ linode_nodebalancer_node
+          \ linode_rdns
           \ linode_sshkey
           \ linode_stackscript
           \ linode_token
@@ -1988,6 +2734,15 @@ syn keyword terraResourceTypeBI
           \ mysql_role
           \ mysql_user
           \ mysql_user_password
+          \ ncloud_block_storage
+          \ ncloud_block_storage_snapshot
+          \ ncloud_load_balancer
+          \ ncloud_load_balancer_ssl_certificate
+          \ ncloud_login_key
+          \ ncloud_nas_volume
+          \ ncloud_port_forwarding_rule
+          \ ncloud_public_ip
+          \ ncloud_server
           \ netlify_build_hook
           \ netlify_deploy_key
           \ netlify_hook
@@ -2000,12 +2755,23 @@ syn keyword terraResourceTypeBI
           \ newrelic_infra_alert_condition
           \ newrelic_nrql_alert_condition
           \ newrelic_synthetics_alert_condition
+          \ newrelic_synthetics_monitor
+          \ newrelic_synthetics_monitor_script
           \ nomad_acl_policy
           \ nomad_acl_token
           \ nomad_job
           \ nomad_namespace
           \ nomad_quota_specification
           \ nomad_sentinel_policy
+          \ ns1_apikey
+          \ ns1_datafeed
+          \ ns1_datasource
+          \ ns1_monitoringjob
+          \ ns1_notifylist
+          \ ns1_record
+          \ ns1_team
+          \ ns1_user
+          \ ns1_zone
           \ nsxt_algorithm_type_ns_service
           \ nsxt_dhcp_relay_profile
           \ nsxt_dhcp_relay_service
@@ -2061,6 +2827,7 @@ syn keyword terraResourceTypeBI
           \ nsxt_spoofguard_switching_profile
           \ nsxt_static_route
           \ nsxt_switch_security_switching_profile
+          \ nsxt_vlan_logical_switch
           \ nsxt_vm_tags
           \ null_resource
           \ nutanix_category_key
@@ -2070,6 +2837,126 @@ syn keyword terraResourceTypeBI
           \ nutanix_subnet
           \ nutanix_virtual_machine
           \ nutanix_volume_group
+          \ oci_audit_configuration
+          \ oci_autoscaling_auto_scaling_configuration
+          \ oci_budget_alert_rule
+          \ oci_budget_budget
+          \ oci_containerengine_cluster
+          \ oci_containerengine_node_pool
+          \ oci_core_app_catalog_listing_resource_version
+          \ oci_core_app_catalog_listing_resource_version_agreement
+          \ oci_core_app_catalog_listing_resource_versions
+          \ oci_core_app_catalog_subscription
+          \ oci_core_boot_volume
+          \ oci_core_boot_volume_backup
+          \ oci_core_console_history
+          \ oci_core_cpe
+          \ oci_core_cross_connect
+          \ oci_core_cross_connect_group
+          \ oci_core_default_dhcp_options
+          \ oci_core_default_route_table
+          \ oci_core_default_security_list
+          \ oci_core_dhcp_options
+          \ oci_core_drg
+          \ oci_core_drg_attachment
+          \ oci_core_image
+          \ oci_core_instance
+          \ oci_core_instance_configuration
+          \ oci_core_instance_console_connection
+          \ oci_core_instance_pool
+          \ oci_core_internet_gateway
+          \ oci_core_ipsec
+          \ oci_core_listing_resource_version
+          \ oci_core_listing_resource_version_agreement
+          \ oci_core_listing_resource_versions
+          \ oci_core_local_peering_gateway
+          \ oci_core_nat_gateway
+          \ oci_core_private_ip
+          \ oci_core_public_ip
+          \ oci_core_remote_peering_connection
+          \ oci_core_route_table
+          \ oci_core_route_table_attachment
+          \ oci_core_security_list
+          \ oci_core_service_gateway
+          \ oci_core_subnet
+          \ oci_core_vcn
+          \ oci_core_virtual_circuit
+          \ oci_core_vnic_attachment
+          \ oci_core_volume
+          \ oci_core_volume_attachment
+          \ oci_core_volume_backup
+          \ oci_core_volume_backup_policy_assignment
+          \ oci_core_volume_group
+          \ oci_core_volume_group_backup
+          \ oci_database_autonomous_data_warehouse
+          \ oci_database_autonomous_data_warehouse_backup
+          \ oci_database_autonomous_database
+          \ oci_database_autonomous_database_backup
+          \ oci_database_backup
+          \ oci_database_data_guard_association
+          \ oci_database_db_home
+          \ oci_database_db_system
+          \ oci_database_exadata_iorm_config
+          \ oci_dns_record
+          \ oci_dns_steering_policy
+          \ oci_dns_steering_policy_attachment
+          \ oci_dns_zone
+          \ oci_email_sender
+          \ oci_email_suppression
+          \ oci_file_storage_export
+          \ oci_file_storage_export_set
+          \ oci_file_storage_file_system
+          \ oci_file_storage_mount_target
+          \ oci_file_storage_snapshot
+          \ oci_health_checks_http_monitor
+          \ oci_health_checks_http_probe
+          \ oci_health_checks_ping_monitor
+          \ oci_health_checks_ping_probe
+          \ oci_identity_api_key
+          \ oci_identity_auth_token
+          \ oci_identity_authentication_policy
+          \ oci_identity_compartment
+          \ oci_identity_customer_secret_key
+          \ oci_identity_dynamic_group
+          \ oci_identity_group
+          \ oci_identity_identity_provider
+          \ oci_identity_idp_group_mapping
+          \ oci_identity_policy
+          \ oci_identity_smtp_credential
+          \ oci_identity_swift_password
+          \ oci_identity_tag
+          \ oci_identity_tag_default
+          \ oci_identity_tag_namespace
+          \ oci_identity_ui_password
+          \ oci_identity_user
+          \ oci_identity_user_capabilities_management
+          \ oci_identity_user_group_membership
+          \ oci_kms_encrypted_data
+          \ oci_kms_generated_key
+          \ oci_kms_key
+          \ oci_kms_key_version
+          \ oci_kms_vault
+          \ oci_load_balancer
+          \ oci_load_balancer_backend
+          \ oci_load_balancer_backend_set
+          \ oci_load_balancer_backendset
+          \ oci_load_balancer_certificate
+          \ oci_load_balancer_hostname
+          \ oci_load_balancer_listener
+          \ oci_load_balancer_load_balancer
+          \ oci_load_balancer_path_route_set
+          \ oci_load_balancer_rule_set
+          \ oci_monitoring_alarm
+          \ oci_objectstorage_bucket
+          \ oci_objectstorage_namespace_metadata
+          \ oci_objectstorage_object
+          \ oci_objectstorage_object_lifecycle_policy
+          \ oci_objectstorage_preauthrequest
+          \ oci_ons_notification_topic
+          \ oci_ons_subscription
+          \ oci_streaming_stream
+          \ oci_waas_certificate
+          \ oci_waas_waas_policy
           \ oneandone_baremetal
           \ oneandone_block_storage
           \ oneandone_firewall_policy
@@ -2143,6 +3030,7 @@ syn keyword terraResourceTypeBI
           \ openstack_fw_firewall_v1
           \ openstack_fw_policy_v1
           \ openstack_fw_rule_v1
+          \ openstack_identity_application_credential_v3
           \ openstack_identity_project_v3
           \ openstack_identity_role_assignment_v3
           \ openstack_identity_role_v3
@@ -2159,9 +3047,11 @@ syn keyword terraResourceTypeBI
           \ openstack_lb_pool_v1
           \ openstack_lb_pool_v2
           \ openstack_lb_vip_v1
+          \ openstack_networking_addressscope_v2
           \ openstack_networking_floatingip_associate_v2
           \ openstack_networking_floatingip_v2
           \ openstack_networking_network_v2
+          \ openstack_networking_port_secgroup_associate_v2
           \ openstack_networking_port_v2
           \ openstack_networking_router_interface_v2
           \ openstack_networking_router_route_v2
@@ -2176,6 +3066,8 @@ syn keyword terraResourceTypeBI
           \ openstack_objectstorage_object_v1
           \ openstack_objectstorage_tempurl_v1
           \ openstack_sharedfilesystem_securityservice_v2
+          \ openstack_sharedfilesystem_share_access_v2
+          \ openstack_sharedfilesystem_share_v2
           \ openstack_sharedfilesystem_sharenetwork_v2
           \ openstack_vpnaas_endpoint_group_v2
           \ openstack_vpnaas_ike_policy_v2
@@ -2201,6 +3093,7 @@ syn keyword terraResourceTypeBI
           \ opentelekomcloud_compute_volume_attach_v2
           \ opentelekomcloud_csbs_backup_policy_v1
           \ opentelekomcloud_csbs_backup_v1
+          \ opentelekomcloud_css_cluster_v1
           \ opentelekomcloud_cts_tracker_v1
           \ opentelekomcloud_dcs_instance_v1
           \ opentelekomcloud_deh_host_v1
@@ -2215,6 +3108,13 @@ syn keyword terraResourceTypeBI
           \ opentelekomcloud_fw_firewall_group_v2
           \ opentelekomcloud_fw_policy_v2
           \ opentelekomcloud_fw_rule_v2
+          \ opentelekomcloud_identity_agency_v3
+          \ opentelekomcloud_identity_group_membership_v3
+          \ opentelekomcloud_identity_group_v3
+          \ opentelekomcloud_identity_project_v3
+          \ opentelekomcloud_identity_role_assignment_v3
+          \ opentelekomcloud_identity_role_v3
+          \ opentelekomcloud_identity_user_v3
           \ opentelekomcloud_images_image_v2
           \ opentelekomcloud_kms_key_v1
           \ opentelekomcloud_lb_listener_v2
@@ -2240,8 +3140,10 @@ syn keyword terraResourceTypeBI
           \ opentelekomcloud_networking_vip_associate_v2
           \ opentelekomcloud_networking_vip_v2
           \ opentelekomcloud_rds_instance_v1
+          \ opentelekomcloud_rds_instance_v3
           \ opentelekomcloud_rts_software_config_v1
           \ opentelekomcloud_rts_software_deployment_v1
+          \ opentelekomcloud_rts_stack_resource_v1
           \ opentelekomcloud_rts_stack_v1
           \ opentelekomcloud_s3_bucket
           \ opentelekomcloud_s3_bucket_object
@@ -2284,13 +3186,18 @@ syn keyword terraResourceTypeBI
           \ ovh_publiccloud_user
           \ ovh_vrack_cloudproject
           \ ovh_vrack_publiccloud_attachment
+          \ packet_bgp_session
+          \ packet_connect
           \ packet_device
           \ packet_ip_attachment
           \ packet_organization
+          \ packet_port_vlan_attachment
           \ packet_project
+          \ packet_project_ssh_key
           \ packet_reserved_ip_block
           \ packet_spot_market_request
           \ packet_ssh_key
+          \ packet_vlan
           \ packet_volume
           \ packet_volume_attachment
           \ pagerduty_addon
@@ -2307,6 +3214,21 @@ syn keyword terraResourceTypeBI
           \ panos_address_group
           \ panos_address_object
           \ panos_administrative_tag
+          \ panos_bfd_profile
+          \ panos_bgp
+          \ panos_bgp_aggregate
+          \ panos_bgp_aggregate_advertise_filter
+          \ panos_bgp_aggregate_suppress_filter
+          \ panos_bgp_auth_profile
+          \ panos_bgp_conditional_adv
+          \ panos_bgp_conditional_adv_advertise_filter
+          \ panos_bgp_conditional_adv_non_exist_filter
+          \ panos_bgp_dampening_profile
+          \ panos_bgp_export_rule_group
+          \ panos_bgp_import_rule_group
+          \ panos_bgp_peer
+          \ panos_bgp_peer_group
+          \ panos_bgp_redist_rule
           \ panos_dag_tags
           \ panos_edl
           \ panos_ethernet_interface
@@ -2322,9 +3244,25 @@ syn keyword terraResourceTypeBI
           \ panos_management_profile
           \ panos_nat_policy
           \ panos_nat_rule
+          \ panos_nat_rule_group
           \ panos_panorama_address_group
           \ panos_panorama_address_object
           \ panos_panorama_administrative_tag
+          \ panos_panorama_bfd_profile
+          \ panos_panorama_bgp
+          \ panos_panorama_bgp_aggregate
+          \ panos_panorama_bgp_aggregate_advertise_filter
+          \ panos_panorama_bgp_aggregate_suppress_filter
+          \ panos_panorama_bgp_auth_profile
+          \ panos_panorama_bgp_conditional_adv
+          \ panos_panorama_bgp_conditional_adv_advertise_filter
+          \ panos_panorama_bgp_conditional_adv_non_exist_filter
+          \ panos_panorama_bgp_dampening_profile
+          \ panos_panorama_bgp_export_rule_group
+          \ panos_panorama_bgp_import_rule_group
+          \ panos_panorama_bgp_peer
+          \ panos_panorama_bgp_peer_group
+          \ panos_panorama_bgp_redist_rule
           \ panos_panorama_device_group
           \ panos_panorama_device_group_entry
           \ panos_panorama_edl
@@ -2338,6 +3276,8 @@ syn keyword terraResourceTypeBI
           \ panos_panorama_management_profile
           \ panos_panorama_nat_policy
           \ panos_panorama_nat_rule
+          \ panos_panorama_nat_rule_group
+          \ panos_panorama_redistribution_profile_ipv4
           \ panos_panorama_security_policies
           \ panos_panorama_security_policy
           \ panos_panorama_security_policy_group
@@ -2356,6 +3296,7 @@ syn keyword terraResourceTypeBI
           \ panos_panorama_vlan_interface
           \ panos_panorama_zone
           \ panos_panorama_zone_entry
+          \ panos_redistribution_profile_ipv4
           \ panos_security_policies
           \ panos_security_policy
           \ panos_security_policy_group
@@ -2371,7 +3312,9 @@ syn keyword terraResourceTypeBI
           \ panos_zone
           \ panos_zone_entry
           \ postgresql_database
+          \ postgresql_default_privileges
           \ postgresql_extension
+          \ postgresql_grant
           \ postgresql_role
           \ postgresql_schema
           \ powerdns_record
@@ -2383,6 +3326,7 @@ syn keyword terraResourceTypeBI
           \ profitbricks_lan
           \ profitbricks_loadbalancer
           \ profitbricks_nic
+          \ profitbricks_resource
           \ profitbricks_server
           \ profitbricks_share
           \ profitbricks_snapshot
@@ -2395,6 +3339,29 @@ syn keyword terraResourceTypeBI
           \ rabbitmq_queue
           \ rabbitmq_user
           \ rabbitmq_vhost
+          \ rancher2_auth_config_activedirectory
+          \ rancher2_auth_config_adfs
+          \ rancher2_auth_config_azuread
+          \ rancher2_auth_config_freeipa
+          \ rancher2_auth_config_github
+          \ rancher2_auth_config_openldap
+          \ rancher2_auth_config_ping
+          \ rancher2_bootstrap
+          \ rancher2_catalog
+          \ rancher2_cloud_credential
+          \ rancher2_cluster
+          \ rancher2_cluster_driver
+          \ rancher2_cluster_logging
+          \ rancher2_cluster_role_template_binding
+          \ rancher2_etcd_backup
+          \ rancher2_namespace
+          \ rancher2_node_driver
+          \ rancher2_node_pool
+          \ rancher2_node_template
+          \ rancher2_project
+          \ rancher2_project_logging
+          \ rancher2_project_role_template_binding
+          \ rancher2_setting
           \ rancher_certificate
           \ rancher_environment
           \ rancher_host
@@ -2410,6 +3377,7 @@ syn keyword terraResourceTypeBI
           \ random_shuffle
           \ random_string
           \ random_uuid
+          \ resource_group_name
           \ rightscale_credential
           \ rightscale_cwf_process
           \ rightscale_deployment
@@ -2424,6 +3392,7 @@ syn keyword terraResourceTypeBI
           \ rightscale_server_array
           \ rightscale_ssh_key
           \ rightscale_subnet
+          \ rundeck_acl_policy
           \ rundeck_job
           \ rundeck_private_key
           \ rundeck_project
@@ -2444,13 +3413,16 @@ syn keyword terraResourceTypeBI
           \ scaleway_user_data
           \ scaleway_volume
           \ scaleway_volume_attachment
-          \ selvpc_resell_floatingip_v2
-          \ selvpc_resell_license_v2
-          \ selvpc_resell_project_v2
-          \ selvpc_resell_role_v2
-          \ selvpc_resell_subnet_v2
-          \ selvpc_resell_token_v2
-          \ selvpc_resell_user_v2
+          \ selectel_vpc_crossregion_subnet_v2
+          \ selectel_vpc_floatingip_v2
+          \ selectel_vpc_keypair_v2
+          \ selectel_vpc_license_v2
+          \ selectel_vpc_project_v2
+          \ selectel_vpc_role_v2
+          \ selectel_vpc_subnet_v2
+          \ selectel_vpc_token_v2
+          \ selectel_vpc_user_v2
+          \ selectel_vpc_vrrp_subnet_v2
           \ skytap_environment
           \ skytap_network
           \ skytap_project
@@ -2458,11 +3430,13 @@ syn keyword terraResourceTypeBI
           \ softlayer_ssh_key
           \ softlayer_virtual_guest
           \ statuscake_test
+          \ telefonicaopencloud_antiddos_v1
           \ telefonicaopencloud_as_configuration_v1
           \ telefonicaopencloud_as_group_v1
           \ telefonicaopencloud_as_policy_v1
           \ telefonicaopencloud_blockstorage_volume_v2
           \ telefonicaopencloud_ces_alarmrule
+          \ telefonicaopencloud_compute_bms_server_v2
           \ telefonicaopencloud_compute_floatingip_associate_v2
           \ telefonicaopencloud_compute_floatingip_v2
           \ telefonicaopencloud_compute_instance_v2
@@ -2472,6 +3446,10 @@ syn keyword terraResourceTypeBI
           \ telefonicaopencloud_compute_volume_attach_v2
           \ telefonicaopencloud_csbs_backup_policy_v1
           \ telefonicaopencloud_csbs_backup_v1
+          \ telefonicaopencloud_cts_tracker_v1
+          \ telefonicaopencloud_dcs_instance_v1
+          \ telefonicaopencloud_dms_group_v1
+          \ telefonicaopencloud_dms_queue_v1
           \ telefonicaopencloud_dns_recordset_v2
           \ telefonicaopencloud_dns_zone_v2
           \ telefonicaopencloud_elb_backendecs
@@ -2481,6 +3459,9 @@ syn keyword terraResourceTypeBI
           \ telefonicaopencloud_fw_firewall_group_v2
           \ telefonicaopencloud_fw_policy_v2
           \ telefonicaopencloud_fw_rule_v2
+          \ telefonicaopencloud_maas_task_v1
+          \ telefonicaopencloud_mrs_cluster_v1
+          \ telefonicaopencloud_mrs_job_v1
           \ telefonicaopencloud_networking_floatingip_v2
           \ telefonicaopencloud_networking_network_v2
           \ telefonicaopencloud_networking_port_v2
@@ -2492,6 +3473,7 @@ syn keyword terraResourceTypeBI
           \ telefonicaopencloud_networking_subnet_v2
           \ telefonicaopencloud_rds_instance_v1
           \ telefonicaopencloud_rts_software_config_v1
+          \ telefonicaopencloud_rts_stack_resource_v1
           \ telefonicaopencloud_rts_stack_v1
           \ telefonicaopencloud_s3_bucket
           \ telefonicaopencloud_s3_bucket_object
@@ -2499,7 +3481,11 @@ syn keyword terraResourceTypeBI
           \ telefonicaopencloud_sfs_file_system_v2
           \ telefonicaopencloud_smn_subscription_v2
           \ telefonicaopencloud_smn_topic_v2
+          \ telefonicaopencloud_vbs_backup_policy_v2
+          \ telefonicaopencloud_vbs_backup_v2
           \ telefonicaopencloud_vpc_eip_v1
+          \ telefonicaopencloud_vpc_peering_connection_accepter_v2
+          \ telefonicaopencloud_vpc_peering_connection_v2
           \ telefonicaopencloud_vpc_subnet_v1
           \ telefonicaopencloud_vpc_v1
           \ template_dir
@@ -2509,12 +3495,19 @@ syn keyword terraResourceTypeBI
           \ tencentcloud_cbs_storage_attachment
           \ tencentcloud_container_cluster
           \ tencentcloud_container_cluster_instance
+          \ tencentcloud_cos_bucket
+          \ tencentcloud_cos_bucket_object
           \ tencentcloud_dnat
           \ tencentcloud_eip
           \ tencentcloud_eip_association
           \ tencentcloud_instance
           \ tencentcloud_key_pair
           \ tencentcloud_lb
+          \ tencentcloud_mysql_account
+          \ tencentcloud_mysql_account_privilege
+          \ tencentcloud_mysql_backup_policy
+          \ tencentcloud_mysql_instance
+          \ tencentcloud_mysql_readonly_instance
           \ tencentcloud_nat_gateway
           \ tencentcloud_route_entry
           \ tencentcloud_route_table
@@ -2522,6 +3515,7 @@ syn keyword terraResourceTypeBI
           \ tencentcloud_security_group_rule
           \ tencentcloud_subnet
           \ tencentcloud_vpc
+          \ tfe_oauth_client
           \ tfe_organization
           \ tfe_organization_token
           \ tfe_policy_set
@@ -2546,6 +3540,7 @@ syn keyword terraResourceTypeBI
           \ triton_service_group
           \ triton_snapshot
           \ triton_vlan
+          \ ucloud_db_instance
           \ ucloud_disk
           \ ucloud_disk_attachment
           \ ucloud_eip
@@ -2555,8 +3550,11 @@ syn keyword terraResourceTypeBI
           \ ucloud_lb_attachment
           \ ucloud_lb_listener
           \ ucloud_lb_rule
+          \ ucloud_lb_ssl
+          \ ucloud_lb_ssl_attachment
           \ ucloud_security_group
           \ ucloud_subnet
+          \ ucloud_udpn_connection
           \ ucloud_vpc
           \ ucloud_vpc_peering_connection
           \ ultradns_dirpool
@@ -2565,13 +3563,91 @@ syn keyword terraResourceTypeBI
           \ ultradns_rdpool
           \ ultradns_record
           \ ultradns_tcpool
+          \ vault_approle_auth_backend_login
+          \ vault_approle_auth_backend_role
+          \ vault_approle_auth_backend_role_secret_id
+          \ vault_audit
+          \ vault_auth_backend
+          \ vault_aws_auth_backend_cert
+          \ vault_aws_auth_backend_client
+          \ vault_aws_auth_backend_identity_whitelist
+          \ vault_aws_auth_backend_login
+          \ vault_aws_auth_backend_role
+          \ vault_aws_auth_backend_role_tag
+          \ vault_aws_auth_backend_roletag_blacklist
+          \ vault_aws_auth_backend_sts_role
+          \ vault_aws_secret_backend
+          \ vault_aws_secret_backend_role
+          \ vault_azure_auth_backend_config
+          \ vault_azure_auth_backend_role
+          \ vault_cert_auth_backend_role
+          \ vault_consul_secret_backend
+          \ vault_database_secret_backend_connection
+          \ vault_database_secret_backend_role
+          \ vault_egp_policy
+          \ vault_gcp_auth_backend
+          \ vault_gcp_auth_backend_role
+          \ vault_gcp_secret_backend
+          \ vault_gcp_secret_roleset
+          \ vault_generic_endpoint
+          \ vault_generic_secret
+          \ vault_github_auth_backend
+          \ vault_github_team
+          \ vault_github_user
+          \ vault_identity_entity
+          \ vault_identity_entity_alias
+          \ vault_identity_group
+          \ vault_identity_group_alias
+          \ vault_identity_group_policies
+          \ vault_jwt_auth_backend
+          \ vault_jwt_auth_backend_role
+          \ vault_kubernetes_auth_backend_config
+          \ vault_kubernetes_auth_backend_role
+          \ vault_ldap_auth_backend
+          \ vault_ldap_auth_backend_group
+          \ vault_ldap_auth_backend_user
+          \ vault_mount
+          \ vault_namespace
+          \ vault_okta_auth_backend
+          \ vault_okta_auth_backend_group
+          \ vault_okta_auth_backend_user
+          \ vault_pki_secret_backend
+          \ vault_pki_secret_backend_cert
+          \ vault_pki_secret_backend_config_ca
+          \ vault_pki_secret_backend_config_urls
+          \ vault_pki_secret_backend_intermediate_cert_request
+          \ vault_pki_secret_backend_intermediate_set_signed
+          \ vault_pki_secret_backend_role
+          \ vault_pki_secret_backend_root_cert
+          \ vault_pki_secret_backend_root_sign_intermediate
+          \ vault_pki_secret_backend_sign
+          \ vault_policy
+          \ vault_rabbitmq_secret_backend
+          \ vault_rabbitmq_secret_backend_role
+          \ vault_rgp_policy
+          \ vault_ssh_secret_backend_ca
+          \ vault_ssh_secret_backend_role
+          \ vault_token
+          \ vault_token_auth_backend_role
+          \ vcd_catalog
+          \ vcd_catalog_item
+          \ vcd_catalog_media
           \ vcd_dnat
           \ vcd_edgegateway_vpn
+          \ vcd_external_network
           \ vcd_firewall_rules
-          \ vcd_network
+          \ vcd_independent_disk
+          \ vcd_inserted_media
+          \ vcd_network_direct
+          \ vcd_network_isolated
+          \ vcd_network_routed
+          \ vcd_org
+          \ vcd_org_vdc
           \ vcd_snat
           \ vcd_vapp
+          \ vcd_vapp_network
           \ vcd_vapp_vm
+          \ vra7_deployment
           \ vsphere_compute_cluster
           \ vsphere_compute_cluster_host_group
           \ vsphere_compute_cluster_vm_affinity_rule
@@ -2604,6 +3680,25 @@ syn keyword terraResourceTypeBI
           \ vsphere_virtual_machine
           \ vsphere_virtual_machine_snapshot
           \ vsphere_vmfs_datastore
+          \ yandex_compute_disk
+          \ yandex_compute_image
+          \ yandex_compute_instance
+          \ yandex_compute_snapshot
+          \ yandex_iam_service_account
+          \ yandex_iam_service_account_iam_binding
+          \ yandex_iam_service_account_iam_member
+          \ yandex_iam_service_account_iam_policy
+          \ yandex_iam_service_account_static_access_key
+          \ yandex_resourcemanager_cloud
+          \ yandex_resourcemanager_cloud_iam_binding
+          \ yandex_resourcemanager_cloud_iam_member
+          \ yandex_resourcemanager_folder
+          \ yandex_resourcemanager_folder_iam_binding
+          \ yandex_resourcemanager_folder_iam_member
+          \ yandex_resourcemanager_folder_iam_policy
+          \ yandex_vpc_network
+          \ yandex_vpc_route_table
+          \ yandex_vpc_subnet
 """ end resources
 
 syn keyword terraTodo         contained TODO FIXME XXX BUG
@@ -2636,10 +3731,14 @@ syn region terraProvisionerName start=/"/ end=/"/ nextgroup=terraProvisionerBloc
 syn match  terraModule     /\<module\>/ nextgroup=terraModuleName skipwhite
 syn region terraModuleName start=/"/ end=/"/ nextgroup=terraModuleBlock skipwhite
 
+""" dynamic (HCL2)
+syn match  terraDynamic     /\<dynamic\>/ nextgroup=terraDynamicName skipwhite
+syn region terraDynamicName start=/"/ end=/"/ nextgroup=terraDynamicBlock skipwhite
+
 """ misc.
 syn match terraValueDec      "\<[0-9]\+\([kKmMgG]b\?\)\?\>"
 syn match terraValueHexaDec  "\<0x[0-9a-f]\+\([kKmMgG]b\?\)\?\>"
-syn match terraBraces        "[{}\[\]]"
+syn match terraBraces        "[\[\]]"
 
 """ skip \" in strings.
 """ we may also want to pass \\" into a function to escape quotes.
@@ -2651,6 +3750,21 @@ syn region terraValueFunction matchgroup=terraBrackets start=/[a-z]\+(/ end=/)/ 
 " User variables or module outputs can be lists or maps, and accessed with
 " var.map["foo"]
 syn region terraValueVarSubscript start=/\(\<var\|\<module\)\.[a-z0-9_-]\+\[/ end=/\]/ contains=terraValueString,terraValueFunction,terraValueVarSubscript contained
+
+""" HCL2
+syn keyword terraContent        content
+syn keyword terraRepeat         for in
+syn keyword terraConditional    if
+syn keyword terraPrimitiveType  string bool number
+syn keyword terraStructuralType object tuple
+syn keyword terraCollectionType list map set
+syn keyword terraValueNull      null
+
+""" Terraform v0.12
+syn keyword terraTodo contained TF-UPGRADE-TODO
+
+" enable block folding
+syn region terraBlock matchgroup=terraBraces start="{" end="}" fold transparent
 
 hi def link terraComment           Comment
 hi def link terraTodo              Todo
@@ -2679,7 +3793,14 @@ hi def link terraModule            Structure
 hi def link terraModuleName        String
 hi def link terraValueFunction     Identifier
 hi def link terraValueVarSubscript Identifier
+hi def link terraDynamic           Structure
+hi def link terraDynamicName       String
+hi def link terraContent           Structure
+hi def link terraRepeat            Repeat
+hi def link terraConditional       Conditional
+hi def link terraPrimitiveType     Type
+hi def link terraStructuralType    Type
+hi def link terraCollectionType    Type
+hi def link terraValueNull         Constant
 
-let b:current_syntax = "terraform"
-
-endif
+let b:current_syntax = 'terraform'

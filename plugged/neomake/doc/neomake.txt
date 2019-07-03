@@ -448,6 +448,21 @@ falls back to using |tempname()|.
 You can configure this per buffer or maker as usual, e.g.: >
         let g:neomake_<ft>_<name>_tempfile_enabled = 0
 <
+                                                 *neomake-makers-tempfile_dir*
+Default: unset
+You can configure the directory to use for temporary files (see
+|neomake-makers-tempfile_enabled|).
+
+The default behavior is to use the same directory as the original file, so
+that any config files (e.g. `setup.cfg` for Python tools) take effect.
+
+You can configure this per buffer or maker as usual, e.g.: >
+        let g:neomake_<ft>_<name>_tempfile_dir = '/tmp/custom'
+<
+The value gets expanded (via `neomake#utils#ExpandArgs`), which allows for
+the following to use the original file's directory structure (`%:p:h`): >
+        let g:neomake_tempfile_dir = '/tmp/custom%:p:h'
+<
                                                 *neomake-makers-output_stream*
 Default: "both" ("stdout", "stderr", "both")
 The `output_stream` setting specifies what stream gets used for output from
@@ -562,7 +577,7 @@ otherwise.
 Defaults to 1.
 
 *g:neomake_virtualtext_current_error*
-Use Neovim's virtualtext API to display error for the current line next
+Use Neovim's virtualtext API to display the error for the current line next
 to the text.  This is experimental, and uses the same mechanism (timer)
 as |g:neomake_echo_current_error|.
 Defaults to 1 (only available on Neovim 0.3.2+).
@@ -632,16 +647,22 @@ create new ones.
 
 Neomake uses the following defaults: >
 
-     let g:neomake_error_sign = {'text': '✖', 'texthl': 'NeomakeErrorSign'}
+     let g:neomake_error_sign = {
+         \ 'text': '✖',
+         \ 'texthl': 'NeomakeErrorSign',
+         \ }
      let g:neomake_warning_sign = {
-         \   'text': '⚠',
+         \   'text': '‼',
          \   'texthl': 'NeomakeWarningSign',
          \ }
      let g:neomake_message_sign = {
           \   'text': '➤',
           \   'texthl': 'NeomakeMessageSign',
           \ }
-     let g:neomake_info_sign = {'text': 'ℹ', 'texthl': 'NeomakeInfoSign'}
+     let g:neomake_info_sign = {
+          \ 'text': 'ℹ',
+          \ 'texthl': 'NeomakeInfoSign'
+          \ }
 <
 
 Default |highlight-groups| are created with those names, but only if they do

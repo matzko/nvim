@@ -6,7 +6,7 @@
 
 import re
 
-from deoplete.source.base import Base
+from deoplete.base.source import Base
 from deoplete.util import (
     convert2list, set_pattern, convert2candidates)
 
@@ -25,15 +25,13 @@ class Source(Base):
         input_patterns = {}
         set_pattern(input_patterns, 'css,less,scss,sass',
                     [r'\w{2}', r'\w+:?\s*\w*', r'[@!]'])
-        set_pattern(input_patterns, 'lua',
-                    [r'\w+[.:]\w*'])
         self.vars = {
             'input_patterns': input_patterns,
             'functions': {},
         }
 
     def get_complete_position(self, context):
-        current_ft = self.vim.eval('&filetype')
+        current_ft = self.get_buf_option('filetype')
 
         for filetype in list(set([context['filetype']] +
                                  context['filetype'].split('.'))):
@@ -47,7 +45,7 @@ class Source(Base):
                 self.get_filetype_var(filetype, 'functions')):
             if omnifunc == '' and (filetype == current_ft or
                                    filetype in ['css', 'javascript']):
-                omnifunc = self.vim.eval('&l:omnifunc')
+                omnifunc = self.get_buf_option('omnifunc')
             if omnifunc == '':
                 continue
             self._omnifunc = omnifunc
@@ -61,7 +59,7 @@ class Source(Base):
                                            'Manual' and m is None):
                     continue
 
-                if filetype == current_ft and self._omnifunc in [
+                if self._omnifunc in [
                         'ccomplete#Complete',
                         'htmlcomplete#CompleteTags',
                         'LanguageClient#complete',
@@ -85,13 +83,12 @@ class Source(Base):
             elif not isinstance(candidates, list):
                 candidates = []
         except Exception:
-            self.print_error('Error occurred calling omnifunction: ' +
-                             self._omnifunc)
             candidates = []
 
         candidates = convert2candidates(candidates)
 
         for candidate in candidates:
             candidate['dup'] = 1
+            candidate['equal'] = 1
 
         return candidates

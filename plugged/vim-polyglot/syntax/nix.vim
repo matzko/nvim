@@ -1,5 +1,7 @@
-if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'nix') == -1
-  
+if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'nix') != -1
+  finish
+endif
+
 " Vim syntax file
 " Language:    Nix
 " Maintainer:  Daiderd Jordan <daiderd@gmail.com>
@@ -38,6 +40,7 @@ syn region nixInterpolation matchgroup=nixInterpolationDelimiter start="\${" end
 
 syn match nixSimpleStringSpecial /\\\%([nrt"\\$]\|$\)/ contained
 syn match nixStringSpecial /''['$]/ contained
+syn match nixStringSpecial /\$\$/ contained
 syn match nixStringSpecial /''\\[nrt]/ contained
 
 syn match nixInvalidSimpleStringEscape /\\[^nrt"\\$]/ contained
@@ -196,5 +199,3 @@ hi def link nixWithExprKeyword           Keyword
 syn sync fromstart
 
 let b:current_syntax = "nix"
-
-endif

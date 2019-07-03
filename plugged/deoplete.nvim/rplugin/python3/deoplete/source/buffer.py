@@ -4,7 +4,7 @@
 # License: MIT license
 # ============================================================================
 
-from deoplete.source.base import Base
+from deoplete.base.source import Base
 from deoplete.util import parse_buffer_pattern, getlines
 
 
@@ -15,7 +15,7 @@ class Source(Base):
 
         self.name = 'buffer'
         self.mark = '[B]'
-        self.events = ['Init', 'BufReadPost', 'BufWritePost', 'BufDelete']
+        self.events = ['Init', 'BufReadPost', 'BufWritePost']
         self.vars = {
             'require_same_filetype': True,
         }
@@ -25,12 +25,14 @@ class Source(Base):
         self._max_lines = 5000
 
     def on_event(self, context):
-        if context['event'] == 'BufDelete':
-            # Remove deleted buffer cache
-            if context['bufnr'] in self._buffers:
-                self._buffers.pop(context['bufnr'])
-        else:
-            self._make_cache(context)
+        self._make_cache(context)
+
+        tab_bufnrs = self.vim.call('tabpagebuflist')
+        self._buffers = {
+            x['bufnr']: x for x in self._buffers.values()
+            if x['bufnr'] in tab_bufnrs or
+            self.vim.call('buflisted', x['bufnr'])
+        }
 
     def gather_candidates(self, context):
         tab_bufnrs = self.vim.call('tabpagebuflist')
@@ -53,7 +55,7 @@ class Source(Base):
         try:
             self._buffers[context['bufnr']] = {
                 'bufnr': context['bufnr'],
-                'filetype': self.vim.eval('&l:filetype'),
+                'filetype': self.get_buf_option('filetype'),
                 'candidates': [
                     {'word': x} for x in
                     sorted(parse_buffer_pattern(getlines(self.vim),

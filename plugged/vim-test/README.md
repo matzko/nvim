@@ -2,12 +2,12 @@
 
 A Vim wrapper for running tests on different granularities.
 
-<img alt="usage overview" src="https://github.com/janko-m/vim-test/blob/master/screenshots/granularity.gif" width=770 height=503>
+<img alt="usage overview" src="https://github.com/janko/vim-test/blob/master/screenshots/granularity.gif" width=770 height=503>
 
 ## Features
 
 * Zero dependencies
-* Zero configuration required (it Does the Right Thing™, see [**Philosophy**](https://github.com/janko-m/vim-test/wiki))
+* Zero configuration required (it Does the Right Thing™, see [**Philosophy**](https://github.com/janko/vim-test/wiki))
 * Wide range of test runners which are automagically detected
 * **Polyfills** for nearest tests (by [constructing regexes](#commands))
 * Wide range of execution environments ("[strategies](#strategies)")
@@ -46,7 +46,7 @@ runners are supported:
 
 Using [vim-plug](https://github.com/junegunn/vim-plug), add
 ```vim
-Plug 'janko-m/vim-test'
+Plug 'janko/vim-test'
 ```
 to your `.vimrc` file (see vim-plug documentation for where), and run `:PlugInstall`.
 
@@ -139,7 +139,7 @@ endif
 
 ### Quickfix Strategies
 
-If you want your test results to appear in the quickfix window, use one of the 
+If you want your test results to appear in the quickfix window, use one of the
 following strategies:
 
  * Make
@@ -148,15 +148,15 @@ following strategies:
  * Dispatch.vim
 
 Regardless of which you pick, it's recommended you have Dispatch.vim installed as the
-strategies will automatically use it to determine the correct compiler, ensuring the 
+strategies will automatically use it to determine the correct compiler, ensuring the
 test output is correctly parsed for the quickfix window.
 
-As Dispatch.vim just determines the compiler, you need to make sure the Vim distribution 
-or a plugin has a corresponding compiler for your test runner, or you may need to write a 
+As Dispatch.vim just determines the compiler, you need to make sure the Vim distribution
+or a plugin has a corresponding compiler for your test runner, or you may need to write a
 compiler plugin.
 
-If the test command prefix doesn't match the compiler's `makeprg` then use the 
-`g:dispatch_compiler` variable. For example if your test command was `./vendor/bin/phpunit` 
+If the test command prefix doesn't match the compiler's `makeprg` then use the
+`g:dispatch_compiler` variable. For example if your test command was `./vendor/bin/phpunit`
 but you wanted to use the phpunit2 compiler:
 
 ```vim
@@ -199,7 +199,7 @@ let g:test#transformation = 'vagrant'
 
 ## Commands
 
-<img alt="nearest polyfill" src="https://github.com/janko-m/vim-test/blob/master/screenshots/nearest.gif" width=770 height=323>
+<img alt="nearest polyfill" src="https://github.com/janko/vim-test/blob/master/screenshots/nearest.gif" width=770 height=323>
 
 You can execute test.vim commands directly, and pass them CLI options:
 
@@ -253,15 +253,26 @@ let test#ruby#rspec#options = {
 \}
 ```
 
-### Neovim terminal position
+You can also specify a global approach along with the granular options for the
+specified test runner:
 
-The `neovim` strategy will open a split window on the bottom by default, but
+```vim
+let test#ruby#rspec#options = {
+  \ 'all':   '--backtrace',
+  \ 'suite': '--tag ~slow',
+\}
+```
+
+### Vim8 / Neovim terminal position
+
+Both the `neovim` and `Vim8 Terminal` strategy will open a split window on the bottom by default, but
 you can configure a different position:
 
 ```vim
+" for neovim
 let test#neovim#term_position = "topleft"
-" or
-let test#neovim#term_position = "belowright"
+" or for Vim8
+let test#vim#term_position = "belowright"
 ```
 
 For full list of variants, see `:help opening-window`.
@@ -321,6 +332,11 @@ the first available will be chosen, but you can force a specific one:
 let test#python#runner = 'pytest'
 " Runners available are 'pytest', 'nose', 'nose2', 'djangotest', 'djangonose' and Python's built-in 'unittest'
 ```
+
+The pytest runner optionally supports [pipenv](https://github.com/pypa/pipenv).
+If you have a `Pipfile`, it will use `pipenv run pytest` instead of just
+`pytest`.
+
 #### Java
 
 For the same reason as Python, runner detection works the same for Java. To
@@ -468,7 +484,7 @@ and Windows support. And also thanks to [vroom.vim].
 Copyright © Janko Marohnić. Distributed under the same terms as Vim itself. See
 `:help license`.
 
-[minitest]: https://github.com/janko-m/vim-test/wiki/Minitest
+[minitest]: https://github.com/janko/vim-test/wiki/Minitest
 [Neoterm]: https://github.com/kassio/neoterm
 [Neomake]: https://github.com/neomake/neomake
 [Dispatch]: https://github.com/tpope/vim-dispatch

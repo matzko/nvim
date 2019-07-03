@@ -5,10 +5,10 @@ function! s:wait_for_jobs(filter)
   let max = 45
   while 1
     let jobs = copy(neomake#GetJobs())
-    if len(a:filter)
+    if !empty(a:filter)
       let jobs = filter(jobs, a:filter)
     endif
-    if !len(jobs)
+    if empty(jobs)
       break
     endif
     let max -= 1
@@ -216,7 +216,7 @@ function! s:AssertNeomakeMessage(msg, ...)
           \  ."expected '%s', but got nothing.", k, string(expected)))
       endfor
       let found_but_context_diff = context_diff
-      if len(context_diff)
+      if !empty(context_diff)
         if ignore_order
           continue
         endif
@@ -258,7 +258,7 @@ command! -nargs=1 AssertNeomakeWarning call s:AssertNeomakeWarning(<args>)
 
 function! s:AssertEqualQf(actual, expected, ...) abort
   let expected = a:expected
-  if has('patch-8.0.1782')
+  if has('patch-8.0.1782') || has('nvim-0.4.0')
     let expected = map(copy(expected), "extend(v:val, {'module': ''})")
   endif
   call call('vader#assert#equal', [a:actual, expected] + a:000)
@@ -305,7 +305,7 @@ function! g:NeomakeSetupAutocmdWrappers()
   augroup END
 endfunction
 
-command! -nargs=1 NeomakeTestsSkip call vader#log('SKIP: ' . <args>)
+command! -nargs=1 -bar NeomakeTestsSkip call vader#log('SKIP: ' . <args>)
 
 function! NeomakeAsyncTestsSetup()
   if neomake#has_async_support()
@@ -329,7 +329,7 @@ let s:jobinfo_count = 0
 function! NeomakeTestsFakeJobinfo() abort
   let s:jobinfo_count += 1
   let make_id = -42
-  let jobinfo = copy(g:neomake#jobinfo#base)
+  let jobinfo = neomake#jobinfo#new()
   let maker = copy(g:neomake#config#_defaults.maker_defaults)
   let maker.name = 'fake_jobinfo_name'
 
@@ -483,7 +483,7 @@ function! s:After()
   " Stop any (non-canceled) jobs.  Canceled jobs might take a while to call the
   " exit handler, but that is OK.
   let jobs = filter(neomake#GetJobs(), "!get(v:val, 'canceled', 0)")
-  if len(jobs)
+  if !empty(jobs)
     call neomake#log#debug('=== teardown: canceling jobs.')
     for job in jobs
       call neomake#CancelJob(job.id, !neomake#has_async_support())
@@ -497,18 +497,26 @@ function! s:After()
     endtry
   endif
 
-  let unexpected_errors = filter(copy(g:neomake_test_messages),
-        \ 'v:val[0] == 0 && index(g:_neomake_test_asserted_messages, v:val) == -1')
-  if !empty(unexpected_errors)
-    call add(errors, 'found unexpected error messages: '.string(unexpected_errors))
-  endif
-
-  let unexpected_warnings = filter(copy(g:neomake_test_messages),
-        \ 'v:val[0] == 1 && v:val[1] !=# "automake: timer support is required for delayed events."'.
-        \ '&& index(g:_neomake_test_asserted_messages, v:val) == -1')
-  if !empty(unexpected_warnings)
-    call add(errors, 'found unexpected warning messages: '.string(unexpected_warnings))
-  endif
+  " Check for unexpected errors/warnings.
+  for [level, name] in [[0, 'error'], [1, 'warning']]
+    let msgs = filter(copy(g:neomake_test_messages),
+          \ 'v:val[0] == level && v:val[1] !=# ''automake: timer support is required for delayed events.''')
+    let asserted_msgs = filter(copy(g:_neomake_test_asserted_messages),
+          \ 'v:val[0] == level')
+    let unexpected = []
+    for msg in msgs
+      let asserted_idx = index(asserted_msgs, msg)
+      if asserted_idx == -1
+        call add(unexpected, msg)
+      else
+        call remove(asserted_msgs, asserted_idx)
+      endif
+    endfor
+    if !empty(unexpected)
+      call add(errors, printf('found %d unexpected %s messages: %s',
+            \ len(unexpected), name, string(unexpected)))
+    endif
+  endfor
 
   let status = neomake#GetStatus()
   let make_info = status.make_info
@@ -550,7 +558,7 @@ function! s:After()
   if winnr('$') > 1
     let error = 'More than 1 window after tests: '
       \ .string(map(range(1, winnr('$')),
-      \ "[bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
+      \ "[winbufnr(v:val), bufname(winbufnr(v:val)), getbufvar(winbufnr(v:val), '&bt')]"))
     try
       for b in neomake#compat#uniq(sort(tabpagebuflist()))
         if bufname(b) !=# '[Vader-workbench]'
@@ -582,6 +590,18 @@ function! s:After()
   endfor
 
   let new_buffers = filter(range(1, bufnr('$')), 'bufexists(v:val) && index(g:neomake_test_buffers_before, v:val) == -1')
+  if !empty(new_buffers) && has('patch-8.1.0877')
+    " Filter out unlisted qf buffers, which Vim keeps around.
+    let new_new_buffers = []
+    for b in new_buffers
+      if !buflisted(b) && getbufvar(b, '&ft') ==# 'qf'
+        exe 'bwipe!' b
+        continue
+      endif
+      call add(new_new_buffers, b)
+    endfor
+    let new_buffers = new_new_buffers
+  endif
   if !empty(new_buffers)
     let curbuffers = neomake#utils#redir('ls!')
     call add(errors, 'Unexpected/not wiped buffers: '.join(new_buffers, ', ')."\ncurrent buffers:".curbuffers)
@@ -600,10 +620,29 @@ function! s:After()
     call extend(g:neomake_test_funcs_before, new_funcs)
   endif
 
+  " Remove any new augroups, ignoring "neomake_*".
+  let augroups = split(substitute(neomake#utils#redir('augroup'), '^[ \n]\+', '', ''), '\s\+')
+  let new_augroups = filter(copy(augroups), 'v:val !~# ''^neomake_'' && index(g:neomake_test_augroups_before, v:val) == -1')
+  if !empty(new_augroups)
+      for augroup in new_augroups
+          exe 'augroup '.augroup
+          au!
+          exe 'augroup END'
+          exe 'augroup! '.augroup
+      endfor
+  endif
+
   " Check that no highlights are left.
   let highlights = neomake#highlights#_get()
+  " Ignore unlisted qf buffers that Vim keeps around
+  " (having ft='' (likely due to bwipe above)).
+  if has('patch-8.1.0877')
+      call filter(highlights['file'], 'buflisted(v:key)')
+  endif
   if highlights != {'file': {}, 'project': {}}
     call add(errors, printf('Highlights were not reset (use a new buffer): %s', highlights))
+    let highlights.file = {}
+    let highlights.project = {}
   endif
 
   if exists('#neomake_event_queue')

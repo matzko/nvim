@@ -79,10 +79,10 @@ All options:~
     |g:grepper.switch|
     |g:grepper.jump|
     |g:grepper.prompt|
+    |g:grepper.prompt_text|
     |g:grepper.prompt_quote|
     |g:grepper.dir|
     |g:grepper.repo|
-    |g:grepper.simple_prompt|
     |g:grepper.side|
     |g:grepper.side_cmd|
     |g:grepper.tools|
@@ -91,6 +91,7 @@ All options:~
     |g:grepper.prompt_mapping_side|
     |g:grepper.stop|
     |g:grepper.append|
+    |g:grepper.searchreg|
 
 ------------------------------------------------------------------------------
                                             *g:grepper.buffer* *g:grepper.buffers*  >
@@ -109,7 +110,7 @@ work on actual files, not Vim buffers.
                                                            *g:grepper.highlight*  >
     let g:grepper.highlight = 0
 <
-Highlight found matches.
+Highlight found matches. This implies |g:grepper.searchreg|.
 
 ------------------------------------------------------------------------------
                                                             *g:grepper.quickfix*  >
@@ -148,6 +149,15 @@ don't even handle empty queries, the empty query will be replaced by the word
 under the cursor. Use |:Grepper-query| to use your own query.
 
 ------------------------------------------------------------------------------
+                                                         *g:grepper.prompt_text*  >
+    let g:grepper.prompt_text = '$c> '
+
+The text the prompt displays. It knows two specifiers:
+
+    $c   The full grep command.
+    $t   The grep tool name.
+
+------------------------------------------------------------------------------
                                                         *g:grepper.prompt_quote*  >
     let g:grepper.prompt_quote = 0
 <
@@ -171,8 +181,7 @@ The following values are available:
                                                                  *g:grepper.dir*  >
     let g:grepper.dir = 'cwd'
 <
-Change working directory before grepping. If the directory changes, Grepper
-won't change back after the search finishes.
+Change working directory before grepping and switch back afterwards.
 
  cwd~
     Use the current working directory as reported by |:pwd|.
@@ -209,6 +218,8 @@ The directories or files to search for when using |g:grepper.dir| with `repo`.
 <
 Only show the tool name in the prompt, without any of its arguments.
 
+DEPRECATED: Use |g:grepper.prompt_text| instead.
+
 ------------------------------------------------------------------------------
                                                                 *g:grepper.side*  >
     let g:grepper.side = 0
@@ -225,11 +236,16 @@ The command used for opening the side window. See |grepper-side| for details.
 ------------------------------------------------------------------------------
                                                                *g:grepper.tools*  >
     let g:grepper.tools =
-      \ ['ag', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 'pt', 'sift, 'git']
+      \ ['git', 'ag', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 'pt', 'sift']
 <
 These are the tools that you can choose from. The first tool in this list is
 the default tool and always gets used if no other tool was explicitly
 specified.
+
+Git is a special case since it doesn't work in every directory. If it is in
+front of the list, but `:Grepper` (without |:Grepper-tool|) is used outside of
+a git repo, it will be removed from the list and `:Grepper` falls back to the
+next tool in line.
 
 NOTE: Because of a name clash, some systems use "ack-grep" instead of "ack".
 If both are included in this option and found to be executable, "ack" will be
@@ -277,6 +293,16 @@ both. This limits the impact of otherwise long-running processes.
     let g:grepper.append = 0
 <
 Append matches to the current quickfix or location list.
+
+------------------------------------------------------------------------------
+                                                           *g:grepper.searchreg*  >
+    let g:grepper.searchreg = 0
+<
+The query, after changed to a Vim regexp, is added to the last search register
+(|quote/|) and search |history|.
+
+This can be used to quickly jump between matches in the current buffer via the
+usual |n|/|N|.
 
 ==============================================================================
 COMMANDS                                                      *grepper-:Grepper*

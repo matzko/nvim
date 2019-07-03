@@ -12,14 +12,17 @@ Execute (NeomakeTestsCreateExe overrides existing exe):
   AssertNotEqual system('which true'), true
 
 Execute (neomake#utils#GetSetting serialize):
-  Save g:maker
-  let g:maker = {'name': 'mymaker'}
+  let s:maker = {'name': 'mymaker'}
   function! s:GetSetting()
-    return neomake#utils#GetSetting('serialize', g:maker, 'default',
+    return neomake#utils#GetSetting('serialize', s:maker, 'default',
                                   \ 'myft', bufnr('%'))
   endfunction
 
   new
+  " Do not trigger checking new-style config.
+  Save g:neomake
+  unlet! g:neomake
+
   Save g:neomake_serialize, b:neomake_serialize
   Save g:neomake_mymaker_serialize, b:neomake_mymaker_serialize
   Save g:neomake_myft_mymaker_serialize, b:neomake_myft_mymaker_serialize
@@ -29,7 +32,7 @@ Execute (neomake#utils#GetSetting serialize):
   let g:neomake_serialize = 7
   AssertEqual s:GetSetting(), 7
   " maker-only should return default.
-  AssertEqual neomake#utils#GetSetting('serialize', g:maker, 'default',
+  AssertEqual neomake#utils#GetSetting('serialize', s:maker, 'default',
                                 \ 'myft', bufnr('%'), 1), 'default'
   let g:neomake_serialize = 0
   AssertEqual s:GetSetting(), 0
@@ -43,12 +46,17 @@ Execute (neomake#utils#GetSetting serialize):
   let b:neomake_serialize = 98
   AssertEqual s:GetSetting(), 98
 
-  let g:maker.serialize = 5
+  let s:maker.serialize = 5
   AssertEqual s:GetSetting(), 5
-  let g:maker.serialize = 0
+  let s:maker.serialize = 0
   AssertEqual s:GetSetting(), 0
-  let g:maker.serialize = 97
+  let s:maker.serialize = 97
   AssertEqual s:GetSetting(), 97
+
+  " Falls back correctly to old-style setting with new-style from maker.
+  let g:neomake = {}
+  AssertEqual s:GetSetting(), 97
+  unlet g:neomake
 
   let g:neomake_mymaker_serialize = 4
   AssertEqual s:GetSetting(), 4
@@ -80,9 +88,9 @@ Execute (neomake#utils#GetSetting serialize):
   AssertEqual s:GetSetting(), [1]
 
   " Uses b:neomake_serialize
-  let g:maker = {'name': ''}
+  let s:maker = {'name': ''}
   AssertEqual s:GetSetting(), 98
-  let g:maker = {}
+  let s:maker = {}
   AssertEqual s:GetSetting(), 98
   bwipe
 
@@ -118,6 +126,15 @@ Execute (neomake#utils#GetSetting handles maker-only settings (dict-config)):
   let maker = {'name': 'mymaker', 'exe': 'maker_exe'}
   AssertEqual neomake#config#get('mymaker.exe', 'default', {'ft': 'myft', 'bufnr': bufnr('%'), 'maker': maker}), 'maker_exe'
   bwipe
+
+Execute (neomake#utils#GetSetting uses old-style g: with bufnr ''):
+  Save g:neomake_mysetting
+  let g:neomake_mysetting = 1
+  AssertEqual neomake#utils#GetSetting('mysetting', {}, 'default', 'myft', ''), 1
+  let g:neomake_myft_mysetting = 2
+  AssertEqual neomake#utils#GetSetting('mysetting', {}, 'default', 'myft', ''), 2
+  let g:neomake_myft_mymaker_mysetting = 3
+  AssertEqual neomake#utils#GetSetting('mysetting', {'name': 'mymaker'}, 'default', 'myft', ''), 3
 
 Execute (neomake#utils#GetSetting for multiple fts):
   new
@@ -187,12 +204,15 @@ Execute (neomake#utils#GetSetting without name):
   AssertEqual s:GetSetting('setting'), {'custom': 1}
 
 Execute (neomake#utils#GetSetting with new-style config):
-  Save g:neomake
   new
   set ft=neomake_tests
 
   let b:neomake_neomake_tests_foo = 'bar'
-  let maker = {'foo': 'baz'}
+  let maker = {'name': 'mymaker', 'foo': 'from-maker'}
+  AssertEqual neomake#utils#GetSetting(
+  \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'from-maker'
+
+  let b:neomake_neomake_tests_mymaker_foo = 'bar'
   AssertEqual neomake#utils#GetSetting(
   \ 'foo', maker, -1, 'neomake_tests', bufnr('%')), 'bar'
 
@@ -214,11 +234,11 @@ Execute (neomake#utils#GetSetting does not create a partial for dict funcs):
   function maker.func()
   endfunction
 
-  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
+  let l:Func = neomake#utils#GetSetting('func', maker, '', '', '', 1)
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
-  let Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
+  let l:Func = neomake#utils#GetSetting('func', maker, '', '', '', 0)
   AssertEqual type(Func), type(function('tr'))
   AssertEqual Func, get(maker, 'func')
 
@@ -254,13 +274,16 @@ Execute (neomake#utils#GetSetting prefers g: over maker):
   AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
 
   " With existing new-style.
-  Save g:neomake
   let g:neomake = {}
   AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 0
 
+  " Handles maker_only=1, i.e. does not use setting without maker prefix.
+  call neomake#config#set('ft.dockerfile.uses_stdin', 'ignored')
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr, 1), 1
+
   " Prefers new-style global setting.
-  call neomake#config#set('ft.dockerfile.mymaker.uses_stdin', 2)
-  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 2
+  call neomake#config#set('ft.dockerfile.mymaker.uses_stdin', 3)
+  AssertEqual neomake#utils#GetSetting('uses_stdin', maker, -1, 'dockerfile', bufnr), 3
   bwipe
 
 Execute(neomake#utils#redir):
@@ -389,6 +412,17 @@ Execute (neomake#utils#ExpandArgs: %t for temporary file):
   AssertEqual neomake#utils#ExpandArgs(['%t:h'], jobinfo), ['/some/temp.file:h']
   bwipe
 
+Execute (neomake#utils#ExpandArgs: from another buffer):
+  new
+  file file1.ext
+  let jobinfo = {'bufnr': bufnr('%')}
+  new
+  AssertEqual neomake#utils#ExpandArgs(['%'], jobinfo), ['file1.ext']
+  AssertEqual neomake#utils#ExpandArgs(['%:e'], jobinfo), ['ext']
+  AssertEqual neomake#utils#ExpandArgs(['foo: %:e'], jobinfo), ['foo: ext']
+  bwipe
+  bwipe
+
 Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({}, {}), {}
   AssertEqual neomake#utils#diff_dict({'a': 1}, {'a': 2}),
@@ -403,17 +437,25 @@ Execute (neomake#utils#diff_dict):
   AssertEqual neomake#utils#diff_dict({'a': []}, {'a': {}}),
     \ {'changed': {'a': [[], {}]}}
 
-Execute (neomake#utils#wstrpart):
-  AssertEqual neomake#utils#wstrpart('123', 0, 0), ''
-  AssertEqual neomake#utils#wstrpart('123', 0, 1), '1'
-  AssertEqual neomake#utils#wstrpart('123', 0, 2), '12'
-  AssertEqual neomake#utils#wstrpart('123', 1, 2), '23'
-  AssertEqual neomake#utils#wstrpart('123', 1, 1), '2'
-  AssertEqual neomake#utils#wstrpart('123', 1, 0), ''
+Execute (neomake#utils#truncate_width):
+  AssertEqual neomake#utils#truncate_width('', 0), ''
+  AssertEqual neomake#utils#truncate_width('', -1), ''
 
-  AssertEqual neomake#utils#wstrpart('…', 0, 1), '…'
-  AssertEqual neomake#utils#wstrpart('12…45', 1, 3), '2…4'
-  AssertEqual neomake#utils#wstrpart('…after', 1, 10), 'after'
+  AssertEqual neomake#utils#truncate_width('123', 0), ''
+  AssertEqual neomake#utils#truncate_width('123', 1), '1'
+  AssertEqual neomake#utils#truncate_width('123', 2), '12'
+  AssertEqual neomake#utils#truncate_width('123', 3), '123'
+  AssertEqual neomake#utils#truncate_width('123', 4), '123'
+
+  AssertEqual neomake#utils#truncate_width('长长的。', 1), ''
+  AssertEqual neomake#utils#truncate_width('长长的。', 2), '长'
+  AssertEqual neomake#utils#truncate_width('长长的。', 3), '长'
+  AssertEqual neomake#utils#truncate_width('长长的。', 4), '长长'
+  AssertEqual neomake#utils#truncate_width('长长的。', 10), '长长的。'
+
+  AssertEqual neomake#utils#truncate_width('abc。', 4), 'abc'
+  AssertEqual neomake#utils#truncate_width('abc。', 5), 'abc。'
+  AssertEqual neomake#utils#truncate_width('abc。xyz', 6), 'abc。x'
 
 Execute (neomake#utils#sort_by_col):
   function! s:sort(l)
@@ -671,13 +713,21 @@ Execute (neomake#utils#fnamemodify handles fugitive buffer):
   new
   edit autoload/neomake/debug.vim
   let bufname = bufname('%')
+  let bufname_abs = fnamemodify(bufname, ':p')
+
   Gedit
   AssertNotEqual bufname, bufname('%')
   Assert bufname('%') =~# '^fugitive://'
 
   AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname
-  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), fnamemodify(bufname, ':p')
-  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname, ':p:h')
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), bufname_abs
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname_abs, ':h')
+
+  exe 'lcd '.fnamemodify(tempname(), ':h')
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ''), bufname_abs
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p'), bufname_abs
+  AssertEqual neomake#utils#fnamemodify(bufnr('%'), ':p:h'), fnamemodify(bufname_abs, ':h')
+
   bwipe
   bwipe autoload/neomake/debug.vim
   if exists('*VimFtpluginUndo')
@@ -815,6 +865,14 @@ Execute (neomake#utils#fix_self_ref: handles lists):
   let repr = neomake#utils#fix_self_ref([maker])
   AssertEqual keys(repr[0]), ['args']
   call string(repr)
+
+Execute (neomake#utils#Stringify: uses neomake#utils#fix_self_ref):
+  let maker = {}
+  function maker.args()
+  endfunction
+  let maker.args = maker.args
+  let repr = neomake#utils#Stringify(maker)
+  Assert repr =~# '\V{args: \.\*}'
 
 Execute (neomake#utils#write_tempfile):
   Save &endofline, &binary
@@ -955,7 +1013,7 @@ Execute (neomake#utils#buf_get_lines):
   catch
     let threw = 1
     if has('nvim')
-      AssertEqual v:exception, 'neomake#utils#buf_get_lines: Index out of bounds'
+      Assert v:exception =~# '\Vneomake#utils#buf_get_lines: \.\*Index out of bounds', v:exception
     else
       AssertEqual v:exception, 'neomake#utils#buf_get_lines: end is higher than number of lines'
     endif
@@ -991,7 +1049,7 @@ Execute (neomake#utils#buf_set_lines):
   " end > lines
   let error = neomake#utils#buf_set_lines(b, 1, 4, [])
   if has('nvim')
-    AssertEqual error, 'neomake#utils#buf_set_lines: Index out of bounds'
+    Assert error =~# 'neomake#utils#buf_set_lines: .*Index out of bounds', error
   else
     AssertEqual error, 'neomake#utils#buf_set_lines: end is higher than number of lines'
   endif

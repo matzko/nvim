@@ -93,6 +93,22 @@ endfunction
 
 " Add entries for a job (non-efm method).
 function! s:base_list.add_entries_for_job(entries, jobinfo) dict abort
+    let tempfiles = get(self.make_info, 'tempfiles', [])
+    if !empty(tempfiles)
+        let mapped = 0
+        for e in a:entries
+            if has_key(e, 'filename') && get(e, 'bufnr', 0) == 0
+                if index(tempfiles, e.filename) != -1
+                    unlet e.filename
+                    let e.bufnr = a:jobinfo.bufnr
+                    let mapped += 1
+                endif
+            endif
+        endfor
+        if mapped
+            call neomake#log#debug(printf('Mapped %d bufnrs from temporary files.', mapped), a:jobinfo)
+        endif
+    endif
     return self._appendlist(a:entries, a:jobinfo)
 endfunction
 
@@ -386,8 +402,8 @@ function! s:base_list._get_fn_args(action, ...) abort
     else
         call extend(args, a:000)
         if a:action ==# 'set'
-            if exists(':Assert')
-                Assert len(a:000) == 2
+            if exists('*vader#assert#equal')
+                call vader#assert#equal(len(a:000), 2)
             endif
             if s:can_set_qf_items
                 let options.items = a:1
@@ -516,7 +532,11 @@ function! s:base_list._appendlist(entries, jobinfo) abort
     let action = 'a'
     if !self.need_init
         let action = 'a'
-        if s:needs_to_replace_qf_for_lwindow
+        if s:needs_to_replace_qf_for_lwindow || neomake#quickfix#is_enabled()
+            " Need to replace whole list with customqf to trigger FileType
+            " autocmd (which is not done for action='a').
+            " This should be enhanced to only format new entries instead
+            " later, but needs support for changing non-current buffer lines.
             let action = 'r'
             if self.type ==# 'loclist'
                 let set_entries = self._get_qflist_entries() + set_entries
@@ -666,7 +686,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         endif
     endif
 
-    let Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
+    let l:Postprocess = neomake#utils#GetSetting('postprocess', maker, [], a:jobinfo.ft, a:jobinfo.bufnr)
     if type(Postprocess) != type([])
         let postprocessors = [Postprocess]
     else
@@ -689,7 +709,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         let entry_idx += 1
         let before = copy(entry)
         " Handle unlisted buffers via tempfiles and uses_stdin.
-        if file_mode && entry.bufnr && entry.bufnr != a:jobinfo.bufnr
+        if entry.bufnr && entry.bufnr != a:jobinfo.bufnr
                     \ && (!empty(tempfile_bufnrs) || uses_stdin)
             let map_bufnr = index(tempfile_bufnrs, entry.bufnr)
             if map_bufnr != -1
@@ -719,7 +739,7 @@ function! s:base_list.add_lines_with_efm(lines, jobinfo) dict abort
         if !empty(postprocessors)
             let g:neomake_postprocess_context = {'jobinfo': a:jobinfo}
             try
-                for F in postprocessors
+                for l:F in postprocessors
                     if type(F) == type({})
                         call call(F.fn, [entry], F)
                     else
@@ -927,9 +947,9 @@ function! s:cmp_listitem_loc(a, b) abort
         return buf_diff
     endif
 
-    if exists(':Assert')
-        Assert a:a.bufnr != -1
-        Assert a:b.bufnr != -1
+    if exists('*vader#assert#not_equal')
+        call vader#assert#not_equal(a:a.bufnr, -1)
+        call vader#assert#not_equal(a:b.bufnr, -1)
     endif
 
     let lnum_diff = a:a.lnum - a:b.lnum
@@ -976,17 +996,17 @@ function! s:goto_nearest(list, offset) abort
 
     if found
         if a:list.type ==# 'loclist'
-            if exists(':AssertEqual')
+            if exists('*vader#assert#equal')
                 " @vimlint(EVL102, 1, l:ll_item)
                 let ll_item = getloclist(0)[found-1]
-                AssertEqual [ll_item.bufnr, ll_item.lnum], [item.bufnr, item.lnum]
+                call vader#assert#equal([ll_item.bufnr, ll_item.lnum], [item.bufnr, item.lnum])
             endif
             execute 'll '.found
         else
-            if exists(':AssertEqual')
+            if exists('*vader#assert#equal')
                 " @vimlint(EVL102, 1, l:cc_item)
                 let cc_item = getqflist()[found-1]
-                AssertEqual [cc_item.bufnr, cc_item.lnum], [item.bufnr, item.lnum]
+                call vader#assert#equal([cc_item.bufnr, cc_item.lnum], [item.bufnr, item.lnum])
             endif
             execute 'cc '.found
         endif

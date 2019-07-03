@@ -45,7 +45,6 @@ Execute (tcd is handled properly):
         call mkdir(d, 'p')
       endif
     endfor
-    let tab = tabpagenr()
     try
       tabnew
       let tab1 = tabpagenr()
@@ -96,11 +95,12 @@ Execute (tempfile with pwd):
   call neomake#Make(1, [maker])
   NeomakeTestsWaitForFinishedJobs
 
-  AssertNeomakeMessage 'processing 2 lines of output.', 3
+  AssertNeomakeMessage 'Processing 2 lines of output.', 3
   AssertNeomakeMessage '\v^Removing temporary file: "(.*)".$'
   let tempfile_name = g:neomake_test_matchlist[1]
 
-  AssertEqual map(getloclist(0), 'v:val.text'), [getcwd(), tempfile_name]
+  " NOTE: getcwd() resolves symlinks.
+  AssertEqual map(getloclist(0), 'resolve(v:val.text)'), [getcwd(), tempfile_name]
   bwipe
 
 Execute (cwd handles fugitive buffer):

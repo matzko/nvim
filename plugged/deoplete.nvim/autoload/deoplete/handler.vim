@@ -9,10 +9,11 @@ function! deoplete#handler#_init() abort
     autocmd!
     autocmd InsertLeave * call s:on_insert_leave()
     autocmd CompleteDone * call s:on_complete_done()
-    autocmd InsertLeave * call s:completion_timer_stop()
   augroup END
 
-  for event in ['InsertEnter', 'BufReadPost', 'BufWritePost', 'BufDelete']
+  for event in [
+        \ 'InsertEnter', 'BufReadPost', 'BufWritePost', 'VimLeavePre',
+        \ ]
     call s:define_on_event(event)
   endfor
 
@@ -25,8 +26,9 @@ function! deoplete#handler#_init() abort
   if deoplete#custom#_get_option('refresh_always')
     if exists('##TextChangedP')
       call s:define_completion_via_timer('TextChangedP')
+    else
+      call s:define_completion_via_timer('InsertCharPre')
     endif
-    call s:define_completion_via_timer('InsertCharPre')
   endif
 
   " Note: Vim 8 GUI(MacVim and Win32) is broken
@@ -41,8 +43,6 @@ function! deoplete#handler#_init() abort
     " Note: Workaround
     autocmd deoplete VimLeavePre * call s:kill_yarp()
   endif
-
-  let s:check_insert_charpre = v:false
 endfunction
 
 function! deoplete#handler#_do_complete() abort
@@ -50,7 +50,6 @@ function! deoplete#handler#_do_complete() abort
   let event = get(context, 'event', '')
   let modes = (event ==# 'InsertEnter') ? ['n', 'i'] : ['i']
   if s:is_exiting() || index(modes, mode()) < 0
-    call s:completion_timer_stop()
     return
   endif
 
@@ -64,6 +63,7 @@ function! deoplete#handler#_do_complete() abort
   let prev.input = context.input
   let prev.candidates = context.candidates
   let prev.complete_position = context.complete_position
+  let prev.linenr = line('.')
 
   if context.event ==# 'Manual'
     let context.event = ''
@@ -111,9 +111,9 @@ function! s:completion_timer_start(event) abort
   let delay = deoplete#custom#_get_option('auto_complete_delay')
   if delay > 0
     let s:completion_timer = timer_start(
-          \ delay, {-> s:completion_begin(a:event)})
+          \ delay, {-> deoplete#handler#_completion_begin(a:event)})
   else
-    call s:completion_begin(a:event)
+    call deoplete#handler#_completion_begin(a:event)
   endif
 endfunction
 function! s:completion_timer_stop() abort
@@ -125,44 +125,65 @@ function! s:completion_timer_stop() abort
   unlet s:completion_timer
 endfunction
 
-function! deoplete#handler#_async_timer_start() abort
-  if exists('s:async_timer')
-    call deoplete#handler#_async_timer_stop()
+function! s:check_prev_completion(event) abort
+  let prev = g:deoplete#_prev_completion
+  if a:event ==# 'Async' || mode() !=# 'i'
+        \ || empty(get(prev, 'candidates', []))
+    return
   endif
 
+  let input = deoplete#util#get_input(a:event)
+  let complete_str = matchstr(input, '\w\+$')
+  let min_pattern_length = deoplete#custom#_get_option('min_pattern_length')
+  if prev.linenr != line('.') || len(complete_str) < min_pattern_length
+    return
+  endif
+
+  call deoplete#mapping#_set_completeopt()
+
+  let mode = deoplete#custom#_get_option('prev_completion_mode')
+  let candidates = copy(prev.candidates)
+
+  if mode ==# 'filter' || mode ==# 'length'
+    let input = input[prev.complete_position :]
+    let escaped_input = escape(input, '~\.^$[]*')
+    let pattern = substitute(escaped_input, '\w', '\\w*\0', 'g')
+    call filter(candidates, 'v:val.word =~? pattern')
+    if mode ==# 'length'
+      call filter(candidates, 'len(v:val.word) > len(input)')
+    endif
+  elseif mode ==# 'mirror'
+    " pass
+  else
+    return
+  endif
+
+  let g:deoplete#_filtered_prev = {
+        \ 'complete_position': prev.complete_position,
+        \ 'candidates': candidates,
+        \ }
+  call feedkeys("\<Plug>+", 'i')
+endfunction
+
+function! deoplete#handler#_async_timer_start() abort
   let delay = deoplete#custom#_get_option('auto_refresh_delay')
   if delay <= 0
     return
   endif
 
-  let s:async_timer = { 'event': 'Async', 'changedtick': b:changedtick }
-  let s:async_timer.id = timer_start(
-        \ max([20, delay]),
-        \ function('s:completion_async'), {'repeat': -1})
-endfunction
-function! deoplete#handler#_async_timer_stop() abort
-  if exists('s:async_timer')
-    call timer_stop(s:async_timer.id)
-    unlet s:async_timer
-  endif
-endfunction
-function! s:completion_async(timer) abort
-  if mode() !=# 'i' || s:is_exiting()
-    call deoplete#handler#_async_timer_stop()
-    return
-  endif
-
-  call s:completion_begin(s:async_timer.event)
+  call timer_start(max([20, delay]),
+        \ {-> deoplete#handler#_completion_begin('Async')})
 endfunction
 
-function! s:completion_begin(event) abort
-  let s:check_insert_charpre = (a:event ==# 'InsertCharPre')
+function! deoplete#handler#_completion_begin(event) abort
+  call deoplete#custom#_update_cache()
 
   if s:is_skip(a:event)
-    call deoplete#mapping#_restore_completeopt()
     let g:deoplete#_context.candidates = []
     return
   endif
+
+  call s:check_prev_completion(a:event)
 
   if a:event !=# 'Async'
     call deoplete#init#_prev_completion()
@@ -172,7 +193,7 @@ function! s:completion_begin(event) abort
         \ 'deoplete_auto_completion_begin', {'event': a:event})
 endfunction
 function! s:is_skip(event) abort
-  if a:event ==# 'TextChangedP' && !s:check_insert_charpre
+  if a:event ==# 'TextChangedP' && !empty(v:completed_item)
     return 1
   endif
 
@@ -186,17 +207,15 @@ function! s:is_skip(event) abort
         \ || (a:event !=# 'Manual' && a:event !=# 'Async' && !auto_complete)
         \ || (&l:completefunc !=# '' && &l:buftype =~# 'nofile')
         \ || (a:event !=# 'InsertEnter' && mode() !=# 'i')
-        \ || (exists('b:eskk') && !empty(b:eskk)
-        \     && !s:check_eskk_phase_henkan())
     return 1
   endif
 
   return 0
 endfunction
-function! s:check_eskk_phase_henkan() abort
+function! s:check_eskk_phase_henkan(input) abort
   let preedit = eskk#get_preedit()
   let phase = preedit.get_henkan_phase()
-  return phase is g:eskk#preedit#PHASE_HENKAN
+  return phase is g:eskk#preedit#PHASE_HENKAN && a:input !~# '\w$'
 endfunction
 function! s:is_skip_text(event) abort
   let input = deoplete#util#get_input(a:event)
@@ -208,12 +227,21 @@ function! s:is_skip_text(event) abort
     return 1
   endif
 
-  let context = g:deoplete#_context
-  if has_key(context, 'input')
+  " Note: Use g:deoplete#_context is needed instead of
+  " g:deoplete#_prev_completion
+  let prev_input = get(g:deoplete#_context, 'input', '')
+  if input ==# prev_input
         \ && a:event !=# 'Manual'
         \ && a:event !=# 'Async'
         \ && a:event !=# 'TextChangedP'
-        \ && input ==# context.input
+    return 1
+  endif
+  if a:event ==# 'Async' && prev_input !=# '' && input !=# prev_input
+    return 1
+  endif
+
+  if (exists('b:eskk') && !empty(b:eskk)
+        \     && !s:check_eskk_phase_henkan(input))
     return 1
   endif
 
@@ -273,6 +301,7 @@ function! deoplete#handler#_skip_next_completion() abort
   if input !~# '[/.]$'
     let g:deoplete#_context.input = input
   endif
+  call deoplete#mapping#_restore_completeopt()
   call deoplete#init#_prev_completion()
 endfunction
 

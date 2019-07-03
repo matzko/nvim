@@ -78,18 +78,18 @@ class Deoplete(logger.LoggingMixin):
         self._check_recache(context)
 
         try:
-            is_async, position, candidates = self._merge_results(context)
+            (is_async, needs_poll,
+             position, candidates) = self._merge_results(context)
         except Exception:
             error_tb(self._vim, 'Error while gathering completions')
 
             is_async = False
+            needs_poll = False
             position = -1
             candidates = []
 
-        if is_async:
+        if needs_poll:
             self._vim.call('deoplete#handler#_async_timer_start')
-        else:
-            self._vim.call('deoplete#handler#_async_timer_stop')
 
         if not candidates and ('deoplete#_saved_completeopt'
                                in self._vim.vars):
@@ -99,6 +99,7 @@ class Deoplete(logger.LoggingMixin):
         prev_completion = self._vim.vars['deoplete#_prev_completion']
         prev_candidates = prev_completion['candidates']
         if (context['event'] == 'Async' and
+                context['event'] == prev_completion['event'] and
                 prev_candidates and len(candidates) <= len(prev_candidates)):
             return
 
@@ -119,6 +120,8 @@ class Deoplete(logger.LoggingMixin):
         self._vim.call('deoplete#handler#_do_complete')
 
     def on_event(self, user_context):
+        self._vim.call('deoplete#custom#_update_cache')
+
         if not self._context:
             self.init_context()
         else:
@@ -127,7 +130,10 @@ class Deoplete(logger.LoggingMixin):
         context = self._context.get(user_context['event'])
         context.update(user_context)
 
+        self.debug('initialized context: %s', context)
+
         self.debug('on_event: %s', context['event'])
+
         self._check_recache(context)
 
         for parent in self._parents:
@@ -135,6 +141,7 @@ class Deoplete(logger.LoggingMixin):
 
     def _get_results(self, context):
         is_async = False
+        needs_poll = False
         results = []
         for cnt, parent in enumerate(self._parents):
             if cnt in self._prev_results:
@@ -143,10 +150,11 @@ class Deoplete(logger.LoggingMixin):
             else:
                 result = parent.merge_results(context)
                 is_async = is_async or result[0]
+                needs_poll = needs_poll or result[1]
                 if not result[0]:
-                    self._prev_results[cnt] = result[1]
-                results += result[1]
-        return [is_async, results]
+                    self._prev_results[cnt] = result[2]
+                results += result[2]
+        return [is_async, needs_poll, results]
 
     def _merge_results(self, context):
         use_prev = (context['input'] == self._prev_input
@@ -158,10 +166,10 @@ class Deoplete(logger.LoggingMixin):
         self._prev_input = context['input']
         self._prev_next_input = context['next_input']
 
-        [is_async, results] = self._get_results(context)
+        [is_async, needs_poll, results] = self._get_results(context)
 
         if not results:
-            return (is_async, -1, [])
+            return (is_async, needs_poll, -1, [])
 
         complete_position = min(x['complete_position'] for x in results)
 
@@ -193,7 +201,7 @@ class Deoplete(logger.LoggingMixin):
                         candidate_marks[i] else ' ')
                 candidate['menu'] = mark + ' ' + candidate.get('menu', '')
 
-        return (is_async, complete_position, all_candidates)
+        return (is_async, needs_poll, complete_position, all_candidates)
 
     def _add_parent(self, parent_cls):
         parent = parent_cls(self._vim)
@@ -211,8 +219,6 @@ class Deoplete(logger.LoggingMixin):
 
         sources = (
             os.path.join('rplugin', 'python3', 'deoplete',
-                         source, 'base.py'),
-            os.path.join('rplugin', 'python3', 'deoplete',
                          source, '*.py'),
             os.path.join('rplugin', 'python3', 'deoplete',
                          source + 's', '*.py'),
@@ -229,7 +235,8 @@ class Deoplete(logger.LoggingMixin):
             self._add_parent(deoplete.parent.SyncParent)
 
         for path in self._find_rplugins('source'):
-            if path in self._loaded_paths:
+            if (path in self._loaded_paths
+                    or os.path.basename(path) == 'base.py'):
                 continue
             self._loaded_paths.add(path)
 

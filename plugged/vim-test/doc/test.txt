@@ -317,7 +317,6 @@ and Tmux
 >
   let test#strategy = 'vtr'
 <
-<
 VimShell ~
 
 Runs test commands in a shell written in VimScript. Requires the VimShell
@@ -423,6 +422,16 @@ Or, if you prefer more granular approach, you can do
     \ 'suite':   '--tag ~slow',
   \}
 <
+You can also specify a global option for the test runner to work alongside the
+granular options. Here, all rspec tests will run with the --format documentation
+option and any suite granularities will be run with the --tag ~slow option as
+well
+>
+  let g:test#ruby#rspec#options = {
+    \ 'all':   '--format documentation',
+    \ 'suite': '--tag ~slow',
+  \}
+<
 If you want to manually configure a test runner's executable, you can do
 >
   let g:test#ruby#rspec#executable = 'foreman run rspec'
@@ -436,9 +445,9 @@ You can instruct test.vim to generate absolute file paths:
 
 To select which runners to load, set this option:
 
-```vim
-let test#enabled_runners = ["mylanguage#myrunner", "ruby#rspec"]
-```
+>
+  let test#enabled_runners = ["mylanguage#myrunner", "ruby#rspec"]
+<
 
 All other runners will not be loaded.
 
@@ -452,11 +461,16 @@ working directory for running tests:
 >
   let test#project_root = "/path/to/your/project"
 <
-If you're using the neovim strategy, you can easily configure the position of
-the terminal split window (see `:help opening-window`):
+If you're using either the Vim8 Terminal or Neovim strategy, you can easily configure the position of
+the terminal split window (see `:help opening-window`) with:
+>
+  let test#vim#term_position = "topleft"
+<
+for vim and
 >
   let test#neovim#term_position = "topleft"
 <
+for neovim
 
 PROJECTIONIST INTEGRATION                       *test-projectionist*
 

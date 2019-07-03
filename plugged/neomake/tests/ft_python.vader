@@ -51,7 +51,10 @@ Execute (python: pylama: cwd):
   new
   exe 'lcd '.tempdir
   let maker = neomake#makers#ft#python#pylama()
-  Assert !has_key(maker, 'cwd'), 'cwd is not set'
+  if has_key(maker, 'cwd')
+    " Might happen with e.g. an existing /tmp/setup.cwd..
+    call vader#log(printf('NOTE: got cwd already: %s', maker.cwd))
+  endif
 
   call mkdir('pylama/subdir', 'p')
   call writefile([], 'pylama/setup.cfg')
@@ -85,7 +88,7 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'pattern': '',
   \ 'valid': 1,
   \ 'vcol': 0,
-  \ 'nr': '',
+  \ 'nr': -1,
   \ 'length': 2,
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 1"}]
@@ -106,11 +109,24 @@ Execute (python: flake8: errorformat/postprocess: F811):
   \ 'pattern': '',
   \ 'valid': 1,
   \ 'vcol': 0,
-  \ 'nr': '',
+  \ 'nr': -1,
   \ 'length': 2,
   \ 'type': 'E',
   \ 'text': "F811 redefinition of unused 'os' from line 2"}]
   bwipe!
+
+Execute (python: flake8: format of current error msg):
+  let maker = NeomakeTestsGetMakerWithOutput(neomake#makers#ft#python#flake8(), [
+  \ 'file1.py:1:1: F811 redefinition of unused ''os'' from line 1',
+  \ ])
+  let maker.name = 'flake8'
+  new
+  file file1.py
+  CallNeomake 1, [maker]
+  AssertEqual line('.'), 1
+  AssertEqual neomake#GetCurrentErrorMsg(),
+  \ 'flake8: F811 redefinition of unused ''os'' from line 1 (E)'
+  bwipe
 
 Execute (flake8: postprocess for F821 in continuous f-strings):
   new
@@ -201,20 +217,70 @@ Execute (python: flake8):
   let entry = llist[0]
   call neomake#makers#ft#python#Flake8EntryProcess(entry)
   AssertEqualQf [entry], [{'lnum': 90, 'bufnr': bufnr, 'col': 1, 'valid': 1,
-  \ 'vcol': 0, 'nr': '', 'type': 'I', 'pattern': '',
+  \ 'vcol': 0, 'nr': -1, 'type': 'I', 'pattern': '',
   \ 'text': 'I1 isort found an import in the wrong position'}]
   bwipe
 
 Execute (python: flake8: supports_stdin):
   new
-  let fname = ''
   noautocmd setfiletype python
 
   let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
   CallNeomake 1, ['flake8']
-  AssertNeomakeMessage "\\vStarting .{-}: echo --format\\=default --stdin-display-name '' -.", 2
+  AssertNeomakeMessage '\vStarting .{-}: echo --format\=default --stdin-display-name '''' -.', 2
   AssertEqual getloclist(0)[0].text,
   \ '-1 --format=default --stdin-display-name  -'
+  bwipe
+
+Execute (python: flake8: supports_stdin: changes cwd (non-existing)):
+  new
+  let tempdir = tempname()
+  let fname = tempdir.neomake#utils#Slash().'fname'
+  exe 'file' fname
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessage printf('\Vjobinfo.cd(): error when trying to change cwd to %s:', tempdir)
+  AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.', fname), 2
+  AssertNeomakeMessage printf('cwd: %s.', getcwd())
+  AssertEqual getloclist(0)[0].text,
+  \ printf('-1 --format=default --stdin-display-name %s -', fname)
+  bwipe
+
+Execute (python: flake8: supports_stdin: changes cwd (existing)):
+  new
+  let fname = tempname()
+  let tempdir = fnamemodify(fname, ':h')
+  exe 'file' fname
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.', fname), 2
+  AssertNeomakeMessage printf('cwd: %s (changed).', tempdir)
+  AssertEqual getloclist(0)[0].text,
+  \ printf('-1 --format=default --stdin-display-name %s -', fname)
+  bwipe
+
+Execute (python: flake8: supports_stdin: does not change cwd with buffer in subdir):
+  new
+  let cwd = tempname()
+  let fdir = cwd.neomake#utils#Slash().'subdir'
+  call mkdir(fdir, 'p')
+  let fname = fdir.neomake#utils#Slash().'fname'
+  exe 'file' fname
+  exe 'lcd' cwd
+  noautocmd setfiletype python
+
+  let b:neomake = {'flake8': {'exe': 'echo', 'errorformat': '%m'}}
+  CallNeomake 1, ['flake8']
+  AssertNeomakeMessageAbsent '\Verror when trying to change cwd'
+  AssertNeomakeMessage printf('\vStarting .{-}: echo --format\=default --stdin-display-name %s -.',
+  \ fname), 2
+  AssertNeomakeMessage printf('cwd: %s.', cwd)
+  AssertEqual getloclist(0)[0].text,
+  \ printf('-1 --format=default --stdin-display-name %s -', fname)
   bwipe
 
 Execute (python: pylint):
@@ -308,7 +374,11 @@ Execute (neomake#makers#ft#python#FilterPythonWarnings: FutureWarning):
 
 Execute (python: mypy: handles --py2):
   call g:NeomakeTestsSetPATH('')
-  let base_args = ['--check-untyped-defs', '--ignore-missing-imports']
+  let base_args = [
+  \ '--show-column-numbers',
+  \ '--check-untyped-defs',
+  \ '--ignore-missing-imports'
+  \ ]
 
   " Defaults to py3.
   call neomake#makers#ft#python#DetectPythonVersion()
@@ -327,3 +397,36 @@ Execute (python: mypy: handles --py2):
   call neomake#makers#ft#python#DetectPythonVersion()
   let maker = neomake#makers#ft#python#mypy()
   AssertEqual maker.args, base_args
+
+Execute (python: mypy):
+  let maker = neomake#GetMaker('mypy', 'python')
+
+  let base_args = [
+  \ '--show-column-numbers',
+  \ '--check-untyped-defs',
+  \ '--ignore-missing-imports'
+  \ ]
+
+  let options = {'file_mode': 1}
+  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  AssertEqual bound_maker.args, ['--follow-imports=silent'] + base_args
+
+  new
+  let b:neomake = {'project_root': 'fake_project_root'}
+  let options = {'file_mode': 0, 'bufnr': bufnr('%')}
+  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  AssertEqual bound_maker.args, base_args + ['fake_project_root']
+
+  let b:neomake = {'project_root': ''}
+  let options = {'file_mode': 0, 'bufnr': bufnr('%')}
+  let bound_maker = neomake#core#instantiate_maker(deepcopy(maker), options, 0)
+  AssertEqual bound_maker.args, base_args + ['.']
+
+  let jobinfo = NeomakeTestsFakeJobinfo()
+  AssertEqual bound_maker.supports_stdin(jobinfo), 0
+  let fname = bound_maker._get_fname_for_buffer(jobinfo)
+  AssertNeomakeMessage '\vUsing tempfile for unnamed buffer: "(.*)".', 3
+  let tmpfile = g:neomake_test_matchlist[1]
+  AssertEqual fname, tmpfile
+
+  bwipe

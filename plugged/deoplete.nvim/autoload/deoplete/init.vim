@@ -19,8 +19,10 @@ function! deoplete#init#_initialize() abort
 
   let g:deoplete#_initialized = v:false
 
-  call s:init_internal_variables()
   call deoplete#init#_custom_variables()
+  call deoplete#custom#_update_cache()
+
+  call s:init_internal_variables()
 
   if deoplete#init#_channel()
     return 1
@@ -134,9 +136,6 @@ function! deoplete#init#_custom_variables() abort
         \ 'g:deoplete#camel_case',
         \ 'camel_case')
   call s:check_custom_option(
-        \ 'g:deoplete#delimiters',
-        \ 'delimiters')
-  call s:check_custom_option(
         \ 'g:deoplete#ignore_case',
         \ 'ignore_case')
   call s:check_custom_option(
@@ -206,7 +205,6 @@ function! deoplete#init#_option() abort
         \ 'auto_complete_delay': 0,
         \ 'auto_refresh_delay': 20,
         \ 'camel_case': v:false,
-        \ 'delimiters': ['/'],
         \ 'ignore_case': &ignorecase,
         \ 'ignore_sources': {},
         \ 'candidate_marks': [],
@@ -217,6 +215,7 @@ function! deoplete#init#_option() abort
         \ 'on_insert_enter': v:true,
         \ 'on_text_changed_i': v:true,
         \ 'profile': v:false,
+        \ 'prev_completion_mode': 'filter',
         \ 'min_pattern_length': 2,
         \ 'refresh_always': v:true,
         \ 'skip_chars': ['(', ')'],
@@ -231,6 +230,7 @@ function! deoplete#init#_prev_completion() abort
   let g:deoplete#_prev_completion = {
         \ 'event': '',
         \ 'input': '',
+        \ 'linenr': -1,
         \ 'candidates': [],
         \ 'complete_position': -1,
         \ }
@@ -243,7 +243,7 @@ import sys
 vim.vars['deoplete#_python_version_check'] = (
     sys.version_info.major,
     sys.version_info.minor,
-    sys.version_info.micro) < (3, 5, 0)
+    sys.version_info.micro) < (3, 6, 1)
 EOF
   return g:deoplete#_python_version_check
 endfunction

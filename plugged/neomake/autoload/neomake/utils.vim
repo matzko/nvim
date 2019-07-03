@@ -15,7 +15,7 @@ function! neomake#utils#Stringify(obj) abort
         return '['.join(ls, ', ').']'
     elseif type(a:obj) == type({})
         let ls = []
-        for [k, V] in items(a:obj)
+        for [k, l:V] in items(neomake#utils#fix_self_ref(a:obj))
             if type(V) == type(function('tr'))
                 let fname = substitute(string(V), ', {\zs.*\ze})', '…', '')
                 call add(ls, k.': '.fname)
@@ -32,8 +32,17 @@ function! neomake#utils#Stringify(obj) abort
     endif
 endfunction
 
-function! neomake#utils#wstrpart(mb_string, start, len) abort
-    return matchstr(a:mb_string, '.\{,'.a:len.'}', 0, a:start+1)
+function! neomake#utils#truncate_width(string, width) abort
+    let pos = a:width
+    while pos >= 0
+        let s = matchstr(a:string, '.\{,'.pos.'}', 0, 1)
+        let w = strwidth(s)
+        if w <= a:width
+            return s
+        endif
+        let pos -= max([(w-a:width)/2, 1])
+    endwhile
+    return ''
 endfunction
 
 " This comes straight out of syntastic.
@@ -50,7 +59,7 @@ function! neomake#utils#WideMessage(msg) abort " {{{2
     "width as the proper amount of characters
     let chunks = split(msg, "\t", 1)
     let msg = join(map(chunks[:-2], "v:val . repeat(' ', &tabstop - strwidth(v:val) % &tabstop)"), '') . chunks[-1]
-    let msg = neomake#utils#wstrpart(msg, 0, &columns - 1)
+    let msg = neomake#utils#truncate_width(msg, &columns-1)
 
     set noruler noshowcmd
     redraw
@@ -117,7 +126,7 @@ let s:super_ft_cache = {}
 function! neomake#utils#GetSupersetOf(ft) abort
     if !has_key(s:super_ft_cache, a:ft)
         call neomake#utils#load_ft_makers(a:ft)
-        let SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
+        let l:SupersetOf = 'neomake#makers#ft#'.a:ft.'#SupersetOf'
         if exists('*'.SupersetOf)
             let s:super_ft_cache[a:ft] = call(SupersetOf, [])
         else
@@ -191,14 +200,14 @@ function! neomake#utils#GetSetting(key, maker, default, ft, bufnr, ...) abort
     " Check new-style config.
     if exists('g:neomake') || !empty(getbufvar(a:bufnr, 'neomake'))
         let context = {'ft': a:ft, 'maker': a:maker, 'bufnr': a:bufnr, 'maker_only': maker_only}
-        let [Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
+        let [l:Ret, source] = neomake#config#get_with_source(a:key, g:neomake#config#undefined, context)
         " Check old-style setting when source is the maker.
         if source ==# 'maker' && !maker_only
             let tmpmaker = {}
             if has_key(a:maker, 'name')
                 let tmpmaker.name = a:maker.name
             endif
-            let RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, maker_only)
+            let l:RetOld = s:get_oldstyle_setting(a:key, tmpmaker, s:unset, a:ft, a:bufnr, 1)
             if RetOld isnot# s:unset
                 return RetOld
             endif
@@ -220,31 +229,28 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
         return a:default
     endif
 
-    if a:bufnr isnot# ''
-        if !empty(a:ft)
-            let fts = neomake#utils#get_config_fts(a:ft) + ['']
-        else
-            let fts = ['']
+    if !empty(a:ft)
+        let fts = neomake#utils#get_config_fts(a:ft) + ['']
+    else
+        let fts = ['']
+    endif
+    for ft in fts
+        let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
+        if empty(part)
+            break
         endif
-        for ft in fts
-            " Look through the override vars for a filetype maker, like
-            " neomake_scss_sasslint_exe (should be a string), and
-            " neomake_scss_sasslint_args (should be a list).
-            let part = join(filter([ft, maker_name], '!empty(v:val)'), '_')
-            if empty(part)
-                break
-            endif
-            let config_var = 'neomake_'.part.'_'.a:key
-            unlet! Bufcfgvar  " vim73
-            let Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
+        let config_var = 'neomake_'.part.'_'.a:key
+        if a:bufnr isnot# ''
+            let l:Bufcfgvar = neomake#compat#getbufvar(a:bufnr, config_var, s:unset)
             if Bufcfgvar isnot s:unset
                 return copy(Bufcfgvar)
             endif
-            if has_key(g:, config_var)
-                return copy(get(g:, config_var))
-            endif
-        endfor
-    endif
+        endif
+        if has_key(g:, config_var)
+            return copy(get(g:, config_var))
+        endif
+        unlet! Bufcfgvar  " vim73
+    endfor
 
     if has_key(a:maker, a:key)
         return get(a:maker, a:key)
@@ -266,20 +272,65 @@ function! s:get_oldstyle_setting(key, maker, default, ft, bufnr, maker_only) abo
     return a:default
 endfunction
 
+" Helper function to define default highlight for a:group (e.g.
+" "Neomake%sSign"), using fg from another highlight, abd given background.
+function! neomake#utils#define_derived_highlights(group_format, bg) abort
+    for [type, fg_from] in items({
+                \ 'Error': ['Error', 'bg'],
+                \ 'Warning': ['Todo', 'fg'],
+                \ 'Info': ['Question', 'fg'],
+                \ 'Message': ['ModeMsg', 'fg']
+                \ })
+        let group = printf(a:group_format, type)
+        call s:define_derived_highlight_group(group, fg_from, a:bg)
+    endfo
+endfunction
+
+function! s:define_derived_highlight_group(group, fg_from, bg) abort
+    let [fg_group, fg_attr] = a:fg_from
+    let [ctermbg, guibg] = a:bg
+    let bg = 'ctermbg='.ctermbg.' guibg='.guibg
+
+    " NOTE: fg falls back to "Normal" always, not bg (for e.g. "SignColumn")
+    " inbetween.
+    let ctermfg = neomake#utils#GetHighlight(fg_group, fg_attr, 'Normal')
+    let guifg = neomake#utils#GetHighlight(fg_group, fg_attr.'#', 'Normal')
+
+    " Ensure that we're not using bg as fg (as with gotham
+    " colorscheme, issue https://github.com/neomake/neomake/pull/659).
+    if ctermfg !=# 'NONE' && ctermfg ==# ctermbg
+        let ctermfg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr))
+    endif
+    if guifg !=# 'NONE' && guifg ==# guibg
+        let guifg = neomake#utils#GetHighlight(fg_group, neomake#utils#ReverseSynIDattr(fg_attr).'#')
+    endif
+    exe 'hi '.a:group.'Default ctermfg='.ctermfg.' guifg='.guifg.' '.bg
+    if !neomake#utils#highlight_is_defined(a:group)
+        exe 'hi link '.a:group.' '.a:group.'Default'
+    endif
+endfunction
+
 " Get property from highlighting group.
-function! neomake#utils#GetHighlight(group, what) abort
-    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse')
+function! neomake#utils#GetHighlight(group, what, ...) abort
+    let fallback = a:0 ? a:1 : ''
+    let mode = a:what[-1:] ==# '#' ? 'gui' : 'cterm'
+    let reverse = synIDattr(synIDtrans(hlID(a:group)), 'reverse', mode)
     let what = a:what
     if reverse
         let what = neomake#utils#ReverseSynIDattr(what)
     endif
     if what[-1:] ==# '#'
-        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'gui')
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, mode)
     else
-        let val = synIDattr(synIDtrans(hlID(a:group)), what, 'cterm')
+        let val = synIDattr(synIDtrans(hlID(a:group)), what, mode)
     endif
     if empty(val) || val == -1
-        let val = 'NONE'
+        if !empty(fallback)
+            " NOTE: this might still be NONE also for "Normal", with
+            " e.g. `vim -u NONE`.
+            return neomake#utils#GetHighlight(fallback, a:what)
+        endif
+        return 'NONE'
     endif
     return val
 endfunction
@@ -335,7 +386,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     if has_key(a:jobinfo, 'tempfile')
         let fname = a:jobinfo.tempfile
     else
-        let fname = bufname('%')
+        let fname = bufname(a:jobinfo.bufnr)
         if !empty(fname)
             let fname = fnamemodify(fname, ':p')
         endif
@@ -350,7 +401,7 @@ function! neomake#utils#ExpandArgs(args, jobinfo) abort
     let ret = map(ret,
                 \ 'substitute(v:val, '
                 \ . '''\(\%(\\\@<!\\\)\@<!%\%(%\|<\|\%(:[phtreS8.~]\)\+\|\ze\w\@!\)\)'', '
-                \ . '''\=(submatch(1) == "%%" ? "%" : expand(submatch(1)))'', '
+                \ . '''\=(submatch(1) == "%%" ? "%" : expand(substitute(submatch(1), "^%", "#'.a:jobinfo.bufnr.'", "")))'', '
                 \ . '''g'')')
     let ret = map(ret, 'substitute(v:val, ''\v^\~\ze%(/|$)'', expand(''~''), ''g'')')
     return ret
@@ -417,26 +468,24 @@ function! neomake#utils#hook(event, context, ...) abort
 endfunction
 
 function! neomake#utils#diff_dict(old, new) abort
-    let diff = {}
-    let keys = keys(a:old) + keys(a:new)
-    for k in keys
+    let diff = {'removed': {}, 'added': {}, 'changed': {}}
+
+    for k in keys(a:old)
         if !has_key(a:new, k)
-            if !has_key(diff, 'removed')
-                let diff['removed'] = {}
-            endif
             let diff['removed'][k] = a:old[k]
-        elseif !has_key(a:old, k)
-            if !has_key(diff, 'added')
-                let diff['added'] = {}
-            endif
-            let diff['added'][k] = a:new[k]
         elseif type(a:old[k]) !=# type(a:new[k]) || a:old[k] !=# a:new[k]
-            if !has_key(diff, 'changed')
-                let diff['changed'] = {}
-            endif
             let diff['changed'][k] = [a:old[k], a:new[k]]
         endif
     endfor
+
+    for k in keys(a:new)
+        if !has_key(a:old, k)
+            let diff['added'][k] = a:new[k]
+        endif
+    endfor
+
+    call filter(diff, '!empty(v:val)')
+
     return diff
 endfunction
 
@@ -511,16 +560,30 @@ endfunction
 
 function! neomake#utils#write_tempfile(bufnr, temp_file) abort
     call writefile(neomake#utils#get_buffer_lines(a:bufnr), a:temp_file, 'b')
+    if exists('*setfperm')
+        let perms = getfperm(bufname(+a:bufnr))
+        if empty(perms)
+            let perms = 'rw-------'
+        endif
+        call setfperm(a:temp_file, perms)
+    endif
 endfunction
 
 " Wrapper around fnamemodify that handles special buffers (e.g. fugitive).
 function! neomake#utils#fnamemodify(bufnr, modifier) abort
     let bufnr = +a:bufnr
-    if !empty(getbufvar(bufnr, 'fugitive_type'))
-        let fug_buffer = fugitive#buffer(bufnr)
-        let path = fnamemodify(fug_buffer.repo().translate(fug_buffer.path()), ':.')
-    else
+    if empty(getbufvar(bufnr, 'fugitive_type'))
         let path = bufname(bufnr)
+    else
+        if exists('*FugitivePath')
+            let path = FugitivePath(bufname(bufnr))
+        else
+            let fug_buffer = fugitive#buffer(bufnr)
+            let path = fug_buffer.repo().translate(fug_buffer.path())
+        endif
+        if empty(a:modifier)
+            let path = fnamemodify(path, ':.')
+        endif
     endif
     return empty(path) ? '' : fnamemodify(path, a:modifier)
 endfunction
@@ -572,9 +635,18 @@ endfunction
 " This is determined by looking for specific files (e.g. `.git` and
 " `Makefile`), and `g:neomake#makers#ft#X#project_root_files` (if defined for
 " filetype "X").
+" This can be overridden in b:neomake.project_root (where it gets cached
+" also).
 " a:1 buffer number (defaults to current)
 function! neomake#utils#get_project_root(...) abort
     let bufnr = a:0 ? a:1 : bufnr('%')
+    let bufcfg = getbufvar(bufnr, 'neomake')
+    if !empty(bufcfg)
+        let buf_project_root = get(bufcfg, 'project_root', -1)
+        if buf_project_root isnot -1
+            return buf_project_root
+        endif
+    endif
     let ft = getbufvar(bufnr, '&filetype')
     call neomake#utils#load_ft_makers(ft)
 
@@ -585,14 +657,17 @@ function! neomake#utils#get_project_root(...) abort
         let project_root_files = get(g:, ft_project_root_files) + project_root_files
     endif
 
+    let r = ''
     let buf_dir = expand('#'.bufnr.':p:h')
     for fname in project_root_files
         let project_root = neomake#utils#FindGlobFile(fname, buf_dir)
         if !empty(project_root)
-            return fnamemodify(project_root, ':h')
+            let r = fnamemodify(project_root, ':h')
+            break
         endif
     endfor
-    return ''
+    call neomake#config#set_buffer(bufnr, 'project_root', r)
+    return r
 endfunction
 
 " Return the number of lines for a given buffer.
@@ -730,3 +805,8 @@ function! neomake#utils#shorten_list_for_log(l, max) abort
     endif
     return a:l
 endfunction
+
+augroup neomake_utils
+    au!
+    autocmd FileType * if exists('b:neomake.project_root') | unlet b:neomake.project_root | endif
+augroup END

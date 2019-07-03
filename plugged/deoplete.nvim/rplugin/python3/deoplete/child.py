@@ -65,6 +65,7 @@ class Child(logger.LoggingMixin):
                 ret = self.main(name, args, queue_id)
                 if ret:
                     self._write(stdout, ret)
+                    self._vim.call('deoplete#auto_complete')
 
     def main(self, name, args, queue_id):
         ret = None
@@ -79,7 +80,9 @@ class Child(logger.LoggingMixin):
         elif name == 'on_event':
             self._on_event(args[0])
         elif name == 'merge_results':
-            ret = self._merge_results(args[0], queue_id)
+            results = self._merge_results(args[0], queue_id)
+            if results['is_async'] or results['merged_results']:
+                ret = results
         return ret
 
     def _write(self, stdout, expr):
@@ -220,12 +223,16 @@ class Child(logger.LoggingMixin):
                                     ctx['max_abbr_width'])
         ctx['max_kind_width'] = min(source.max_kind_width,
                                     ctx['max_kind_width'])
+        ctx['max_info_width'] = min(source.max_info_width,
+                                    ctx['max_info_width'])
         ctx['max_menu_width'] = min(source.max_menu_width,
                                     ctx['max_menu_width'])
         if ctx['max_abbr_width'] > 0:
             ctx['max_abbr_width'] = max(20, ctx['max_abbr_width'])
         if ctx['max_kind_width'] > 0:
             ctx['max_kind_width'] = max(10, ctx['max_kind_width'])
+        if ctx['max_info_width'] > 0:
+            ctx['max_info_width'] = max(10, ctx['max_info_width'])
         if ctx['max_menu_width'] > 0:
             ctx['max_menu_width'] = max(10, ctx['max_menu_width'])
 
@@ -266,8 +273,8 @@ class Child(logger.LoggingMixin):
     def _handle_source_exception(self, source, exc):
         if isinstance(exc, SourceInitError):
             error(self._vim,
-                  'Error when loading source {}: {}. '
-                  'Ignoring.'.format(source.name, exc))
+                  f'Error when loading source {source.name}: {exc}. '
+                  'Ignoring.')
             self._ignore_sources.append(source.name)
             return
 
@@ -275,12 +282,12 @@ class Child(logger.LoggingMixin):
         if source.is_silent:
             return
         if self._source_errors[source.name] > 2:
-            error(self._vim, 'Too many errors from "%s". '
-                  'This source is disabled until Neovim '
-                  'is restarted.' % source.name)
+            error(self._vim,
+                  f'Too many errors from "{source.name}". '
+                  'This source is disabled until Neovim is restarted.')
             self._ignore_sources.append(source.name)
         else:
-            error_tb(self._vim, 'Error from %s: %r' % (source.name, exc))
+            error_tb(self._vim, f'Error from {source.name}: {exc}')
 
     def _process_filter(self, f, context, max_candidates):
         try:
@@ -365,12 +372,17 @@ class Child(logger.LoggingMixin):
             ctx['candidates'] = source.on_post_filter(ctx)
 
         mark = source.mark + ' '
+        refresh = self._vim.call(
+            'deoplete#custom#_get_option', 'refresh_always')
         for candidate in ctx['candidates']:
-            # Set default menu and icase
             candidate['icase'] = 1
+            candidate['equal'] = refresh
+
+            # Set default menu
             if (mark != ' ' and
                     candidate.get('menu', '').find(mark) != 0):
                 candidate['menu'] = mark + candidate.get('menu', '')
+
             if source.dup:
                 candidate['dup'] = 1
         # Note: cannot use set() for dict
@@ -402,13 +414,11 @@ class Child(logger.LoggingMixin):
                     source.on_init(context)
                 except Exception as exc:
                     if isinstance(exc, SourceInitError):
-                        error(self._vim,
-                              'Error when loading source {}: {}. '
-                              'Ignoring.'.format(source_name, exc))
+                        error(self._vim, 'Error when loading source '
+                              f'{source_name}: {exc}. Ignoring.')
                     else:
-                        error_tb(self._vim,
-                                 'Error when loading source {}: {}. '
-                                 'Ignoring.'.format(source_name, exc))
+                        error_tb(self._vim, 'Error when loading source '
+                                 f'{source_name}: {exc}. Ignoring.')
                     self._ignore_sources.append(source_name)
                     continue
                 else:
@@ -416,7 +426,7 @@ class Child(logger.LoggingMixin):
             yield source_name, source
 
     def _profile_start(self, context, name):
-        if self._profile_flag is 0 or not self.is_debug_enabled:
+        if self._profile_flag == 0 or not self.is_debug_enabled:
             return
 
         if not self._profile_flag:
@@ -425,7 +435,7 @@ class Child(logger.LoggingMixin):
             if self._profile_flag:
                 return self._profile_start(context, name)
         elif self._profile_flag:
-            self.debug('Profile Start: {0}'.format(name))
+            self.debug(f'Profile Start: {name}')
             self._profile_start_time = time.clock()
 
     def _profile_end(self, name):
@@ -471,10 +481,12 @@ class Child(logger.LoggingMixin):
             'input_pattern',
             'is_debug_enabled',
             'is_silent',
+            'is_volatile',
             'mark',
             'matchers',
             'max_abbr_width',
             'max_candidates',
+            'max_info_width',
             'max_kind_width',
             'max_menu_width',
             'max_pattern_length',
@@ -491,7 +503,11 @@ class Child(logger.LoggingMixin):
                 source_attr = getattr(source, attr, None)
                 custom = get_custom(context['custom'],
                                     name, attr, source_attr)
-                if custom and isinstance(source_attr, dict):
+                if type(getattr(source, attr)) != type(custom):
+                    # Type check
+                    error(self._vim, f'source {source.name}: '
+                          f'custom attr "{attr}" is wrong type.')
+                elif custom and isinstance(source_attr, dict):
                     # Update values if it is dict
                     source_attr.update(custom)
                 else:
@@ -514,9 +530,9 @@ class Child(logger.LoggingMixin):
                 try:
                     source.on_event(context)
                 except Exception as exc:
-                    error_tb(self._vim, 'Exception during {}.on_event '
-                             'for event {!r}: {}'.format(
-                                 source.name, event, exc))
+                    error_tb(self._vim,
+                             f'Exception during {source.name}.on_event '
+                             'for event {!r}: {}'.format(event, exc))
 
         for f in self._filters.values():
             f.on_event(context)

@@ -1,6 +1,6 @@
 *deoplete.txt*	Dark powered asynchronous completion framework for Neovim/Vim8.
 
-Version: 4.1
+Version: 5.1
 Author: Shougo <Shougo.Matsu at gmail.com>
 License: MIT license
 
@@ -46,7 +46,7 @@ Improvements in deoplete in comparison to |neocomplete|:
 INSTALL							*deoplete-install*
 
 Note: deoplete requires Neovim (0.3.0+) or Vim8 (latest is recommended) with
-Python3.5+ and |+timers| enabled.
+Python3.6.1+ and |+timers| enabled.
 
 Please install nvim-yarp plugin for Vim8.
 https://github.com/roxma/nvim-yarp
@@ -73,7 +73,7 @@ You need update neovim-python module.
 <
 If you want to read for Neovim-python/python3 interface install documentation,
 you should read |provider-python| and the Wiki.
-https://github.com/zchee/deoplete-jedi/wiki/Setting-up-Python-for-Neovim
+https://github.com/deoplete-plugins/deoplete-jedi/wiki/Setting-up-Python-for-Neovim
 
 You can check the Python3 installation by using the |:checkhealth| command.
 
@@ -136,14 +136,20 @@ candidate_marks
 		The candidate additional marks.
 
 		Default value: []
-
-						*deoplete-options-delimiters*
-delimiters
-		Delimiters list.  It is used in
-		|deoplete-filter-converter_auto_delimiter|.
-
-		Default value: ['/']
-
+>
+		call deoplete#custom#option('candidate_marks',
+		      \ ['A', 'S', 'D', 'F', 'G'])
+		inoremap <expr>A       pumvisible() ?
+		\ deoplete#insert_candidate(0) : 'A'
+		inoremap <expr>S       pumvisible() ?
+		\ deoplete#insert_candidate(1) : 'S'
+		inoremap <expr>D       pumvisible() ?
+		\ deoplete#insert_candidate(2) : 'D'
+		inoremap <expr>F       pumvisible() ?
+		\ deoplete#insert_candidate(3) : 'F'
+		inoremap <expr>G       pumvisible() ?
+		\ deoplete#insert_candidate(4) : 'G'
+<
 						*deoplete-options-ignore_case*
 ignore_case
 		If it is True, deoplete ignores case.
@@ -154,6 +160,7 @@ ignore_case
 ignore_sources
 		It is a dictionary to decide ignore source names.
 		The key is filetype and the value is source names list.
+
 		Default value: {}
 
 					*deoplete-options-keyword_patterns*
@@ -234,6 +241,20 @@ profile
 		Does not support command line.
 
 		Default value: v:false
+
+					*deoplete-options-prev_completion_mode*
+prev_completion_mode
+		It changes previous completion behavior.
+		It reduces popup flicker.
+
+		"filter": Filter previous completion
+		"length": Filter previous completion like
+		|deoplete-filter-matcher_length|.
+		"mirror": Displays previous completion.  It is useful for
+		deoplete-tabnine.
+		otherwise: Disable previous completion feature.
+
+		Default value: "filter"
 
 					*deoplete-options-refresh_always*
 refresh_always
@@ -354,6 +375,12 @@ deoplete#toggle()
 
 
 CUSTOM FUNCTIONS 				*deoplete-custom-functions*
+
+					*deoplete#custom#buffer_filter()*
+deoplete#custom#buffer_filter({option-name}, {value})
+deoplete#custom#buffer_filter({dict})
+		The buffer local version of |deoplete#custom#filter()|.
+
 					*deoplete#custom#buffer_option()*
 deoplete#custom#buffer_option({option-name}, {value})
 deoplete#custom#buffer_option({dict})
@@ -363,6 +390,15 @@ deoplete#custom#buffer_option({dict})
 deoplete#custom#buffer_var({source-name}, {var-name}, {value})
 deoplete#custom#buffer_var({source-name}, {dict})
 		The buffer local version of |deoplete#custom#var()|.
+
+						*deoplete#custom#filter()*
+deoplete#custom#filter({filter-name}, {var-name}, {value})
+deoplete#custom#filter({filter-name}, {dict})
+		Set {filter-name} source specialized variable {variable-name}
+		to {value}.  You may specify multiple sources with the
+		separator "," in {filter-name}.
+		If {dict} is available, the key is {option-name} and the value
+		is {value}.
 
 						*deoplete#custom#option()*
 deoplete#custom#option({option-name}, {value})
@@ -441,7 +477,14 @@ deoplete#custom#var({source-name}, {dict})
 ------------------------------------------------------------------------------
 KEY MAPPINGS 					*deoplete-key-mappings*
 
-					*deoplete#close_popup()*
+						*deoplete#auto_complete()*
+deoplete#auto_complete([{event}])
+		It calls the auto completion of deoplete.  You can use it to
+		call auto completion again.
+		{event} is autocmd event name.  If it is omit, "Async" is
+		used.
+
+						*deoplete#close_popup()*
 deoplete#close_popup()
 		Insert candidate and close popup menu for deoplete.
 		Note: It must be in |map-<expr>|.
@@ -457,7 +500,7 @@ deoplete#insert_candidate({number})
 		Insert {number}th candidate.
 		Note: It must be in |map-<expr>|.
 
-					*deoplete#manual_complete()*
+						*deoplete#manual_complete()*
 deoplete#manual_complete([{sources}])
 		It calls the completion of deoplete.  You can use it with
 		custom completion setups.
@@ -533,9 +576,9 @@ around						    *deoplete-source-around*
 
 		Legend: You can see where the words came from. Next to the
 		source mark [~] these suffixes are used:
-		    A - above the cursor 
-		    B - below the cursor 
-		    C - in changes       
+		    A - above the cursor
+		    B - below the cursor
+		    C - in changes
 
 		By default, around has a fixed range of looking for words
 		20 lines above and below your cursor position. You are able
@@ -551,7 +594,7 @@ around						    *deoplete-source-around*
 		" - mark_changes = Mark shown for words in the changelist.
 		call deoplete#custom#var('around', {
 		\   'range_above': 15,
-		\   'range_below': 15
+		\   'range_below': 15,
 		\   'mark_above': '[↑]',
 		\   'mark_below': '[↓]',
 		\   'mark_changes': '[*]',
@@ -581,29 +624,6 @@ buffer						*deoplete-source-buffer*
 				buffers of any filetype
 				(default: v:true)
 
-dictionary					*deoplete-source-dictionary*
-		This source collects |deoplete-options-keyword_patterns|
-		keywords from 'dictionary'.
-		Note: It uses buffer-local 'dictionary' set up.
-		Note: It also supports directory.
-
-		rank: 100
->
-		" Examples:
-		" Sample configuration for dictionary source with multiple
-		" dictionary files.
-		setlocal dictionary+=/usr/share/dict/words
-		setlocal dictionary+=/usr/share/dict/american-english
-		" Remove this if you'd like to use fuzzy search
-		call deoplete#custom#source(
-		\ 'dictionary', 'matchers', ['matcher_head'])
-		" If dictionary is already sorted, no need to sort it again.
-		call deoplete#custom#source(
-		\ 'dictionary', 'sorters', [])
-		" Do not complete too short words
-		call deoplete#custom#source(
-		\ 'dictionary', 'min_pattern_length', 4)
-<
 file							*deoplete-source-file*
 		This source collects keywords from local files. Specifically,
 		it completes file and directory names and paths, e.g.
@@ -688,12 +708,6 @@ omni							*deoplete-source-omni*
 		    \ 'php': '\w+|[^. \t]->\w*|\w+::\w*',
 		    \})
 <
-tag							*deoplete-source-tag*
-		It collects keywords from |ctags| files.
-		Note: It only supports UTF-8 encoded tag file.
-
-		rank: 100
-
 ==============================================================================
 FILTERS							*deoplete-filters*
 
@@ -736,7 +750,7 @@ matcher_full_fuzzy
 					*deoplete-filter-matcher_fuzzy*
 matcher_fuzzy	Fuzzy matching matcher.
 
-						*deoplete-filter-matcher_head*
+				    	*deoplete-filter-matcher_head*
 matcher_head	Head matching matcher.
 
 					*deoplete-filter-matcher_length*
@@ -744,17 +758,112 @@ matcher_length
 		Length matching matcher.
 		It removes candidates shorter than or equal to the user input.
 
-						*deoplete-filter-sorter_rank*
+			      		*deoplete-filter-sorter_rank*
 sorter_rank	Matched rank order sorter.  The higher the head matched word
 		or already typed word.
 
-						*deoplete-filter-sorter_word*
+		      			*deoplete-filter-sorter_word*
 sorter_word	Word order sorter.
 
-				*deoplete-filter-converter_auto_delimiter*
+			  		*deoplete-filter-converter_auto_delimiter*
 converter_auto_delimiter
-		It adds |deoplete-options-delimiters| characters in a
-		candidate's word.
+		It adds "delimiters" variable characters in a candidate's
+		word if the candidate's abbr contains the delimiters.
+
+		Filter custom variables:
+		delimiters
+				Delimiters list.
+				(default: ['/'])
+
+					*deoplete-filter-converter_reorder_attr*
+converter_reorder_attr
+
+		Reorder candidates by their attributes in the order specified.
+		See `:help complete-items` for the structure of candidate
+		objects.
+
+		For instance, you can choose which types of candidates appear
+		first in the suggestion according to their attributes.
+
+>
+		call deoplete#custom#filter('converter_reorder_attr',
+		\  'attrs_order', {
+		\    'javascript': {
+		\      'kind': [
+		\        'Function',
+		\        'Property'
+		\      ]
+		\   },
+		\})
+<
+
+		This says: For Javascript files, I want to reorder candidates:
+
+		1. Candidates which have a "kind" attribute containing
+		'Function' should appear first.
+		2. Candidates which have a "kind" attribute containing
+		'Property' should appear second.
+		3. Any other candidates appear at the bottom, if there is
+		space.
+
+		Complete menu - before:
+
+		__constructor__     [Constructor]
+		length 		    [Property]
+		from 		    [Function]
+		toString 	    [Function]
+
+
+		Complete menu - after:
+
+		from 		    [Function]
+		toString 	    [Function]
+		length 		    [Property]
+		__constructor__     [Constructor]
+
+
+		Note: Attribute values are compiled to python regex
+		expressions, so you can match 'Function' with "Func" or
+		'static void* callback(unsigned *int number)' with "call".
+
+		You can specify multiple attributes and they will be processed
+		in order.
+
+		Additionally, you can filter out unwanted candidates by
+		prefixing an attribute value with '!'. This character is only
+		a flag and will be stripped out before compiling the
+		expression.
+
+>
+		call deoplete#custom#filter('converter_reorder_attr',
+		\ 'attrs_order', {
+		\   'ruby': {
+		\     'kind': [
+		\       '!Class',
+		\     ],
+		\     'abbr': [
+		\       'ExtensionClass'
+		\     ]
+		\ },
+		\})
+<
+
+		The example above says: For Ruby files, I want to reorder the
+		candidates:
+		1. Candidates which have a 'kind' attribute containing 'Class'
+		will be filtered out of the list.
+		After they have been removed, proceed to the next attribute.
+		2. Candidates which have a 'abbr' attribute containing
+		'ExtensionClass' will be moved to the top of the list.
+		3. Any other candidates appear at the bottom, if there is
+		space.
+
+		Filter custom variables:
+		attrs_order
+				It should received a dictionary with mappings
+				from filetypes to attributes, following the
+				attribute expression syntax explained above.
+				(default: {})
 
 				*deoplete-filter-converter_auto_paren*
 converter_auto_paren
@@ -773,6 +882,14 @@ converter_remove_paren
 				*deoplete-filter-converter_truncate_abbr*
 converter_truncate_abbr
 		It truncates a candidate's abbr by the current window width.
+
+				*deoplete-filter-converter_truncate_kind*
+converter_truncate_kind
+		It truncates a candidate's kind by the current window width.
+
+				*deoplete-filter-converter_truncate_info*
+converter_truncate_info
+		It truncates a candidate's info by the current window width.
 
 				*deoplete-filter-converter_truncate_menu*
 converter_truncate_menu
@@ -976,6 +1093,15 @@ max_kind_width
 
 		Default: 40
 
+				*deoplete-source-attribute-max_info_width*
+max_info_width
+		(Integer)			(Optional)
+		If the candidate info length exceeds the length it will be cut
+		down.
+		If it is less than or equal to 0, it will be disabled.
+
+		Default: 200
+
 				*deoplete-source-attribute-max_menu_width*
 max_menu_width
 		(Integer)			(Optional)
@@ -1007,7 +1133,7 @@ name		(String)			(Required)
 					*deoplete-source-attribute-on_event*
 on_event	(Function)			(Optional)
 		Called for |InsertEnter|, |BufWritePost|, |BufReadPost| and
-		|BufDelete| autocommands, through |deoplete#send_event()|.
+		||VimLeavePre| autocommands, through |deoplete#send_event()|.
 		It is useful to make cache.
 		It takes {self} and {context} as its parameter.
 >
@@ -1104,7 +1230,7 @@ vars		(Dictionary)			(Optional)
 	If "context['is_async']" is True, the gather_candidates is called
 	repeatedly.
 >
-	from deoplete.source.base import Base
+	from deoplete.base.source import Base
 
 	class Source(Base):
 	    def __init__(self, vim):
@@ -1224,13 +1350,13 @@ clang-complete: "clang_complete" source for C/C++/Objective-C
 https://github.com/Rip-Rip/clang_complete
 
 deoplete-go: "go" source for Go
-https://github.com/zchee/deoplete-go
+https://github.com/deoplete-plugins/deoplete-go
 
 elixir.nvim: "elixir" source for Elixir
 https://github.com/awetzel/elixir.nvim
 
 deoplete-jedi: "jedi" source for Python
-https://github.com/zchee/deoplete-jedi
+https://github.com/deoplete-plugins/deoplete-jedi
 
 perlomni.vim: "PerlOmni" source for Perl
 https://github.com/c9s/perlomni.vim
@@ -1286,7 +1412,7 @@ https://github.com/Robzz/deoplete-omnisharp/
 deoplete-omnisharp: Improved version of deoplete-omnisharp
 https://github.com/dimixar/deoplete-omnisharp/
 
-deoplete-omnisharp: Embeded omnisharp server version of deoplete-omnisharp
+deoplete-omnisharp: Embedded omnisharp server version of deoplete-omnisharp
 https://github.com/cyansprite/deoplete-omnisharp
 
 deoplete-hack: "hack" source for Hack and PHP
@@ -1297,7 +1423,7 @@ filetypes
 https://github.com/rafaelndev/deoplete-laravel-plugin
 
 deoplete-zsh: "zsh" source for Zsh
-https://github.com/zchee/deoplete-zsh
+https://github.com/deoplete-plugins/deoplete-zsh
 
 deoplete-fish: "fish" source for fish shell
 https://github.com/ponko2/deoplete-fish
@@ -1309,7 +1435,7 @@ autocomplete-flow: "flow" source for JavaScript
 https://github.com/wokalski/autocomplete-flow
 
 deoplete-asm: "asm" source for Assembly Language
-https://github.com/zchee/deoplete-asm
+https://github.com/deoplete-plugins/deoplete-asm
 
 deoplete-abook: "abook" source for abook contacts
 https://github.com/fszymanski/deoplete-abook
@@ -1317,8 +1443,18 @@ https://github.com/fszymanski/deoplete-abook
 deoplete-emoji: "emoji" source for emoji codes
 https://github.com/fszymanski/deoplete-emoji
 
-LanguageClient-neovim: use Language Server Protocol(LSP) for sources
+LanguageClient-neovim: "LanguageClient" source for Language Server
+Protocol(LSP)
 https://github.com/autozimu/LanguageClient-neovim
+
+deoplete-vim-lsp: "lsp" source for vim-lsp
+https://github.com/lighttiger2505/deoplete-vim-lsp
+
+deoplete-tags: "tag" source for tag files
+https://github.com/deoplete-plugins/deoplete-tag
+
+deoplete-dictionary: "dictionary" source for dictionary files
+https://github.com/deoplete-plugins/deoplete-dictionary
 
 ==============================================================================
 EXTERNAL PLUGINS				*deoplete-external-plugins*
@@ -1449,7 +1585,7 @@ Please update them to the latest version.
 Q: "Broken pipe" error.
 https://github.com/Shougo/deoplete.nvim/issues/653
 
-A: Please test dp_main.py.
+A: Please test _main.py.
 https://github.com/Shougo/deoplete.nvim/issues/635#issuecomment-363331278
 
 Please test neovim-python module.
@@ -1624,6 +1760,21 @@ Q: What does each part of a line on the pop up mean?  For example I see:
 A: It is the source mark. [~] is from around source.  A is from
    |deoplete-source-around|.
 
+Q: I want to use floating preview window feature with deoplete.
+
+A: Please install float-preview.nvim plugin.
+https://github.com/ncm2/float-preview.nvim
+
+Q: I want to complete from 'tags'.
+
+A:
+https://github.com/deoplete-plugins/deoplete-tag
+
+Q: I want to complete from 'dictionary'.
+
+A:
+https://github.com/deoplete-plugins/deoplete-dictionary
+
 						    *deoplete-faq-ft-specific*
 3. Filetype Specific Questions~
 
@@ -1643,15 +1794,15 @@ A: You should use |deoplete-clangx|.
 Q: I want to use jedi-vim omni completion with deoplete.
 
 A: You should install deoplete-jedi instead of jedi-vim.
-   https://github.com/zchee/deoplete-jedi
+   https://github.com/deoplete-plugins/deoplete-jedi
 
-Q: I want to use Java script omnifunc.
+Q: I want to use JavaScript omnifunc.
 
 A: Please set "input_patterns" manually. >
 
        call deoplete#custom#var('omni', 'input_patterns', {
        \ 'javascript': '[^. *\t]\.\w*',
-       \ )
+       \ })
 
 Q: I want to use "vim-lua-ftplugin".
    https://github.com/xolox/vim-lua-ftplugin
@@ -1665,6 +1816,9 @@ A: Please set the config as below.  >
 
        call deoplete#custom#var('omni', 'functions', {
        \ 'lua': 'xolox#lua#omnifunc',
+       \ })
+       call deoplete#custom#var('omni', 'input_patterns', {
+       \ 'lua': '\w+|\w+[.:]\w*',
        \ })
 
 Q: I want to complete AAA using deoplete.
@@ -1702,10 +1856,22 @@ A: Please see
 
 Q: Are there any plans to support GotoDefinition feature like YouCompleteMe?
 
-A: https://github.com/zchee/deoplete-jedi/issues/35
+A: https://github.com/deoplete-plugins/deoplete-jedi/issues/35
 
 ==============================================================================
 COMPATIBILITY					*deoplete-compatibility*
+
+2019.04.16
+* Split tag source to https://github.com/deoplete-plugins/deoplete-tag.
+* Split dictionary source to
+  https://github.com/deoplete-plugins/deoplete-dictionary.
+
+2019.03.02
+* Python 3.6.1+ is required.
+
+2019.02.09
+* deoplete-options-delimiters is removed.  Please use "delimiters" var in
+  converter_auto_delimiter.
 
 2018.12.24
 * neovim-python 0.3.0+ is needed for asyncio feature.
@@ -1717,6 +1883,9 @@ COMPATIBILITY					*deoplete-compatibility*
 
 2018.12.05
 * Remove the default value of "deoplete-options-omni_patterns".
+
+2018.11.18
+* neovim 0.3.0+ is required.
 
 2018.10.28
 * Remove "deoplete-source-attribute-keyword_patterns".

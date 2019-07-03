@@ -1,8 +1,10 @@
-if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'vifm') == -1
-  
+if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'vifm') != -1
+  finish
+endif
+
 " vifm syntax file
 " Maintainer:  xaizek <xaizek@posteo.net>
-" Last Change: December 19, 2018
+" Last Change: June 3, 2019
 " Inspired By: Vim syntax file by Dr. Charles E. Campbell, Jr.
 
 if exists('b:current_syntax')
@@ -76,7 +78,7 @@ syntax case ignore
 syntax keyword vifmHiGroups contained WildMenu Border Win CmdLine CurrLine
 		\ OtherLine Directory Link Socket Device Executable Selected BrokenLink
 		\ TopLine TopLineSel StatusLine JobLine SuggestBox Fifo ErrorMsg CmpMismatch
-		\ AuxWin TabLine TabLineSel
+		\ AuxWin OtherWin TabLine TabLineSel
 		\ User1 User2 User3 User4 User5 User6 User7 User8 User9
 syntax keyword vifmHiStyles contained
 		\ bold underline reverse inverse standout italic none
@@ -132,11 +134,11 @@ syntax keyword vifmOption contained aproposprg autochpos caseoptions cdpath cd
 		\ lsoptions lsview mediaprg milleroptions millerview mintimeoutlen number nu
 		\ numberwidth nuw previewprg quickview relativenumber rnu rulerformat ruf
 		\ runexec scrollbind scb scrolloff so sort sortgroups sortorder sortnumbers
-		\ shell sh shortmess shm showtabline stal sizefmt slowfs smartcase scs
-		\ statusline stl suggestoptions syncregs syscalls tabscope tabstop timefmt
-		\ timeoutlen title tm trash trashdir ts tuioptions to undolevels ul vicmd
-		\ viewcolumns vifminfo vimhelp vixcmd wildmenu wmnu wildstyle wordchars wrap
-		\ wrapscan ws
+		\ shell sh shellflagcmd shcf shortmess shm showtabline stal sizefmt slowfs
+		\ smartcase scs statusline stl suggestoptions syncregs syscalls tabscope
+		\ tabstop timefmt timeoutlen title tm trash trashdir ts tuioptions to
+		\ undolevels ul vicmd viewcolumns vifminfo vimhelp vixcmd wildmenu wmnu
+		\ wildstyle wordchars wrap wrapscan ws
 
 " Disabled boolean options
 syntax keyword vifmOption contained noautochpos nocf nochaselinks nodotfiles
@@ -451,5 +453,3 @@ let &cpo = s:cpo_save
 unlet s:cpo_save
 
 " vim: set tabstop=2 softtabstop=2 shiftwidth=2 noexpandtab cinoptions-=(0 :
-
-endif

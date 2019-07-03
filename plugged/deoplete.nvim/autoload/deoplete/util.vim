@@ -68,6 +68,13 @@ function! s:vimoption2python(option) abort
     elseif pattern ==# '-'
       let has_dash = 1
     else
+      " Avoid ambiguous Python 3 RE syntax for nested sets
+      if pattern =~# '^--'
+        let pattern = '\' . pattern
+      elseif pattern =~# '--$'
+        let pattern = split(pattern, '-')[0] . '-\-'
+      endif
+
       call add(patterns, pattern)
     endif
   endfor
@@ -128,52 +135,6 @@ function! deoplete#util#has_yarp() abort
   return !has('nvim') || deoplete#custom#_get_option('yarp')
 endfunction
 
-function! deoplete#util#get_context_filetype(input, event) abort
-  if !exists('s:context_filetype')
-    let s:context_filetype = {}
-
-    " Force context_filetype call.
-    try
-      call context_filetype#get_filetype()
-    catch
-      " Ignore error
-    endtry
-  endif
-
-  if empty(s:context_filetype)
-        \ || s:context_filetype.prev_filetype !=# &filetype
-        \ || s:context_filetype.line != line('.')
-        \ || s:context_filetype.bufnr != bufnr('%')
-        \ || (a:input =~# '\W$' &&
-        \     substitute(a:input, '\s\zs\s\+$', '', '') !=#
-        \     substitute(s:context_filetype.input, '\s\zs\s\+$', '', ''))
-        \ || (a:input =~# '\w$' &&
-        \     substitute(a:input, '\w\+$', '', '') !=#
-        \     substitute(s:context_filetype.input, '\w\+$', '', ''))
-        \ || a:event ==# 'InsertEnter'
-
-    let s:context_filetype.line = line('.')
-    let s:context_filetype.bufnr = bufnr('%')
-    let s:context_filetype.input = a:input
-    let s:context_filetype.prev_filetype = &filetype
-    let s:context_filetype.filetype =
-          \ (exists('*context_filetype#get_filetype') ?
-          \   context_filetype#get_filetype() :
-          \   (&filetype ==# '' ? 'nothing' : &filetype))
-    let s:context_filetype.filetypes =
-          \ exists('*context_filetype#get_filetypes') ?
-          \   context_filetype#get_filetypes() :
-          \   &filetype ==# '' ? ['nothing'] :
-          \                     deoplete#util#uniq([&filetype]
-          \                          + split(&filetype, '\.'))
-    let s:context_filetype.same_filetypes =
-          \ exists('*context_filetype#get_same_filetypes') ?
-          \   context_filetype#get_same_filetypes() : []
-  endif
-  return [ s:context_filetype.filetype,
-        \  s:context_filetype.filetypes, s:context_filetype.same_filetypes]
-endfunction
-
 function! deoplete#util#get_keyword_pattern(filetype) abort
   let keyword_patterns = deoplete#custom#_get_option('keyword_patterns')
   if empty(keyword_patterns)
@@ -191,20 +152,20 @@ function! deoplete#util#get_keyword_pattern(filetype) abort
   return substitute(pattern, '\\k', '\=k_pattern', 'g')
 endfunction
 
-function! deoplete#util#rpcnotify(event, context) abort
+function! deoplete#util#rpcnotify(method, context) abort
   if !deoplete#init#_channel_initialized()
     return ''
   endif
 
-  let a:context['rpc'] = a:event
+  let a:context['rpc'] = a:method
 
   if deoplete#util#has_yarp()
     if g:deoplete#_yarp.job_is_dead
       return ''
     endif
-    call g:deoplete#_yarp.notify(a:event, a:context)
+    call g:deoplete#_yarp.notify(a:method, a:context)
   else
-    call rpcnotify(g:deoplete#_channel_id, a:event, a:context)
+    call rpcnotify(g:deoplete#_channel_id, a:method, a:context)
   endif
 
   return ''

@@ -6,22 +6,44 @@
 
 function! deoplete#mapping#_init() abort
   " Note: The dummy function is needed for cpoptions bug in neovim
-  inoremap <expr><silent> <Plug>_ deoplete#mapping#_dummy_complete()
+  inoremap <expr><silent> <Plug>_
+        \ deoplete#mapping#_dummy('deoplete#mapping#_complete')
+  inoremap <expr><silent> <Plug>+
+        \ deoplete#mapping#_dummy('deoplete#mapping#_prev_complete')
 endfunction
-
-function! deoplete#mapping#_dummy_complete() abort
-  return "\<C-r>=deoplete#mapping#_complete()\<CR>"
+function! deoplete#mapping#_dummy(func) abort
+  return "\<C-r>=".a:func."()\<CR>"
 endfunction
-function! deoplete#mapping#_completefunc(findstart, base) abort
-  if a:findstart
-    return g:deoplete#_context.complete_position
-  else
-    return g:deoplete#_context.candidates
+function! s:check_completion_info(candidates) abort
+  if !exists('*complete_info')
+    return 0
   endif
+
+  let info = complete_info()
+  if info.mode !=# '' && info.mode !=# 'eval'
+    return 1
+  endif
+
+  let old_candidates = sort(map(copy(info.items), 'v:val.word'))
+  return sort(map(copy(a:candidates), 'v:val.word')) ==# old_candidates
 endfunction
 function! deoplete#mapping#_complete() abort
+  if s:check_completion_info(g:deoplete#_context.candidates)
+    return ''
+  endif
+
   call complete(g:deoplete#_context.complete_position + 1,
         \ g:deoplete#_context.candidates)
+
+  return ''
+endfunction
+function! deoplete#mapping#_prev_complete() abort
+  if s:check_completion_info(g:deoplete#_filtered_prev.candidates)
+    return ''
+  endif
+
+  call complete(g:deoplete#_filtered_prev.complete_position + 1,
+        \ g:deoplete#_filtered_prev.candidates)
 
   return ''
 endfunction
@@ -71,16 +93,16 @@ function! deoplete#mapping#_complete_common_string() abort
   endif
 
   " Get cursor word.
-  let complete_str = matchstr(deoplete#util#get_input(''), '\w*$')
-
-  if complete_str ==# '' || !has_key(g:deoplete#_context, 'candidates')
+  let prev = g:deoplete#_prev_completion
+  if empty(prev)
     return ''
   endif
 
-  let candidates = filter(copy(g:deoplete#_context.candidates),
+  let complete_str = prev.input[prev.complete_position :]
+  let candidates = filter(copy(prev.candidates),
         \ 'stridx(tolower(v:val.word), tolower(complete_str)) == 0')
 
-  if empty(candidates)
+  if empty(candidates) || complete_str ==# ''
     return ''
   endif
 
