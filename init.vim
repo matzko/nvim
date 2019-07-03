@@ -72,6 +72,8 @@ let g:neomake_elixir_enabled_makers = ['mix', 'credo']
 
 let g:grepper           = {}
 let g:grepper.highlight = 1
+let g:grepper.tools = ['ag', 'git', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 'pt', 'sift']
+
 nmap gs  <plug>(GrepperOperator)
 xmap gs  <plug>(GrepperOperator)
 
