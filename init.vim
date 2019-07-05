@@ -74,6 +74,18 @@ let g:grepper           = {}
 let g:grepper.highlight = 1
 let g:grepper.tools = ['ag', 'git', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 'pt', 'sift']
 
+function! DockerTransform(cmd) abort
+  if a:cmd =~ './bin/rspec'
+    let l:command = substitute(a:cmd, "./bin/rspec", "./bin/wecounsel --test", "")
+    return l:command
+  else
+    return a:cmd
+  endif
+endfunction
+
+let g:test#custom_transformations = {'docker': function('DockerTransform')}
+let g:test#transformation = 'docker'
+
 nmap gs  <plug>(GrepperOperator)
 xmap gs  <plug>(GrepperOperator)
 
