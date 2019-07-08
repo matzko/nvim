@@ -76,7 +76,7 @@ let g:grepper.tools = ['ag', 'git', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 
 
 function! DockerTransform(cmd) abort
   if a:cmd =~ './bin/rspec'
-    let l:command = substitute(a:cmd, "./bin/rspec", "./bin/wecounsel --test", "")
+    let l:command = substitute(a:cmd, "./bin/rspec", "wecounsel rspec", "")
     return l:command
   else
     return a:cmd
