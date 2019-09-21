@@ -1,6 +1,4 @@
-if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'ocaml') != -1
-  finish
-endif
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ocaml') == -1
 
 " Vim syntax file
 " Language:     OCaml
@@ -32,6 +30,9 @@ endif
 
 " ' can be used in OCaml identifiers
 setlocal iskeyword+='
+
+" ` is part of the name of polymorphic variants
+setlocal iskeyword+=`
 
 " OCaml is case sensitive.
 syn case match
@@ -390,3 +391,5 @@ endif
 let b:current_syntax = "ocaml"
 
 " vim: ts=8
+
+endif

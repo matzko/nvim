@@ -409,6 +409,7 @@ function! neomake#makers#ft#python#mypy() abort
 
     let maker = {
         \ 'args': args,
+        \ 'output_stream': 'stdout',
         \ 'errorformat':
             \ '%E%f:%l:%c: error: %m,' .
             \ '%W%f:%l:%c: warning: %m,' .
@@ -418,20 +419,22 @@ function! neomake#makers#ft#python#mypy() abort
             \ '%I%f:%l: note: %m',
         \ }
     function! maker.InitForJob(jobinfo) abort
+        let maker = deepcopy(self)
         let file_mode = a:jobinfo.file_mode
         if file_mode
             " Follow imports, but do not emit errors/issues for it, which
             " would result in errors for other buffers etc.
             " XXX: dmypy requires "skip" or "error"
-            call insert(self.args, '--follow-imports=silent')
+            call insert(maker.args, '--follow-imports=silent')
         else
             let project_root = neomake#utils#get_project_root(a:jobinfo.bufnr)
             if empty(project_root)
-                call add(self.args, '.')
+                call add(maker.args, '.')
             else
-                call add(self.args, project_root)
+                call add(maker.args, project_root)
             endif
         endif
+        return maker
     endfunction
     function! maker.supports_stdin(jobinfo) abort
         if !has_key(self, 'tempfile_name')
@@ -439,6 +442,11 @@ function! neomake#makers#ft#python#mypy() abort
         endif
         let self.args += ['--shadow-file', '%', self.tempfile_name]
         return 0
+    endfunction
+    function! maker.postprocess(entry) abort
+        if a:entry.text =~# '\v^Need type (annotation|comment) for'
+            let a:entry.type = 'I'
+        endif
     endfunction
     return maker
 endfunction

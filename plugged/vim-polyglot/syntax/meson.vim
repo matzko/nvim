@@ -1,6 +1,4 @@
-if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'meson') != -1
-  finish
-endif
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'meson') == -1
 
 " Vim syntax file
 " Language:	Meson
@@ -73,6 +71,7 @@ syn keyword mesonBuiltin
   \ add_project_arguments
   \ add_project_link_arguments
   \ add_test_setup
+  \ alias_target
   \ assert
   \ benchmark
   \ both_libraries
@@ -101,6 +100,7 @@ syn keyword mesonBuiltin
   \ install_headers
   \ install_man
   \ install_subdir
+  \ is_disabler
   \ is_variable
   \ jar
   \ join_paths
@@ -164,3 +164,5 @@ let &cpo = s:cpo_save
 unlet s:cpo_save
 
 " vim:set sw=2 sts=2 ts=8 noet:
+
+endif

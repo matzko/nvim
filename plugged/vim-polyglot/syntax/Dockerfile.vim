@@ -1,6 +1,4 @@
-if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'dockerfile') != -1
-  finish
-endif
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'dockerfile') == -1
 
 " Vim syntax file
 " Language: Dockerfile
@@ -62,7 +60,4 @@ hi link bashStatement       Function
 
 let b:current_syntax = "dockerfile"
 
-set commentstring=#\ %s
-
-" Enable automatic comment insertion
-setlocal fo+=cro
+endif

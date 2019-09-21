@@ -24,6 +24,9 @@ function! deoplete#init#_initialize() abort
 
   call s:init_internal_variables()
 
+  " For context_filetype check
+  silent! call context_filetype#get()
+
   if deoplete#init#_channel()
     return 1
   endif
@@ -66,6 +69,10 @@ function! deoplete#init#_channel() abort
     if !has('python3')
       call deoplete#util#print_error(
             \ 'deoplete requires Python3 support("+python3").')
+    endif
+
+    if !deoplete#init#_python_version_check()
+      call deoplete#util#print_error('deoplete requires Python3.6.1+.')
     endif
 
     if deoplete#util#has_yarp()
@@ -203,8 +210,9 @@ function! deoplete#init#_option() abort
   return {
         \ 'auto_complete': v:true,
         \ 'auto_complete_delay': 0,
-        \ 'auto_refresh_delay': 20,
+        \ 'auto_refresh_delay': 100,
         \ 'camel_case': v:false,
+        \ 'check_stderr': v:true,
         \ 'ignore_case': &ignorecase,
         \ 'ignore_sources': {},
         \ 'candidate_marks': [],
@@ -245,5 +253,5 @@ vim.vars['deoplete#_python_version_check'] = (
     sys.version_info.minor,
     sys.version_info.micro) < (3, 6, 1)
 EOF
-  return g:deoplete#_python_version_check
+  return get(g:, 'deoplete#_python_version_check', 0)
 endfunction

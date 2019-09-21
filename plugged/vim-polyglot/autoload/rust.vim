@@ -1,6 +1,4 @@
-if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'rust') != -1
-  finish
-endif
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'rust') == -1
 
 " Author: Kevin Ballard
 " Description: Helper functions for Rust commands/mappings
@@ -509,7 +507,7 @@ function! rust#Test(all, options) abort
         return rust#Run(1, '--test ' . a:options)
     endif
 
-    if exists(':terminal')
+    if has('terminal') || has('nvim')
         let cmd = 'terminal '
     else
         let cmd = '!'
@@ -530,7 +528,7 @@ function! rust#Test(all, options) abort
         let func_name = s:SearchTestFunctionNameUnderCursor()
         if func_name ==# ''
             echohl ErrorMsg
-            echo 'No test function was found under the cursor. Please add ! to command if you want to run all tests'
+            echomsg 'No test function was found under the cursor. Please add ! to command if you want to run all tests'
             echohl None
             return
         endif
@@ -548,3 +546,5 @@ endfunction
 " }}}1
 
 " vim: set et sw=4 sts=4 ts=8:
+
+endif

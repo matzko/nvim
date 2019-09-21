@@ -605,13 +605,9 @@ function! s:command_maker_base._get_fname_for_buffer(jobinfo) abort
     let bufnr = a:jobinfo.bufnr
     let bufname = bufname(bufnr)
     let temp_file = ''
-    let _uses_stdin = neomake#utils#GetSetting('uses_stdin', a:jobinfo.maker, s:unset_dict, a:jobinfo.ft, bufnr)
-    if _uses_stdin isnot s:unset_dict
-        let a:jobinfo.uses_stdin = _uses_stdin
-        let uses_stdin = _uses_stdin
-        call neomake#log#debug(printf('Using uses_stdin (%s) from setting.',
-                    \ a:jobinfo.uses_stdin), a:jobinfo)
-        if a:jobinfo.uses_stdin
+    if has_key(a:jobinfo, 'uses_stdin')
+        let uses_stdin = a:jobinfo.uses_stdin
+        if uses_stdin
             let temp_file = neomake#utils#GetSetting('tempfile_name', a:jobinfo.maker, '-', a:jobinfo.ft, bufnr)
         endif
     else
@@ -971,12 +967,7 @@ function! neomake#GetEnabledMakers(...) abort
         else
             let auto_enabled = 0
         endif
-
-        let makers = neomake#map_makers(makers, a:1, auto_enabled)
-        for maker in makers
-            let maker.auto_enabled = auto_enabled
-            let enabled_makers += [maker]
-        endfor
+        let enabled_makers = neomake#map_makers(makers, a:1, auto_enabled)
     endif
     return enabled_makers
 endfunction
@@ -2186,12 +2177,13 @@ endfunction
 function! s:exit_handler(jobinfo, data) abort
     let jobinfo = a:jobinfo
     let jobinfo.exit_code = a:data
+    let maker = jobinfo.maker
     if get(jobinfo, 'canceled')
-        call neomake#log#debug('exit: job was canceled.', jobinfo)
+        call neomake#log#debug(printf('exit: %s: %s (job was canceled).',
+                    \ maker.name, string(a:data)), jobinfo)
         call s:CleanJobinfo(jobinfo)
         return
     endif
-    let maker = jobinfo.maker
 
     if exists('jobinfo._output_while_in_handler') || exists('jobinfo._nvim_in_handler')
         let jobinfo._exited_while_in_handler = a:data
@@ -2250,7 +2242,6 @@ function! s:exit_handler(jobinfo, data) abort
         endif
 
         if has_key(jobinfo, 'unexpected_output')
-            redraw
             for [source, output] in items(jobinfo.unexpected_output)
                 let msg = printf('%s: unexpected output on %s: ', maker.name, source)
                 call neomake#log#debug(msg . join(output, '\n') . '.', jobinfo)
@@ -2262,8 +2253,18 @@ function! s:exit_handler(jobinfo, data) abort
                 endfor
                 echohl None
             endfor
-            call neomake#log#error(printf(
-                        \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
+            " NOTE: messages do not cause a wait-enter prompt during job
+            "       callback processing.  Therefore we're giving a final
+            "       message referring to ":messages".
+            "       (related: https://github.com/vim/vim/issues/836)
+            if s:async
+                call neomake#log#error(printf(
+                            \ '%s: unexpected output. See :messages for more information.', maker.name), jobinfo)
+            else
+                " For non-async the above messages are visible, but we want an
+                " error for the log also.
+                call neomake#log#error(printf('%s: unexpected output.', maker.name), jobinfo)
+            endif
         endif
     finally
         unlet jobinfo._in_exit_handler
@@ -2591,5 +2592,7 @@ function! neomake#map_makers(makers, ft, auto_enabled) abort
             endif
         endfor
     endif
+    " Set auto_enabled, but keep explicitly set value.
+    call map(makers, 'extend(v:val, {''auto_enabled'': a:auto_enabled}, ''keep'')')
     return makers
 endfunction

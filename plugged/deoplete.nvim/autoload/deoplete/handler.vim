@@ -49,7 +49,7 @@ function! deoplete#handler#_do_complete() abort
   let context = g:deoplete#_context
   let event = get(context, 'event', '')
   let modes = (event ==# 'InsertEnter') ? ['n', 'i'] : ['i']
-  if s:is_exiting() || index(modes, mode()) < 0
+  if s:is_exiting() || index(modes, mode()) < 0 || s:check_input_method()
     return
   endif
 
@@ -81,6 +81,7 @@ function! deoplete#handler#_check_omnifunc(context) abort
         \ || &l:omnifunc ==# ''
         \ || index(blacklist, &l:omnifunc) >= 0
         \ || prev.input ==# a:context.input
+        \ || s:check_input_method()
     return
   endif
 
@@ -129,6 +130,7 @@ function! s:check_prev_completion(event) abort
   let prev = g:deoplete#_prev_completion
   if a:event ==# 'Async' || mode() !=# 'i'
         \ || empty(get(prev, 'candidates', []))
+        \ || s:check_input_method()
     return
   endif
 
@@ -171,8 +173,7 @@ function! deoplete#handler#_async_timer_start() abort
     return
   endif
 
-  call timer_start(max([20, delay]),
-        \ {-> deoplete#handler#_completion_begin('Async')})
+  call timer_start(max([20, delay]), {-> deoplete#auto_complete()})
 endfunction
 
 function! deoplete#handler#_completion_begin(event) abort
@@ -185,7 +186,7 @@ function! deoplete#handler#_completion_begin(event) abort
 
   call s:check_prev_completion(a:event)
 
-  if a:event !=# 'Async'
+  if a:event !=# 'Update'
     call deoplete#init#_prev_completion()
   endif
 
@@ -204,7 +205,7 @@ function! s:is_skip(event) abort
   let auto_complete = deoplete#custom#_get_option('auto_complete')
 
   if &paste
-        \ || (a:event !=# 'Manual' && a:event !=# 'Async' && !auto_complete)
+        \ || (a:event !=# 'Manual' && a:event !=# 'Update' && !auto_complete)
         \ || (&l:completefunc !=# '' && &l:buftype =~# 'nofile')
         \ || (a:event !=# 'InsertEnter' && mode() !=# 'i')
     return 1
@@ -233,10 +234,11 @@ function! s:is_skip_text(event) abort
   if input ==# prev_input
         \ && a:event !=# 'Manual'
         \ && a:event !=# 'Async'
+        \ && a:event !=# 'Update'
         \ && a:event !=# 'TextChangedP'
     return 1
   endif
-  if a:event ==# 'Async' && prev_input !=# '' && input !=# prev_input
+  if a:event ==# 'Update' && prev_input !=# '' && input !=# prev_input
     return 1
   endif
 
@@ -259,6 +261,9 @@ function! s:is_skip_text(event) abort
 
   return (a:event !=# 'Manual' && input !=# ''
         \     && index(skip_chars, input[-1:]) >= 0)
+endfunction
+function! s:check_input_method() abort
+  return exists('*getimstatus') && getimstatus()
 endfunction
 
 function! s:define_on_event(event) abort
@@ -290,6 +295,26 @@ function! s:on_complete_done() abort
     return
   endif
   call deoplete#handler#_skip_next_completion()
+
+  if get(v:completed_item, 'user_data', '') !=# ''
+    call s:substitute_suffix(json_decode(v:completed_item.user_data))
+  endif
+endfunction
+function! s:substitute_suffix(user_data) abort
+  if !has_key(a:user_data, 'old_suffix')
+        \ || !has_key(a:user_data, 'new_suffix')
+    return
+  endif
+  let old_suffix = a:user_data.old_suffix
+  let new_suffix = a:user_data.new_suffix
+
+  let next_text = deoplete#util#get_next_input('CompleteDone')
+  if stridx(next_text, old_suffix) != 0
+    return
+  endif
+
+  let next_text = new_suffix . next_text[len(old_suffix):]
+  call setline('.', deoplete#util#get_input('CompleteDone') . next_text)
 endfunction
 
 function! deoplete#handler#_skip_next_completion() abort

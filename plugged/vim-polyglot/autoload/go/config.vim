@@ -1,6 +1,4 @@
-if exists('g:polyglot_disabled') && index(g:polyglot_disabled, 'go') != -1
-  finish
-endif
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'go') == -1
 
 " don't spam the user when Vim is started in Vi compatibility mode
 let s:cpo_save = &cpo
@@ -25,10 +23,12 @@ endfunction
 function! go#config#SetBuildTags(value) abort
   if a:value is ''
     silent! unlet g:go_build_tags
+    call go#lsp#ResetWorkspaceDirectories()
     return
   endif
 
   let g:go_build_tags = a:value
+  call go#lsp#ResetWorkspaceDirectories()
 endfunction
 
 function! go#config#TestTimeout() abort
@@ -49,6 +49,14 @@ endfunction
 
 function! go#config#TermMode() abort
   return get(g:, 'go_term_mode', 'vsplit')
+endfunction
+
+function! go#config#TermCloseOnExit() abort
+  return get(g:, 'go_term_close_on_exit', 1)
+endfunction
+
+function! go#config#SetTermCloseOnExit(value) abort
+  let g:go_term_close_on_exit = a:value
 endfunction
 
 function! go#config#TermEnabled() abort
@@ -218,7 +226,7 @@ function! go#config#DebugCommands() abort
 endfunction
 
 function! go#config#DebugLogOutput() abort
-  return get(g:, 'go_debug_log_output', 'debugger, rpc')
+  return get(g:, 'go_debug_log_output', 'debugger,rpc')
 endfunction
 
 function! go#config#LspLog() abort
@@ -252,7 +260,7 @@ function! go#config#SetTemplateAutocreate(value) abort
 endfunction
 
 function! go#config#MetalinterCommand() abort
-  return get(g:, "go_metalinter_command", "gometalinter")
+  return get(g:, "go_metalinter_command", "golangci-lint")
 endfunction
 
 function! go#config#MetalinterAutosaveEnabled() abort
@@ -484,3 +492,5 @@ let &cpo = s:cpo_save
 unlet s:cpo_save
 
 " vim: sw=2 ts=2 et
+
+endif
