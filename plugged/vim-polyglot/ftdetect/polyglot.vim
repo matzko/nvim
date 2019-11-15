@@ -276,6 +276,15 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'dart') == -1
   augroup filetypedetect
   " dart, from dart.vim in dart-lang/dart-vim-plugin
 autocmd BufRead,BufNewFile *.dart set filetype=dart
+
+function! s:DetectShebang()
+  if did_filetype() | return | endif
+  if getline(1) == '#!/usr/bin/env dart'
+    setlocal filetype=dart
+  endif
+endfunction
+
+autocmd BufRead * call s:DetectShebang()
   augroup end
 endif
 
@@ -625,6 +634,13 @@ endif
 
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'javascript') == -1
   augroup filetypedetect
+  " javascript, from flow.vim in pangloss/vim-javascript:_JAVASCRIPT
+autocmd BufNewFile,BufRead *.flow setfiletype flow
+  augroup end
+endif
+
+if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'javascript') == -1
+  augroup filetypedetect
   " javascript, from javascript.vim in pangloss/vim-javascript:_JAVASCRIPT
 fun! s:SelectJavascript()
   if getline(1) =~# '^#!.*/bin/\%(env\s\+\)\?node\>'
@@ -896,7 +912,7 @@ endif
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'ocaml') == -1
   augroup filetypedetect
   " ocaml, from opam.vim in rgrinberg/vim-ocaml
-au BufNewFile,BufRead opam,*.opam set filetype=opam
+au BufNewFile,BufRead opam,*.opam,*.opam.template set filetype=opam
   augroup end
 endif
 
@@ -1047,6 +1063,7 @@ if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'puppet') == -1
   augroup filetypedetect
   " puppet, from puppet.vim in rodjek/vim-puppet
 au! BufRead,BufNewFile *.pp setfiletype puppet
+au! BufRead,BufNewFile *.epp setfiletype embeddedpuppet
 au! BufRead,BufNewFile Puppetfile setfiletype ruby
   augroup end
 endif
@@ -1095,7 +1112,24 @@ endif
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'racket') == -1
   augroup filetypedetect
   " racket, from racket.vim in wlangstroth/vim-racket
-au BufRead,BufNewFile *.rkt,*.rktl set filetype=racket
+" 
+let g:racket_hash_lang_regexp = '^#lang\s\+\([^][)(}{[:space:]]\+\)'
+
+" Tries to detect filetype from #lang line; defaults to ft=racket.
+function! RacketDetectHashLang()
+  let old_ft = &filetype
+
+  let matches = matchlist(getline(1), g:racket_hash_lang_regexp)
+  if ! empty(matches)
+    let &l:filetype = matches[1]
+  endif
+
+  if &filetype == old_ft
+    set filetype=racket
+  endif
+endfunction
+
+au BufRead,BufNewFile *.rkt,*.rktl call RacketDetectHashLang()
   augroup end
 endif
 
@@ -1427,15 +1461,15 @@ endif
 
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'typescript') == -1
   augroup filetypedetect
-  " typescript, from tsx.vim in HerringtonDarkholme/yats.vim
-autocmd BufNewFile,BufRead *.tsx setlocal filetype=typescript.tsx
+  " typescript, from typescript.vim in HerringtonDarkholme/yats.vim
+autocmd BufNewFile,BufRead *.ts setlocal filetype=typescript
   augroup end
 endif
 
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'typescript') == -1
   augroup filetypedetect
-  " typescript, from typescript.vim in HerringtonDarkholme/yats.vim
-autocmd BufNewFile,BufRead *.ts setlocal filetype=typescript
+  " typescript, from typescriptreact.vim in HerringtonDarkholme/yats.vim
+autocmd BufNewFile,BufRead *.tsx setlocal filetype=typescriptreact
   augroup end
 endif
 

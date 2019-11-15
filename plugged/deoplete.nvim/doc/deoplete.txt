@@ -66,8 +66,8 @@ You can enable Python3 interface with pip: >
 
     pip3 install --user pynvim
 
-Note: deoplete needs neovim-python ver.0.3.0+.
-You need update neovim-python module.
+Note: deoplete needs pynvim ver.0.3.0+.
+You need update pynvim module.
 >
     pip3 install --user --upgrade pynvim
 <
@@ -573,12 +573,6 @@ around						    *deoplete-source-around*
 		the words that are in sight or the ones you've just typed
 		somewhere else.
 
-		Legend: You can see where the words came from. Next to the
-		source mark [~] these suffixes are used:
-		    A - above the cursor
-		    B - below the cursor
-		    C - in changes
-
 		By default, around has a fixed range of looking for words
 		20 lines above and below your cursor position. You are able
 		to customize its settings through custom source variables.
@@ -722,6 +716,7 @@ Default sorters: ['sorter_rank'].
 
 					*deoplete-filter-converter_default*
 Default converters: ['converter_remove_overlap', 'converter_truncate_abbr',
+                     'converter_truncate_kind', 'converter_truncate_info',
                      'converter_truncate_menu'].
 
 	You can change it by |deoplete#custom#source()|.
@@ -869,6 +864,10 @@ converter_auto_paren
 		It adds parentheses character in a candidate's word.
 		It is useful if you use |neopairs| or |neosnippet|
 		plugins.
+
+				*deoplete-filter-converter_case*
+converter_case
+		It converts case like 'infercase'.
 
 				*deoplete-filter-converter_remove_overlap*
 converter_remove_overlap
@@ -1533,7 +1532,7 @@ A: 1. Please update neovim to the latest version.
 
        $ export NVIM_PYTHON_LOG_FILE=/tmp/log
        $ export NVIM_PYTHON_LOG_LEVEL=DEBUG
-       $ neovim
+       $ nvim
        ... Use deoplete
        $ cat /tmp/log_{PID}
 
@@ -1588,7 +1587,7 @@ A: Please enable logging feature like this. >
 Q: "Channel id must be a positive integer" error.
 https://github.com/Shougo/deoplete.nvim/issues/406
 
-A: Your neovim or neovim-python module is too old.
+A: Your neovim or pynvim module is too old.
 Please update them to the latest version.
 
 Q: "Broken pipe" error.
@@ -1597,26 +1596,26 @@ https://github.com/Shougo/deoplete.nvim/issues/653
 A: Please test _main.py.
 https://github.com/Shougo/deoplete.nvim/issues/635#issuecomment-363331278
 
-Please test neovim-python module.
-https://github.com/neovim/python-client#usage-through-the-python-repl
+Please test pynvim module.
+https://github.com/neovim/pynvim#usage-through-the-python-repl
 
 Q: "Cannot add child handler, the child watcher does not have a loop attached"
 error.
 https://github.com/Shougo/deoplete.nvim/issues/761
 
-A: It is neovim-python package problem.
-https://github.com/neovim/python-client/issues/324
-https://github.com/neovim/python-client/issues/326
+A: It is pynvim package problem.
+https://github.com/neovim/pynvim/issues/324
+https://github.com/neovim/pynvim/issues/326
 
 Note: You can disable parallel feature by |deoplete-options-num_processes|.
 It is workaround. >
 
        call deoplete#custom#option('num_processes', 1)
 
-Q: "[deoplete] neovim-python 0.3.0+ is required." error
+Q: "[deoplete] pynvim 0.3.0+ is required." error
 https://github.com/Shougo/deoplete.nvim/issues/694
 
-A: You must upgrade neovim-python client. >
+A: You must upgrade pynvim client. >
 
        $ pip3 install --user pynvim --upgrade
 
@@ -1764,9 +1763,9 @@ A: Like this:
 	highlight PmenuSbar ctermbg=0 guibg=#d6d6d6
 <
 Q: What does each part of a line on the pop up mean?  For example I see:
-   Bree pops up Breed [~] A. What do [~] and A stand for?
+   Bree pops up Breed [A]. What do [A] stands for?
 
-A: It is the source mark. [~] is from around source.  A is from
+A: It is the source mark. [A] is from around source.  A is from
    |deoplete-source-around|.
 
 Q: I want to use floating preview window feature with deoplete.

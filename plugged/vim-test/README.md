@@ -28,8 +28,9 @@ runners are supported:
 | **Elm**        | elm-test                                                                                    | `elmtest`                                                                                                       |
 | **Erlang**     | CommonTest, EUnit                                                                           | `commontest`, `eunit`                                                                                           |
 | **Go**         | Ginkgo, Go, Rich-Go, Delve                                                                  | `ginkgo`, `gotest`, `richgo`, `delve`                                                                           |
+| **Haskell**    | stack                                                                                       | `stacktest`                                                                                                     |
 | **Java**       | Maven, Gradle                                                                               | `maventest`, `gradletest`                                                                                       |
-| **JavaScript** | Ava, Cucumber.js, Intern, Jasmine, Jest, ReactScripts, Karma, Lab, Mocha, TAP, WebdriverIO  | `ava`, `cucumberjs`, `intern`, `jasmine`, `jest`, `reactscripts`, `karma`, `lab`, `mocha`, `tap`, `webdriverio` |
+| **JavaScript** | Ava, Cucumber.js, Cypress, Intern, Jasmine, Jest, ReactScripts, Karma, Lab, Mocha, TAP, WebdriverIO  | `ava`, `cucumberjs`, `cypress`, `intern`, `jasmine`, `jest`, `reactscripts`, `karma`, `lab`, `mocha`, `tap`, `webdriverio` |
 | **Lua**        | Busted                                                                                      | `busted`                                                                                                        |
 | **PHP**        | Behat, Codeception, Kahlan, Peridot, PHPUnit, PHPSpec, Dusk                                 | `behat`, `codeception`, `dusk`, `kahlan`, `peridot`, `phpunit`, `phpspec`                                       |
 | **Perl**       | Prove                                                                                       | `prove`                                                                                                         |
@@ -98,6 +99,7 @@ let test#strategy = "dispatch"
 | **Terminal.app**                | `terminal`                       | Sends test commands to Terminal (useful in MacVim GUI).                          |
 | **iTerm2.app**                  | `iterm`                          | Sends test commands to iTerm2 >= 2.9 (useful in MacVim GUI).                     |
 | **[Kitty]**                     | `kitty`                          | Sends test commands to Kitty terminal.                                           |
+| **[Shtuff]**                    | `shtuff`                         | Sends test commands to remote terminal via [shtuff][Shtuff].                     |
 
 You can also set up strategies per granularity:
 
@@ -155,6 +157,27 @@ please make sure:
   ```
   $ export KITTY_LISTEN_ON=/tmp/mykitty
   ```
+
+### Shtuff strategy setup
+
+This strategy lets you run commands in a remote terminal without needing tools
+like `tmux` or special terminals such as Kitty.
+
+Before you can run tests using this strategy, you will need to have a terminal
+setup as a receiver, and also you'll need to set `g:shtuff_receiver` in your
+vimrc file.
+
+In your terminal of choice:
+
+```
+$ shtuff as devrunner
+```
+
+And in your vimrc:
+
+```
+let g:shtuff_receiver = 'devrunner'
+```
 
 ### Quickfix Strategies
 
@@ -375,7 +398,7 @@ force a specific runner:
 let test#scala#runner = 'blooptest'
 ```
 
-You may have subprojects inside your main sbt projects. Bloop project detection 
+You may have subprojects inside your main sbt projects. Bloop project detection
 uses your main project to run tests. If you need to run test inside your subproject,
 you can specify custom projects with:
 
@@ -441,6 +464,10 @@ let test#ruby#use_spring_binstub = 1
 #### JavaScript
 
 Test runner detection for JavaScript works by checking which runner is listed in the package.json dependencies. If you have globally installed the runner make sure it's also listed in the dependencies.
+
+#### Haskell
+
+The `stackTest` runner currently supports running tests in Stack projects with the [HSpec](http://hackage.haskell.org/package/hspec) framework.
 
 ## Autocommands
 
@@ -561,3 +588,4 @@ Copyright © Janko Marohnić. Distributed under the same terms as Vim itself. Se
 [M]: http://github.com/qrush/m
 [projectionist.vim]: https://github.com/tpope/vim-projectionist
 [Kitty]: https://github.com/kovidgoyal/kitty
+[Shtuff]: https://github.com/jfly/shtuff

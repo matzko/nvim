@@ -7,7 +7,7 @@ let g:test#plugin_path = expand('<sfile>:p:h:h')
 
 let g:test#default_runners = {
   \ 'Ruby':       ['Rails', 'M', 'Minitest', 'RSpec', 'Cucumber'],
-  \ 'JavaScript': ['Ava', 'CucumberJS', 'Intern', 'TAP', 'Karma', 'Lab', 'Mocha', 'Jasmine', 'Jest', 'ReactScripts', 'WebdriverIO'],
+  \ 'JavaScript': ['Ava', 'CucumberJS', 'Intern', 'TAP', 'Karma', 'Lab', 'Mocha', 'Jasmine', 'Jest', 'ReactScripts', 'WebdriverIO', 'Cypress'],
   \ 'Python':     ['DjangoTest', 'PyTest', 'PyUnit', 'Nose', 'Nose2'],
   \ 'Elixir':     ['ExUnit', 'ESpec'],
   \ 'Elm':        ['ElmTest'],
@@ -25,6 +25,7 @@ let g:test#default_runners = {
   \ 'Racket':     ['RackUnit'],
   \ 'Java':       ['MavenTest', 'GradleTest'],
   \ 'Scala':      ['SbtTest', 'BloopTest'],
+  \ 'Haskell':    ['StackTest'],
   \ 'Crystal':    ['CrystalSpec'],
 \}
 
@@ -33,7 +34,8 @@ let g:test#custom_transformations = get(g:, 'test#custom_transformations', {})
 let g:test#runner_commands = get(g:, 'test#runner_commands', [])
 
 command! -nargs=* -bar TestNearest call test#run('nearest', split(<q-args>))
-command! -nargs=* -bar TestFile    call test#run('file', split(<q-args>))
+command! -nargs=* -bar -complete=file
+      \                TestFile    call test#run('file', split(<q-args>))
 command! -nargs=* -bar TestSuite   call test#run('suite', split(<q-args>))
 command! -nargs=* -bar TestLast    call test#run_last(split(<q-args>))
 command!          -bar TestVisit   call test#visit()

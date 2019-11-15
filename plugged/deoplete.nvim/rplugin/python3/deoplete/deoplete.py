@@ -102,8 +102,8 @@ class Deoplete(logger.LoggingMixin):
         # Async update is skipped if same.
         prev_completion = self._vim.vars['deoplete#_prev_completion']
         prev_candidates = prev_completion['candidates']
-        if (context['event'] == 'Async' and
-                context['event'] == prev_completion['event'] and
+        event = context['event']
+        if (event == 'Async' or event == 'Update' and
                 prev_candidates and len(candidates) <= len(prev_candidates)):
             return
 
@@ -152,8 +152,8 @@ class Deoplete(logger.LoggingMixin):
         for cnt, parent in enumerate(self._parents):
             if cnt in self._prev_results:
                 # Use previous result
-                results += copy.deepcopy(  # type: ignore
-                    self._prev_results[cnt])
+                results += copy.deepcopy(
+                    self._prev_results[cnt])  # type: ignore
             else:
                 result = parent.merge_results(context)
                 is_async = is_async or result[0]

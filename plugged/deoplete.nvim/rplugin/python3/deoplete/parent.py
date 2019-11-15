@@ -96,8 +96,9 @@ class AsyncParent(_Parent):
             if os.name == 'nt':
                 checks = (r'Scripts\python.exe', 'python.exe')
             else:
-                checks = (  # type: ignore
-                    'bin/python%s.%s' % (sys.version_info[0], sys.version[1]),
+                checks = (
+                    'bin/python%s.%s' % (  # type: ignore
+                        sys.version_info[0], sys.version[1]),
                     'bin/python%s' % (sys.version_info[0]),
                     'bin/python',
                 )
@@ -125,8 +126,8 @@ class AsyncParent(_Parent):
 
         info = None
         if os.name == 'nt':
-            info = subprocess.STARTUPINFO()
-            info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            info = subprocess.STARTUPINFO()  # type: ignore
+            info.dwFlags |= subprocess.STARTF_USESHOWWINDOW  # type: ignore
 
         main = str(Path(__file__).parent.parent.parent.parent.joinpath(
             'autoload', 'deoplete', '_main.py'))

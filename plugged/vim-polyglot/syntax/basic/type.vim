@@ -52,7 +52,8 @@ syntax cluster typescriptPrimaryType contains=
   \ typescriptTupleType,
   \ typescriptTypeQuery,
   \ typescriptStringLiteralType,
-  \ typescriptReadonlyArrayKeyword
+  \ typescriptReadonlyArrayKeyword,
+  \ typescriptAssertType
 
 syntax region  typescriptStringLiteralType contained
   \ start=/\z(["']\)/  skip=/\\\\\|\\\z1\|\\\n/  end=/\z1\|$/
@@ -91,8 +92,8 @@ syntax cluster typescriptTypeMember contains=
 
 syntax region typescriptTupleType matchgroup=typescriptBraces
   \ start=/\[/ end=/\]/
-  \ contains=@typescriptType
-  \ contained skipwhite oneline
+  \ contains=@typescriptType,@typescriptComments
+  \ contained skipwhite
 
 syntax cluster typescriptTypeOperator
   \ contains=typescriptUnion,typescriptTypeBracket
@@ -127,6 +128,10 @@ syntax keyword typescriptUserDefinedType is
   \ contained nextgroup=@typescriptType skipwhite skipempty
 
 syntax keyword typescriptTypeQuery typeof keyof
+  \ nextgroup=typescriptTypeReference
+  \ contained skipwhite skipnl
+
+syntax keyword typescriptAssertType asserts
   \ nextgroup=typescriptTypeReference
   \ contained skipwhite skipnl
 

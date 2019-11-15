@@ -123,9 +123,21 @@ function! s:init_internal_variables() abort
       let g:deoplete#_serveraddr = $NVIM_LISTEN_ADDRESS
     endif
   catch
-    if deoplete#util#has_yarp() && !exists('*neovim_rpc#serveraddr')
+    call deoplete#util#print_error(v:exception)
+    call deoplete#util#print_error(v:throwpoint)
+
+    if !has('python3')
       call deoplete#util#print_error(
-            \ 'deoplete requires vim-hug-neovim-rpc plugin in Vim.')
+            \ 'deoplete requires Python3 support("+python3").')
+    endif
+
+    if deoplete#util#has_yarp()
+      " Dummy call is needed to check exists()
+      call neovim_rpc#serveraddr()
+      if !exists('*neovim_rpc#serveraddr')
+        call deoplete#util#print_error(
+              \ 'deoplete requires vim-hug-neovim-rpc plugin in Vim.')
+      endif
     endif
   endtry
 endfunction

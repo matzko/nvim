@@ -128,7 +128,7 @@ endfunction
 
 function! s:check_prev_completion(event) abort
   let prev = g:deoplete#_prev_completion
-  if a:event ==# 'Async' || mode() !=# 'i'
+  if a:event ==# 'Async' || a:event ==# 'Update' || mode() !=# 'i'
         \ || empty(get(prev, 'candidates', []))
         \ || s:check_input_method()
     return
@@ -186,7 +186,7 @@ function! deoplete#handler#_completion_begin(event) abort
 
   call s:check_prev_completion(a:event)
 
-  if a:event !=# 'Update'
+  if a:event !=# 'Update' && a:event !=# 'Async'
     call deoplete#init#_prev_completion()
   endif
 
@@ -297,7 +297,12 @@ function! s:on_complete_done() abort
   call deoplete#handler#_skip_next_completion()
 
   if get(v:completed_item, 'user_data', '') !=# ''
-    call s:substitute_suffix(json_decode(v:completed_item.user_data))
+    try
+      if type(v:completed_item.user_data) == type('')
+        call s:substitute_suffix(json_decode(v:completed_item.user_data))
+      endif
+    catch /.*/
+    endtry
   endif
 endfunction
 function! s:substitute_suffix(user_data) abort
