@@ -44,6 +44,7 @@ Plug 'janko-m/vim-test'
 Plug 'machakann/vim-highlightedyank'
 Plug 'neomake/neomake'
 Plug 'codeindulgence/vim-tig'
+Plug 'gcmt/taboo.vim'
 
 Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
