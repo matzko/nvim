@@ -27,6 +27,7 @@ let g:python3_host_prog = '/usr/bin/python3'
 call plug#begin('~/.config/nvim/plugged')
 
 Plug 'AndrewRadev/splitjoin.vim'
+Plug 'andys8/vim-elm-syntax'
 Plug 'dense-analysis/ale'
 Plug 'elmcast/elm-vim'
 Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
