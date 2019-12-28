@@ -34,14 +34,14 @@ runners are supported:
 | **Lua**        | Busted                                                                                      | `busted`                                                                                                        |
 | **PHP**        | Behat, Codeception, Kahlan, Peridot, PHPUnit, PHPSpec, Dusk                                 | `behat`, `codeception`, `dusk`, `kahlan`, `peridot`, `phpunit`, `phpspec`                                       |
 | **Perl**       | Prove                                                                                       | `prove`                                                                                                         |
-| **Python**     | Django, Nose, Nose2, PyTest, PyUnit                                                         | `djangotest`, `djangonose` `nose`, `nose2`, `pytest`, `pyunit`                                                  |
+| **Python**     | Django, Mamba, Nose, Nose2, PyTest, PyUnit                                                  | `djangotest`, `djangonose`, `mamba`, `nose`, `nose2`, `pytest`, `pyunit`                                                  |
 | **Racket**     | RackUnit                                                                                    | `rackunit`                                                                                                      |
 | **Ruby**       | Cucumber, [M], [Minitest][minitest], Rails, RSpec                                           | `cucumber`, `m`, `minitest`, `rails`, `rspec`                                                                   |
 | **Rust**       | Cargo                                                                                       | `cargotest`                                                                                                     |
 | **Scala**      | SBT, Bloop                                                                                  | `sbttest`, `blooptest`                                                                                          |
 | **Shell**      | Bats                                                                                        | `bats`                                                                                                          |
 | **Swift**      | Swift Package Manager                                                                       | `swiftpm`                                                                                                       |
-| **VimScript**  | Vader.vim, VSpec, Themis                                                                    | `vader`, `vspec`, `themis`                                                                                      |
+| **VimScript**  | Vader.vim, VSpec, Themis, Testify                                                           | `vader`, `vspec`, `themis`, `testify`                                                                           |
 
 ## Setup
 
@@ -89,6 +89,7 @@ let test#strategy = "dispatch"
 | **[Dispatch]**                  | `dispatch` `dispatch_background` | Runs test commands with `:Dispatch` or `:Dispatch!`.                             |
 | **[Vimux]**                     | `vimux`                          | Runs test commands in a small tmux pane at the bottom of your terminal.          |
 | **[Tslime]**                    | `tslime`                         | Runs test commands in a tmux pane you specify.                                   |
+| **[Slimux]**                    | `slimux`                         | Runs test commands in a tmux pane you specify.                                   |
 | **[Neoterm]**                   | `neoterm`                        | Runs test commands with `:T`, see neoterm docs for display customization.        |
 | **[Neomake]**                   | `neomake`                        | Runs test commands asynchronously with `:NeomakeProject`.                        |
 | **[MakeGreen]**                 | `makegreen`                      | Runs test commands with `:MakeGreen`.                                            |
@@ -372,7 +373,7 @@ the first available will be chosen, but you can force a specific one:
 
 ``` vim
 let test#python#runner = 'pytest'
-" Runners available are 'pytest', 'nose', 'nose2', 'djangotest', 'djangonose' and Python's built-in 'unittest'
+" Runners available are 'pytest', 'nose', 'nose2', 'djangotest', 'djangonose', 'mamba', and Python's built-in 'unittest'
 ```
 
 The pytest runner optionally supports [pipenv](https://github.com/pypa/pipenv).
@@ -577,6 +578,7 @@ Copyright © Janko Marohnić. Distributed under the same terms as Vim itself. Se
 [Dispatch]: https://github.com/tpope/vim-dispatch
 [Vimux]: https://github.com/benmills/vimux
 [Tslime]: https://github.com/jgdavey/tslime.vim
+[Slimux]: https://github.com/esamattis/slimux
 [Vim&nbsp;Tmux&nbsp;Runner]: https://github.com/christoomey/vim-tmux-runner
 [VimShell]: https://github.com/Shougo/vimshell.vim
 [VimProc]: https://github.com/Shougo/vimproc.vim

@@ -44,13 +44,15 @@ Use `:Gbrowse` to open the current file on the web front-end of your favorite
 hosting provider, with optional line range (try it in visual mode).  Plugins
 are available for popular providers such as [GitHub][rhubarb.vim],
 [GitLab][fugitive-gitlab.vim], [Bitbucket][fubitive.vim],
-[Gitee][fugitive-gitee.vim], and [Pagure][pagure].
+[Gitee][fugitive-gitee.vim], [Pagure][pagure], and
+[Phabricator][vim-phabricator].
 
 [rhubarb.vim]: https://github.com/tpope/vim-rhubarb
 [fugitive-gitlab.vim]: https://github.com/shumphrey/fugitive-gitlab.vim
 [fubitive.vim]: https://github.com/tommcdo/vim-fubitive
 [fugitive-gitee.vim]: https://github.com/linuxsuren/fugitive-gitee.vim
 [pagure]: https://github.com/FrostyX/vim-fugitive-pagure
+[vim-phabricator]: https://github.com/jparise/vim-phabricator
 
 Add `%{FugitiveStatusline()}` to `'statusline'` to get an indicator
 with the current branch in your statusline.
@@ -69,13 +71,12 @@ For more information, see `:help fugitive`.
 
 ## Installation
 
-If you don't have a preferred installation method, one option is to install
-[pathogen.vim](https://github.com/tpope/vim-pathogen), and then copy
-and paste:
-
-    cd ~/.vim/bundle
-    git clone https://github.com/tpope/vim-fugitive.git
-    vim -u NONE -c "helptags vim-fugitive/doc" -c q
+Install using your favorite package manager, or use Vim's built-in package support:
+	
+    mkdir -p ~/.vim/pack/tpope/start
+    cd ~/.vim/pack/tpope/start
+    git clone https://tpope.io/vim/fugitive.git
+    vim -u NONE -c "helptags fugitive/doc" -c q
 
 ## FAQ
 

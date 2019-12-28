@@ -8,7 +8,7 @@ let g:test#plugin_path = expand('<sfile>:p:h:h')
 let g:test#default_runners = {
   \ 'Ruby':       ['Rails', 'M', 'Minitest', 'RSpec', 'Cucumber'],
   \ 'JavaScript': ['Ava', 'CucumberJS', 'Intern', 'TAP', 'Karma', 'Lab', 'Mocha', 'Jasmine', 'Jest', 'ReactScripts', 'WebdriverIO', 'Cypress'],
-  \ 'Python':     ['DjangoTest', 'PyTest', 'PyUnit', 'Nose', 'Nose2'],
+  \ 'Python':     ['DjangoTest', 'PyTest', 'PyUnit', 'Nose', 'Nose2', 'Mamba'],
   \ 'Elixir':     ['ExUnit', 'ESpec'],
   \ 'Elm':        ['ElmTest'],
   \ 'Erlang':     ['CommonTest', 'EUnit'],
@@ -18,7 +18,7 @@ let g:test#default_runners = {
   \ 'CSharp':     ['Xunit', 'DotnetTest'],
   \ 'Shell':      ['Bats'],
   \ 'Swift':      ['SwiftPM'],
-  \ 'VimL':       ['Themis', 'VSpec', 'Vader'],
+  \ 'VimL':       ['Themis', 'VSpec', 'Vader', 'Testify'],
   \ 'Lua':        ['Busted'],
   \ 'PHP':        ['Codeception', 'Dusk', 'PHPUnit', 'Behat', 'PHPSpec', 'Kahlan', 'Peridot'],
   \ 'Perl':       ['Prove'],

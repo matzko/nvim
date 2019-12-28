@@ -231,8 +231,7 @@ class Child(logger.LoggingMixin):
                                     ctx['max_abbr_width'])
         ctx['max_kind_width'] = min(source.max_kind_width,
                                     ctx['max_kind_width'])
-        ctx['max_info_width'] = min(source.max_info_width,
-                                    ctx['max_info_width'])
+        ctx['max_info_width'] = source.max_info_width
         ctx['max_menu_width'] = min(source.max_menu_width,
                                     ctx['max_menu_width'])
         if ctx['max_abbr_width'] > 0:
@@ -369,15 +368,19 @@ class Child(logger.LoggingMixin):
             for candidate in ctx['candidates']:
                 candidate['word'] = candidate['__save_word']
 
+        # Sort
+        sorters = [self._filters[x] for x
+                   in source.sorters if x in self._filters]
+        for f in sorters:
+            self._process_filter(f, ctx, source.max_candidates)
+
         # Note: converter may break candidates
         ctx['candidates'] = copy.deepcopy(ctx['candidates'])
 
-        # Sort and Convert
-        sorters = [self._filters[x] for x
-                   in source.sorters if x in self._filters]
+        # Convert
         converters = [self._filters[x] for x
                       in source.converters if x in self._filters]
-        for f in sorters + converters:
+        for f in converters:
             self._process_filter(f, ctx, source.max_candidates)
 
         if (isinstance(ctx['candidates'], dict) and
@@ -468,7 +471,7 @@ class Child(logger.LoggingMixin):
                 return self._profile_start(context, name)
         elif self._profile_flag:
             self.debug(f'Profile Start: {name}')
-            self._profile_start_time = time.clock()
+            self._profile_start_time = time.monotonic()
 
     def _profile_end(self, name: str) -> None:
         if not self._profile_start_time:
@@ -476,7 +479,7 @@ class Child(logger.LoggingMixin):
 
         self.debug(  # type: ignore
             'Profile End  : {0:<25} time={1:2.10f}'.format(
-                name, time.clock() - self._profile_start_time))
+                name, time.monotonic() - self._profile_start_time))
 
     def _use_previous_result(self, context: UserContext,
                              result: Result, is_volatile: bool,
