@@ -101,8 +101,17 @@ let g:tig_open_command = 'vnew'
 let g:elm_format_autosave = 1
 let g:elm_make_output_file = "build/elm.js"
 
+let g:ale_linters = {
+\   'ruby': ['rubocop', 'reek'],
+\}
+let g:ale_lint_on_save = 1
+let g:ale_lint_on_text_changed = 0
+let g:ale_lint_on_insert_leave = 0
+
+" let g:ale_ruby_brakeman_options = "--only-files expand('%:p')"
+
 " When writing a buffer.
-call neomake#configure#automake('w')
+" call neomake#configure#automake('w')
 " When writing a buffer, and on normal mode changes (after 750ms).
 " call neomake#configure#automake('nw', 750)
 " When reading a buffer (after 1s), and when writing.
