@@ -72,22 +72,23 @@ inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 let g:neomake_open_list = 0
 let g:neomake_list_height = 1
 let g:neomake_elixir_enabled_makers = ['mix', 'credo']
+let g:neomake_ruby_enabled_makers = []
 
 let g:grepper           = {}
 let g:grepper.highlight = 1
 let g:grepper.tools = ['ag', 'git', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 'pt', 'sift']
 
-function! DockerTransform(cmd) abort
-  if a:cmd =~ './bin/rspec'
-    let l:command = substitute(a:cmd, "./bin/rspec", "wecounsel rspec", "")
-    return l:command
-  else
-    return a:cmd
-  endif
-endfunction
+" function! DockerTransform(cmd) abort
+"   if a:cmd =~ './bin/rspec'
+"     let l:command = substitute(a:cmd, "./bin/rspec", "wecounsel rspec", "")
+"     return l:command
+"   else
+"     return a:cmd
+"   endif
+" endfunction
 
-let g:test#custom_transformations = {'docker': function('DockerTransform')}
-let g:test#transformation = 'docker'
+" let g:test#custom_transformations = {'docker': function('DockerTransform')}
+" let g:test#transformation = 'docker'
 
 nmap gs  <plug>(GrepperOperator)
 xmap gs  <plug>(GrepperOperator)
