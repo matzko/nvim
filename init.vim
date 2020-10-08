@@ -102,9 +102,20 @@ let g:tig_open_command = 'vnew'
 let g:elm_format_autosave = 1
 let g:elm_make_output_file = "build/elm.js"
 
+let g:ale_fixers = {
+\   'elm': ['elm-format'],
+\   'javascript': ['prettier'],
+\   'css': ['prettier'],
+\   'scss': ['prettier'],
+\   'yaml': ['prettier'],
+\   'markdown': ['prettier'],
+\}
+let g:ale_fix_on_save = 1
 let g:ale_linters = {
+\   'elm': ['make'],
 \   'ruby': ['rubocop', 'reek'],
 \}
+let g:ale_linters_explicit = 1
 let g:ale_lint_on_save = 1
 let g:ale_lint_on_text_changed = 0
 let g:ale_lint_on_insert_leave = 0
