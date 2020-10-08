@@ -7,18 +7,20 @@ CONTENTS                                          *splitjoin* *splitjoin-content
     Usage..................................: |splitjoin-usage|
 
     C......................................: |splitjoin-c|
-    CSS....................................: |splitjoin-css|
     Coffeescript...........................: |splitjoin-coffee|
+    CSS....................................: |splitjoin-css|
     Elixir.................................: |splitjoin-elixir|
+    Elm..................................  : |splitjoin-elm|
     Eruby..................................: |splitjoin-eruby|
     Go.....................................: |splitjoin-go|
     HAML...................................: |splitjoin-haml|
-    HTML...................................: |splitjoin-html|
     Handlebars.............................: |splitjoin-handlebars|
+    HTML...................................: |splitjoin-html|
     Javascript.............................: |splitjoin-javascript| |splitjoin-json|
+    JSX/TSX................................: |splitjoin-jsx| |splitjoin-tsx|
     Lua....................................: |splitjoin-lua|
-    PHP....................................: |splitjoin-php|
     Perl...................................: |splitjoin-perl|
+    PHP....................................: |splitjoin-php|
     Python.................................: |splitjoin-python|
     Ruby...................................: |splitjoin-ruby|
     Rust...................................: |splitjoin-rust|
@@ -223,35 +225,6 @@ Function calls ~
 <
 
 ==============================================================================
-CSS                                                              *splitjoin-css*
-
-These also work for SCSS and LESS -- see |splitjoin-scss|, |splitjoin-less|.
-
-Style definitions ~
->
-    a { color: #0000FF; text-decoration: underline; }
-
-    a {
-      color: #0000FF;
-      text-decoration: underline;
-    }
-
-Multiline selectors ~
->
-    h1,
-    h2,
-    h3 {
-      font-size: 18px;
-      font-weight: bold;
-    }
-
-    h1, h2, h3 {
-      font-size: 18px;
-      font-weight: bold;
-    }
-<
-
-==============================================================================
 COFFEESCRIPT                                                  *splitjoin-coffee*
 
 Functions ~
@@ -330,6 +303,35 @@ splitting.
 <
 
 ==============================================================================
+CSS                                                              *splitjoin-css*
+
+These also work for SCSS and LESS -- see |splitjoin-scss|, |splitjoin-less|.
+
+Style definitions ~
+>
+    a { color: #0000FF; text-decoration: underline; }
+
+    a {
+      color: #0000FF;
+      text-decoration: underline;
+    }
+
+Multiline selectors ~
+>
+    h1,
+    h2,
+    h3 {
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    h1, h2, h3 {
+      font-size: 18px;
+      font-weight: bold;
+    }
+<
+
+==============================================================================
 ELIXIR                                                        *splitjoin-elixir*
 
 Do-blocks ~
@@ -339,6 +341,21 @@ Do-blocks ~
     def function(arguments) when condition do
       body
     end
+<
+
+==============================================================================
+ELM                                                              *splitjoin-elm*
+
+Lists, tuples, records ~
+>
+    myUpdatedRecord =
+        {myPreviousRecord | firstName = "John", lastName = "Doe"}
+
+    myUpdatedRecord =
+        { myPreviousRecord
+        | firstName = "John"
+        , lastName = "Doe"
+        }
 <
 
 ==============================================================================
@@ -422,10 +439,31 @@ Evaluated ruby ~
 <
 
 ==============================================================================
+HANDLEBARS                                                *splitjoin-handlebars*
+
+Components ~
+>
+    {{some/component-name foo=bar bar=baz}}
+
+    {{some/component-name
+      foo=bar
+      bar=baz
+    }}
+<
+Block components ~
+>
+    {{#component-name foo=bar}}Some content{{/component-name}}
+
+    {{#component-name foo=bar}}
+      Some contents
+    {{/component-name}}
+<
+
+==============================================================================
 HTML                                                            *splitjoin-html*
 
 This works for other HTML-like languages as well: XML, Eruby, JSX, TSX, Vue
-templates, Django templates.
+templates, Svelte.js, Django templates.
 
 Tags ~
 >
@@ -447,27 +485,6 @@ Attributes ~
       ng-class="{ clicked: clicked }">
       Click me!
     </button>
-<
-
-==============================================================================
-HANDLEBARS                                                *splitjoin-handlebars*
-
-Components ~
->
-    {{some/component-name foo=bar bar=baz}}
-
-    {{some/component-name
-      foo=bar
-      bar=baz
-    }}
-<
-Block components ~
->
-    {{#component-name foo=bar}}Some content{{/component-name}}
-
-    {{#component-name foo=bar}}
-      Some contents
-    {{/component-name}}
 <
 
 ==============================================================================
@@ -541,6 +558,25 @@ Fat-arrow functions ~
 <
 
 ==============================================================================
+JSX                                                              *splitjoin-jsx*
+                                                                 *splitjoin-tsx*
+
+Both HTML and Javascript splitters and joiners work for JSX and TSX. There's
+also one additional transformation:
+
+Self-closing tags ~
+>
+    let button = <Button />;
+
+    let button = <Button>
+        </Button>;
+
+
+Note that, in Vim, these languages are supported within the  `javascrptreact`
+and `typescriptreact` filetypes, so if callbacks don't work right,
+double-check the detected filetype of the buffer.
+
+==============================================================================
 LUA                                                              *splitjoin-lua*
 
 For Lua, only splitting and joining functions is implemented at this point.
@@ -564,63 +600,6 @@ Functions ~
 
     local something = other(function (one, two) print("foo") end)
 <
-
-==============================================================================
-PHP                                                              *splitjoin-php*
-
-Arrays ~
->
-    foo = array('one' => 'two', 'two' => 'three')
-
-    foo = array(
-      'one' => 'two',
-      'two' => 'three'
-    )
-<
-Short arrays ~
->
-    $one = ['two', 'three', 'four']
-
-    $one = [
-      'two',
-      'three',
-      'four'
-    ]
-<
-If-clauses ~
->
-    if ($foo) { $a = "bar"; }
-
-    if ($foo) {
-      $a = "bar";
-    }
-<
-PHP markers ~
->
-    <?php echo "OK"; ?>
-
-    <?php
-    echo "OK";
-    ?>
-<
-Method calls~
-
-Affects all the arrows after the cursor when |splitjoin_php_method_chain_full|
-is set to 1. Otherwise, it affects only a single arrow (the default
-behaviour).
->
-    $var = $one->two->three()->four();
-
-    $var = $one
-        ->two->three()->four();
-
-    # OR
-
-    $var = $one
-        ->two
-        ->three()
-        ->four();
-
 
 ==============================================================================
 PERL                                                            *splitjoin-perl*
@@ -687,6 +666,63 @@ Word lists ~
       three
     );
 <
+
+==============================================================================
+PHP                                                              *splitjoin-php*
+
+Arrays ~
+>
+    foo = array('one' => 'two', 'two' => 'three')
+
+    foo = array(
+      'one' => 'two',
+      'two' => 'three'
+    )
+<
+Short arrays ~
+>
+    $one = ['two', 'three', 'four']
+
+    $one = [
+      'two',
+      'three',
+      'four'
+    ]
+<
+If-clauses ~
+>
+    if ($foo) { $a = "bar"; }
+
+    if ($foo) {
+      $a = "bar";
+    }
+<
+PHP markers ~
+>
+    <?php echo "OK"; ?>
+
+    <?php
+    echo "OK";
+    ?>
+<
+Method calls~
+
+Affects all the arrows after the cursor when |splitjoin_php_method_chain_full|
+is set to 1. Otherwise, it affects only a single arrow (the default
+behaviour).
+>
+    $var = $one->two->three()->four();
+
+    $var = $one
+        ->two->three()->four();
+
+    # OR
+
+    $var = $one
+        ->two
+        ->three()
+        ->four();
+
 
 ==============================================================================
 PYTHON                                                        *splitjoin-python*
@@ -1038,6 +1074,29 @@ Empty matches and if-let ~
         _ => (),
     }
 <
+Import lists ~
+
+With the cursor on the pre-curly bracket part of an import:
+>
+    use std::io::{Read, Write, Process};
+
+    use std::io::Read;
+    use std::io::Write;
+    use std::io::Process;
+<
+Joining works downwards -- attempting to join the current line with as many as
+possible below. It will look for the common part between the first two imports
+and try to apply it on any later ones that match.
+
+With the cursor in the curly brackets:
+>
+    use std::io::{Read, Write};
+
+    use std::io::{
+        Read,
+        Write
+    };
+<
 
 ==============================================================================
 SCSS                                                            *splitjoin-scss*
@@ -1230,6 +1289,31 @@ particular scenario.
 In order to silence these messages, if you find them annoying, set this
 variable to 1.
 
+                                            *splitjoin_disabled_split_callbacks*
+>
+    let g:splitjoin_disabled_split_callbacks = ['sj#html#SplitAttributes']
+<
+Default value: []
+
+This setting allows you to disable a particular split type by adding its
+function callback to the list. To find the specific name to disable, you'd
+need to dig into the source code of the plugin in
+`ftplugin/<filetype-name>/splitjoin.vim`. If you're not sure which callback
+performs which split, try disabling them one by one until you've got the
+behaviour you're looking for.
+
+                                             *splitjoin_disabled_join_callbacks*
+>
+    let g:splitjoin_disabled_join_callbacks = ['sj#html#JoinAttributes']
+<
+Default value: []
+
+This setting allows you to disable a particular join type by adding its
+function callback to the list. To find the specific name to disable, you'd
+need to dig into the source code of the plugin in
+`ftplugin/<filetype-name>/splitjoin.vim`. If you're not sure which callback
+performs which join, try disabling them one by one until you've got the
+behaviour you're looking for.
 
                                                 *splitjoin_normalize_whitespace*
 >

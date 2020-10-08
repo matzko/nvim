@@ -10,6 +10,12 @@ function! deoplete#mapping#_init() abort
         \ deoplete#mapping#_dummy('deoplete#mapping#_complete')
   inoremap <expr><silent> <Plug>+
         \ deoplete#mapping#_dummy('deoplete#mapping#_prev_complete')
+
+  " Note: The dummy mappings may be inserted on other modes.
+  cnoremap <silent> <Plug>_  <Nop>
+  cnoremap <silent> <Plug>+  <Nop>
+  noremap  <silent> <Plug>_  <Nop>
+  noremap  <silent> <Plug>+  <Nop>
 endfunction
 function! deoplete#mapping#_dummy(func) abort
   return "\<C-r>=".a:func."()\<CR>"
@@ -24,14 +30,31 @@ function! s:check_completion_info(candidates) abort
   if (info.mode !=# '' && info.mode !=# 'eval')
         \ || (noinsert && info.selected > 0)
         \ || (!noinsert && info.selected >= 0)
+        \ || !has_key(g:deoplete#_context, 'complete_position')
     return 1
   endif
+
+  let input = getline('.')[: g:deoplete#_context.complete_position - 1]
+  if deoplete#util#check_eskk_phase_henkan()
+        \ && matchstr(input, '.$') =~# '[\u3040-\u304A]$'
+    return 0
+  endif
+  return 0
 
   let old_candidates = sort(map(copy(info.items), 'v:val.word'))
   return sort(map(copy(a:candidates), 'v:val.word')) ==# old_candidates
 endfunction
 function! deoplete#mapping#_complete() abort
-  if s:check_completion_info(g:deoplete#_context.candidates)
+  if !has_key(g:deoplete#_context, 'candidates')
+        \ || s:check_completion_info(g:deoplete#_context.candidates)
+        \ || !&modifiable
+    return ''
+  endif
+
+  " echomsg string(g:deoplete#_context)
+  if empty(g:deoplete#_context.candidates) && deoplete#util#check_popup()
+    " Note: call complete() to close the popup
+    call complete(1, [])
     return ''
   endif
 
@@ -50,15 +73,17 @@ function! deoplete#mapping#_prev_complete() abort
 
   return ''
 endfunction
-function! deoplete#mapping#_set_completeopt() abort
-  if exists('g:deoplete#_saved_completeopt')
-    return
+function! deoplete#mapping#_set_completeopt(is_async) abort
+  if !exists('g:deoplete#_saved_completeopt')
+    let g:deoplete#_saved_completeopt = &completeopt
   endif
-  let g:deoplete#_saved_completeopt = &completeopt
   set completeopt-=longest
   set completeopt+=menuone
   set completeopt-=menu
-  if &completeopt !~# 'noinsert\|noselect'
+  if &completeopt !~# 'noinsert\|noselect' || a:is_async
+    " Note: If is_async, noselect is needed to prevent without confirmation
+    " problem
+    set completeopt-=noinsert
     set completeopt+=noselect
   endif
 endfunction
@@ -87,8 +112,7 @@ function! deoplete#mapping#_undo_completion() abort
     return ''
   endif
 
-  return deoplete#smart_close_popup() .
-        \  repeat("\<C-h>", strchars(v:completed_item.word))
+  return repeat("\<C-h>", strchars(v:completed_item.word))
 endfunction
 function! deoplete#mapping#_complete_common_string() abort
   if !deoplete#is_enabled()

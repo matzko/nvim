@@ -44,6 +44,8 @@ class Source(Base):
 
     def _get_complete_position(self, context: UserContext,
                                current_ft: str, filetype: str) -> int:
+        complete_pos = -1
+
         for omnifunc in convert2list(
                 self.get_filetype_var(filetype, 'functions')):
             if omnifunc == '' and (filetype == current_ft or
@@ -66,17 +68,19 @@ class Source(Base):
                         'ccomplete#Complete',
                         'htmlcomplete#CompleteTags',
                         'LanguageClient#complete',
+                        'rubycomplete#Complete',
                         'phpcomplete#CompletePHP']:
                     # In the blacklist
-                    return -1
+                    continue
                 try:
                     complete_pos = int(self.vim.call(self._omnifunc, 1, ''))
                 except Exception:
                     self.print_error('Error occurred calling omnifunction: ' +
                                      self._omnifunc)
                     return -1
-                return complete_pos
-        return -1
+                if complete_pos >= 0:
+                    break
+        return complete_pos
 
     def gather_candidates(self, context: UserContext) -> Candidates:
         try:

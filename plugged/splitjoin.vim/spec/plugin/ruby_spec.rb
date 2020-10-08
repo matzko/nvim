@@ -39,10 +39,10 @@ describe "ruby" do
     EOF
   end
 
-  specify "if-clauses with comments" do
+  specify "if-clauses with comments and interpolation" do
     set_file_contents <<~EOF
       if 6 * 9 == 42
-        return "the answer" # comment
+        return "the \#{right} answer" # comment
       end
     EOF
 
@@ -51,7 +51,7 @@ describe "ruby" do
 
     assert_file_contents <<~EOF
       # comment
-      return "the answer" if 6 * 9 == 42
+      return "the \#{right} answer" if 6 * 9 == 42
     EOF
   end
 
@@ -459,8 +459,6 @@ describe "ruby" do
     end
 
     it "aligns thens in supercompact cases" do
-      skip 'we need to add an alignment tool to the spec configuration'
-
       set_file_contents <<~EOF
         case
         when cond1
@@ -472,6 +470,7 @@ describe "ruby" do
         end
       EOF
 
+      vim.command('let b:splitjoin_align = 1')
       join
 
       assert_file_contents <<~EOF

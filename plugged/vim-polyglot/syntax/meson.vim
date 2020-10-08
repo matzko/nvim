@@ -34,8 +34,9 @@ set cpo&vim
 
 " http://mesonbuild.com/Syntax.html
 syn keyword mesonConditional	elif else if endif
-syn keyword mesonRepeat	foreach endforeach
-syn keyword mesonOperator	and not or
+syn keyword mesonRepeat		foreach endforeach
+syn keyword mesonOperator	and not or in
+syn keyword mesonStatement	continue break
 
 syn match   mesonComment	"#.*$" contains=mesonTodo,@Spell
 syn keyword mesonTodo		FIXME NOTE NOTES TODO XXX contained
@@ -119,6 +120,7 @@ syn keyword mesonBuiltin
   \ subdir
   \ subdir_done
   \ subproject
+  \ summary
   \ target_machine
   \ test
   \ vcs_tag

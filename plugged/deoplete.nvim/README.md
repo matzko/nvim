@@ -6,6 +6,9 @@
 [![Join the chat at https://gitter.im/Shougo/deoplete.nvim](https://badges.gitter.im/Shougo/deoplete.nvim.svg)](https://gitter.im/Shougo/deoplete.nvim?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Doc](https://img.shields.io/badge/doc-%3Ah%20deoplete-orange.svg)](doc/deoplete.txt)
 
+Note: If you need to understand what's different between deoplete and other
+similar plugins, please read "deoplete-faq" section in the documentation.
+
 Deoplete is the abbreviation of "dark powered neo-completion".  It
 provides an extensible and asynchronous completion framework for
 neovim/Vim8.
@@ -26,13 +29,18 @@ Here are some [completion sources](https://github.com/Shougo/deoplete.nvim/wiki/
 ## Install
 
 **Note:** deoplete requires Neovim (0.3.0+ and of course, **latest** is
-recommended) or Vim8 with Python3.6.1+ and timers enabled.  See
+recommended) or Vim8 with Python 3.6.1+ and timers enabled.  See
 [requirements](#requirements) if you aren't sure whether you have this.
 
-Note: If you really need to use older Neovim, please use deoplete ver.4.1
+Note: deoplete requires msgpack package 1.0.0+.
+Please install/upgrade msgpack package by pip.
+https://github.com/msgpack/msgpack-python
+
+
+Note: If you really need to use older msgpack, please use deoplete ver.5.2
 instead.
 
-https://github.com/Shougo/deoplete.nvim/releases/tag/4.1
+https://github.com/Shougo/deoplete.nvim/releases/tag/5.2
 
 For vim-plug
 
@@ -152,3 +160,5 @@ Deoplete for JavaScript
 ![Rust using rls](https://user-images.githubusercontent.com/1750795/38780764-8524b0b8-40a9-11e8-91bc-6e4148c398a3.png)
 
 ![Ruby dictionary completion](https://user-images.githubusercontent.com/1314340/44786516-5bb57a00-abcf-11e8-8687-492fa5f9f905.gif)
+
+![LanguageClient-neovim integration](https://user-images.githubusercontent.com/4245199/87716288-efd25f80-c7ae-11ea-8080-334d155b3155.png)

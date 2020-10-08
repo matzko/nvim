@@ -1,3 +1,6 @@
 [submodule "plugged/deplete-elm"]
 	path = plugged/deplete-elm
 	url = https://github.com/pbogut/deoplete-elm.git
+[submodule "plugged/splitjoin.vim/spec/support/rust.vim"]
+	path = plugged/splitjoin.vim/spec/support/rust.vim
+	url = https://github.com/rust-lang/rust.vim

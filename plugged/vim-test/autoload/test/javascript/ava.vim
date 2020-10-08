@@ -3,8 +3,13 @@ if !exists('g:test#javascript#ava#file_pattern')
 endif
 
 function! test#javascript#ava#test_file(file) abort
-  return a:file =~# g:test#javascript#ava#file_pattern
-    \ && test#javascript#has_package('ava')
+  if a:file =~# g:test#javascript#ava#file_pattern
+      if exists('g:test#javascript#runner')
+          return g:test#javascript#runner ==# 'ava'
+      else
+        return test#javascript#has_package('ava')
+      endif
+  endif
 endfunction
 
 function! test#javascript#ava#build_position(type, position) abort
@@ -21,10 +26,10 @@ function! test#javascript#ava#build_position(type, position) abort
   endif
 endfunction
 
-function! test#javascript#ava#build_args(args) abort
+function! test#javascript#ava#build_args(args, color) abort
   let args = a:args
 
-  if test#base#no_colors()
+  if !a:color
     let args = ['--no-color'] + args
   endif
 

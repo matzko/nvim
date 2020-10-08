@@ -22,6 +22,7 @@ syn match yardNote "@note" contained
 syn match yardOption "@option" contained
 syn match yardOverload "@overload" contained
 syn match yardParam "@param" contained
+syn match yardParamName /@param \h\+/hs=s+7 contained contains=yardParam
 syn match yardPrivate "@private" contained
 syn match yardRaise "@raise" contained
 syn match yardReturn "@return" contained
@@ -32,7 +33,7 @@ syn match yardVersion "@version" contained
 syn match yardYield "@yield" contained
 syn match yardYieldParam "@yieldparam" contained
 syn match yardYieldReturn "@yieldreturn" contained
-syn cluster yardTags contains=yardGenericTag,yardAbstract,yardApi,yardAttr,yardAttrReader,yardAttrWriter,yardAuthor,yardDeprecated,yardExample,yardNote,yardOption,yardOverload,yardParam,yardPrivate,yardRaise,yardReturn,yardSee,yardSince,yardTodo,yardVersion,yardYield,yardYieldParam,yardYieldReturn
+syn cluster yardTags contains=yardGenericTag,yardAbstract,yardApi,yardAttr,yardAttrReader,yardAttrWriter,yardAuthor,yardDeprecated,yardExample,yardNote,yardOption,yardOverload,yardParam,yardParamName,yardPrivate,yardRaise,yardReturn,yardSee,yardSince,yardTodo,yardVersion,yardYield,yardYieldParam,yardYieldReturn
 
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 " Directives
@@ -101,9 +102,9 @@ hi def link yardSee yardGenericTag
 hi def link yardSince yardGenericTag
 hi def link yardTodo yardGenericTag
 hi def link yardVersion yardGenericTag
-hi def link yield yardGenericTag
-hi def link yieldparam yardGenericTag
-hi def link yieldreturn yardGenericTag
+hi def link yardYield yardGenericTag
+hi def link yardYieldParam yardGenericTag
+hi def link yardYieldReturn yardGenericTag
 " Directives
 hi def link yardGenericDirective rubyKeyword
 hi def link yardAttribute yardGenericDirective

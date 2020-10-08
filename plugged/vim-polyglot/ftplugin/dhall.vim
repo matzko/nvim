@@ -11,9 +11,7 @@ set smarttab
 
 if exists('g:dhall_use_ctags')
     if g:dhall_use_ctags == 1
-        augroup dhall
-            autocmd BufWritePost *.dhall silent !ctags -R .
-        augroup END
+        autocmd BufWritePost *.dhall silent !ctags -R .
     endif
 endif
 
@@ -26,14 +24,24 @@ endfunction
 
 if exists('g:dhall_strip_whitespace')
     if g:dhall_strip_whitespace == 1
-        augroup dhall
-            au BufWritePre *.dhall silent! call StripTrailingWhitespace()
-        augroup END
+        au BufWritePre *.dhall silent! call StripTrailingWhitespace()
     endif
 endif
 
-augroup dhall
-    au BufNewFile,BufRead *.dhall setl shiftwidth=2
-augroup END
+function! DhallFormat()
+    let cursor = getpos('.')
+    exec 'normal! gg'
+    exec 'silent !dhall format --inplace ' . expand('%')
+    exec 'e'
+    call setpos('.', cursor)
+endfunction
+
+if exists('g:dhall_format')
+    if g:dhall_format == 1
+        au BufWritePost *.dhall call DhallFormat()
+    endif
+endif
+
+au BufNewFile,BufRead *.dhall setl shiftwidth=2
 
 endif

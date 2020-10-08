@@ -91,6 +91,9 @@ In all commands [args] are forwarded to the underlying test runner.
                                                 *test-:Ava*
 :Ava [args]                  Uses the `ava` command.
 
+                                                *test-:DenoTest*
+:DenoTest [args]             Uses the `deno test` command.
+
                                                 *test-:Intern*
 :Intern [args]               Uses the `intern-client` or `intern-runner` command.
 
@@ -132,6 +135,9 @@ In all commands [args] are forwarded to the underlying test runner.
 
                                                 *test-:DjangoTest*
 :DjangoTest [args]           Uses the `django` `test` command.
+
+                                                *test-:Behave*
+:Behave [args]               Uses the `behave` `test` command.
 
                                                 *test-:PyUnit*
 :PyUnit [args]               Uses the `unittest` `test` command.
@@ -197,11 +203,17 @@ In all commands [args] are forwarded to the underlying test runner.
                                                 *test-:Themis*
 :Themis [args]               Uses the `themis` command.
 
+                                                *test-:Vroom*
+:Vroom [args]                Uses the `vroom` command.
+
                                                 *test-:Busted*
 :Busted [args]               Uses the `busted` command.
 
                                                 *test-:PHPUnit*
 :PHPUnit [args]              Uses the `phpunit` command.
+
+                                                *test-:Pest*
+:Pest [args]              Uses the `pest` command.
 
                                                 *test-:Behat*
 :Behat [args]                Uses the `behat` command.
@@ -225,10 +237,10 @@ In all commands [args] are forwarded to the underlying test runner.
 :Prove [args]                Uses the `prove` command.
 
                                                 *test-:MavenTest*
-:MavenTest [args]            Uses the `mvn` `test` command.
+:MavenTest [args]            Uses the `mvn` `test` command. If the file exists in a multi-module project then appends -pl <modulename> and runs a single module only.
 
                                                 *test-:GradleTest*
-:GradleTest [args]           Uses the `gradle` `test` command.
+:GradleTest [args]           Uses the `gradle` `test` command. If the project is multi module then it uses the -p <modulename> flag.
 
                                                 *test-:SbtTest*
 :SbtTest [args]            Uses the `sbt` `test/testOnly` command.
@@ -245,6 +257,15 @@ In all commands [args] are forwarded to the underlying test runner.
                                                 *test-:StackTest*
 :StackTest [args]            Uses the `stack test` command.
 
+                                                *test-:NgTest*
+:NgTest [args]  	         Uses the Angular `ng test` command.
+
+                                                *test-:TestBench*
+:TestBench [args]  	         Uses the TestBench `bench` command.
+
+                                                *test-:FlutterTest*
+:FlutterTest [args]  	         Uses the `flutter` `test` command.
+
 
 STRATEGIES                                      *test-strategies*
 
@@ -255,7 +276,7 @@ AsyncRun ~
 Runs test commands asynchronously using new APIs in Vim 8 and NeoVim.
 Requires AsyncRun plugin.
 >
-  let test#strategy = 'asyncrun'
+  let test#strategy = 'asyncrun' or 'asyncrun_background'
 <
 Basic (default) ~
 
@@ -302,6 +323,12 @@ Runs test commands with `:T`. Requires the Neoterm plugin.
 >
   let test#strategy = 'neoterm'
 <
+Floaterm ~
+
+Runs test commands within floating/popup terminal. Requires the vim-floaterm plugin.
+>
+  let test#strategy = 'floaterm'
+<
 Neomake ~
 
 Runs test commands with `:NeomakeProject`. Requires the Neomake plugin. If
@@ -324,6 +351,13 @@ Runs test commands in a small Tmux pane at the bottom of your Terminal.
 Requires the Vimux plugin and Tmux.
 >
   let test#strategy = 'vimux'
+<
+Tmuxify ~
+
+Runs test commands in a small Tmux pane at the bottom of your Terminal.
+Requires the Tmuxify plugin and Tmux.
+>
+  let test#strategy = 'tmuxify'
 <
 Tslime ~
 
@@ -375,9 +409,18 @@ Please make sure:
 >
   $ kitty -o allow_remote_control=yes --listen-on unix:/tmp/mykitty
 <
+  or via `kitty.conf`:
+>
+  allow_remote_control yes
+  listen_on unix:/tmp/mykitty
+<
 - you export an environment variable `$KITTY_LISTEN_ON` with the same socket, like:
 >
-  $ export KITTY_LISTEN_ON=/tmp/mykitty
+  $ export KITTY_LISTEN_ON=unix:/tmp/mykitty
+<
+  or if via `kitty.conf` (it appends kitty's PID):
+>
+  $ export KITTY_LISTEN_ON=unix:/tmp/mykitty-$PPID
 <
 You can then use this strategy this way:
 >
@@ -405,6 +448,14 @@ And in your vimrc:
 let g:shtuff_receiver = 'devrunner'
 <
 
+asyncrun_background | asyncrun_background_term ~
+
+These are hardcoded solutions and will not be affected by your global `AsyncRun`
+settings. If you want to switch between them then change `test#strategy`.
+
+Note: that the base `asyncrun` strategy will be affected by your global asyncrun
+settings.
+
 QUICKFIX STRATEGIES                               *test-quickfix-strategies*
 
 If you want your test results to appear in the |quickfix| window, use one of the
@@ -414,6 +465,7 @@ following strategies:
   * Neomake
   * MakeGreen
   * Dispatch.vim
+  * asyncrun_background
 
 Regardless of which you pick, it's recommended you have Dispatch.vim installed as the
 strategies will automatically use it to determine the correct |compiler|, ensuring the
@@ -526,16 +578,20 @@ working directory for running tests:
 >
   let test#project_root = "/path/to/your/project"
 <
-If you're using either the Vim8 Terminal or Neovim strategy, you can easily configure the position of
-the terminal split window (see `:help opening-window`) with:
->
-  let test#vim#term_position = "topleft"
-<
-for vim and
+Both the `neovim` and `Vim8 Terminal` strategy will open a split window on the
+bottom by default, but you can configure a different position or orientation.
+Whatever you put here is passed to `new` - so, you may also specify size (see
+`:help opening-window` or `:help new` for more info):
 >
   let test#neovim#term_position = "topleft"
+  let test#neovim#term_position = "vert"
+  let test#neovim#term_position = "vert botright 30"
 <
-for neovim
+for neovim and
+>
+  let test#vim#term_position = "belowright"
+<
+for vim
 
 
 PROJECTIONIST INTEGRATION                       *test-projectionist*
@@ -553,7 +609,7 @@ ABOUT                                           *test-about*
 
 You can get the latest version, see the changelog, or report a bug on GitHub:
 
-https://github.com/janko-m/vim-test
+https://github.com/vim-test/vim-test
 
 
 CREDITS                                         *test-credits*

@@ -6,9 +6,9 @@ let g:loaded_test = 1
 let g:test#plugin_path = expand('<sfile>:p:h:h')
 
 let g:test#default_runners = {
-  \ 'Ruby':       ['Rails', 'M', 'Minitest', 'RSpec', 'Cucumber'],
-  \ 'JavaScript': ['Ava', 'CucumberJS', 'Intern', 'TAP', 'Karma', 'Lab', 'Mocha', 'Jasmine', 'Jest', 'ReactScripts', 'WebdriverIO', 'Cypress'],
-  \ 'Python':     ['DjangoTest', 'PyTest', 'PyUnit', 'Nose', 'Nose2', 'Mamba'],
+  \ 'Ruby':       ['Rails', 'M', 'Minitest', 'RSpec', 'Cucumber', 'TestBench'],
+  \ 'JavaScript': ['Ava', 'CucumberJS', 'DenoTest', 'Intern', 'TAP', 'Karma', 'Lab', 'Mocha',  'NgTest', 'Jasmine', 'Jest', 'ReactScripts', 'WebdriverIO', 'Cypress'],
+  \ 'Python':     ['Behave', 'DjangoTest', 'PyTest', 'PyUnit', 'Nose', 'Nose2', 'Mamba'],
   \ 'Elixir':     ['ExUnit', 'ESpec'],
   \ 'Elm':        ['ElmTest'],
   \ 'Erlang':     ['CommonTest', 'EUnit'],
@@ -18,15 +18,16 @@ let g:test#default_runners = {
   \ 'CSharp':     ['Xunit', 'DotnetTest'],
   \ 'Shell':      ['Bats'],
   \ 'Swift':      ['SwiftPM'],
-  \ 'VimL':       ['Themis', 'VSpec', 'Vader', 'Testify'],
+  \ 'VimL':       ['Themis', 'VSpec', 'Vader', 'Testify', 'Vroom'],
   \ 'Lua':        ['Busted'],
-  \ 'PHP':        ['Codeception', 'Dusk', 'PHPUnit', 'Behat', 'PHPSpec', 'Kahlan', 'Peridot'],
+  \ 'PHP':        ['Codeception', 'Dusk', 'Pest', 'PHPUnit', 'Behat', 'PHPSpec', 'Kahlan', 'Peridot'],
   \ 'Perl':       ['Prove'],
   \ 'Racket':     ['RackUnit'],
   \ 'Java':       ['MavenTest', 'GradleTest'],
   \ 'Scala':      ['SbtTest', 'BloopTest'],
   \ 'Haskell':    ['StackTest'],
   \ 'Crystal':    ['CrystalSpec'],
+  \ 'Dart':       ['FlutterTest'],
 \}
 
 let g:test#custom_strategies = get(g:, 'test#custom_strategies', {})

@@ -1,26 +1,39 @@
 if !exists('g:polyglot_disabled') || index(g:polyglot_disabled, 'terraform') == -1
 
+let s:cpo_save = &cpoptions
+set cpoptions&vim
+
 " Ensure no conflict with arguments from the environment
 let $TF_CLI_ARGS_fmt=''
 
-function! terraform#fmt()
-  if !filereadable(expand('%:p'))
-    return
-  endif
-  let l:curw = winsaveview()
+function! terraform#fmt() abort
+  " Save the view.
+  let curw = winsaveview()
+
   " Make a fake change so that the undo point is right.
   normal! ix
   normal! "_x
+
+  " Execute `terraform fmt`, redirecting stderr to a temporary file.
+  let tmpfile = tempname()
+  let shellredir_save = &shellredir
+  let &shellredir = '>%s 2>'.tmpfile
   silent execute '%!terraform fmt -no-color -'
+  let &shellredir = shellredir_save
+
+  " If there was an error, undo any changes and show stderr.
   if v:shell_error != 0
-    let output = getline(1, '$')
     silent undo
+    let output = readfile(tmpfile)
     echo join(output, "\n")
   endif
-  call winrestview(l:curw)
+
+  " Delete the temporary file, and restore the view.
+  call delete(tmpfile)
+  call winrestview(curw)
 endfunction
 
-function! terraform#align()
+function! terraform#align() abort
   let p = '^.*=[^>]*$'
   if exists(':Tabularize') && getline('.') =~# '^.*=' && (getline(line('.')-1) =~# p || getline(line('.')+1) =~# p)
     let column = strlen(substitute(getline('.')[0:col('.')],'[^=]','','g'))
@@ -31,8 +44,8 @@ function! terraform#align()
   endif
 endfunction
 
-function! terraform#commands(ArgLead, CmdLine, CursorPos)
-  let l:commands = [
+function! terraform#commands(ArgLead, CmdLine, CursorPos) abort
+  let commands = [
     \ 'apply',
     \ 'console',
     \ 'destroy',
@@ -42,6 +55,8 @@ function! terraform#commands(ArgLead, CmdLine, CursorPos)
     \ 'graph',
     \ 'import',
     \ 'init',
+    \ 'login',
+    \ 'logout',
     \ 'output',
     \ 'plan',
     \ 'providers',
@@ -53,12 +68,16 @@ function! terraform#commands(ArgLead, CmdLine, CursorPos)
     \ 'version',
     \ 'workspace',
     \ '0.12upgrade',
+    \ '0.13upgrade',
     \ 'debug',
     \ 'force-unlock',
     \ 'push',
     \ 'state'
   \ ]
-  return join(l:commands, "\n")
+  return join(commands, "\n")
 endfunction
+
+let &cpoptions = s:cpo_save
+unlet s:cpo_save
 
 endif

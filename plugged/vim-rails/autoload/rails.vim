@@ -253,19 +253,19 @@ function! s:app_has_file(file) dict abort
 endfunction
 
 function! s:find_file(name, ...) abort
-  let path = s:pathsplit(a:0 ? a:1 : &path)
-  let index = 1
+  let args = copy(a:000)
+  let path = s:pathsplit(len(args) ? remove(args, 0) : &path)
+  let suffixes = s:pathsplit(len(args) ? remove(args, 0) : [])
   let default = ''
-  if a:0 > 1 && type(a:2) == type(0)
-    let index = a:2
-  elseif a:0 > 1 && type(a:2) == type('')
-    let default = a:2
+  if type(get(args, 0)) == type('')
+    let default = remove(args, 0)
   endif
+  let index = get(args, 0, 1)
   let results = []
   for glob in path
     for dir in s:glob(glob)
       let dir = substitute(substitute(dir, '[\/]\=$', '/', ''), '^+\ze\a\a\+:', '', '')
-      for suf in [''] + (a:name =~# '/$' ? [] : s:pathsplit(get(a:000, 1, [])))
+      for suf in [''] + (a:name =~# '/$' ? [] : suffixes)
         if s:fcall(a:name =~# '/$' ? 'isdirectory' : 'filereadable', dir . a:name . suf)
           call add(results, dir . a:name . suf)
         endif
@@ -284,7 +284,7 @@ function! s:app_find_file(name, ...) dict abort
   else
     let path = [self.path()]
   endif
-  return s:find_file(a:name, path, a:0 > 1 ? a:2 : '')
+  return call('s:find_file', [a:name, path] + a:000[1:-1])
 endfunction
 
 call s:add_methods('app',['real','path','spec','root','has_path','has_file','find_file'])
@@ -1312,6 +1312,8 @@ function! s:make(bang, args, ...)
   endif
 endfunction
 
+let s:efm_notes = '%-P%f:,\ \ *\ [%\ %#%l]\ [%t%*[^]]] %m,\ \ *\ [%[\ ]%#%l] %m,%-Q'
+
 function! s:Rake(bang, lnum, arg) abort
   let self = rails#app()
   let lnum = a:lnum < 0 ? 0 : a:lnum
@@ -1333,7 +1335,7 @@ function! s:Rake(bang, lnum, arg) abort
     endif
     let self.options['last_rake_task'] = arg
     if arg =~# '^notes\>'
-      let &l:errorformat = '%-P%f:,\ \ *\ [%\ %#%l]\ [%t%*[^]]] %m,\ \ *\ [%[\ ]%#%l] %m,%-Q'
+      let &l:errorformat = s:efm_notes . self.efm_suffix()
       call s:make(a:bang, arg)
     elseif arg =~# '^\%(stats\|routes\|secret\|middleware\|time:zones\|db:\%(charset\|collation\|fixtures:identify\>.*\|migrate:status\|version\)\)\%([: ]\|$\)'
       let &l:errorformat = '%D(in\ %f),%+G%.%#'
@@ -1859,6 +1861,9 @@ function! s:Rails(bang, count, arg) abort
       else
         let str = s:rake2rails(str)
         let &l:makeprg = rails#app().prepare_rails_command('$*')
+      endif
+      if str =~# '^notes\>'
+        let &l:errorformat = s:efm_notes
       endif
       let &l:errorformat .= rails#app().efm_suffix()
       call s:make(a:bang, str)
@@ -2437,6 +2442,20 @@ function! rails#sprockets_cfile(...) abort
   endif
 endfunction
 
+function! s:file_for_nested_constant(const) abort
+  let file = rails#underscore(a:const, 1) . '.rb'
+  if file =~# '/'
+    let absolute = s:find_file(file)
+    if empty(absolute)
+      let parent = substitute(file, '/[^/]*\.rb$', '.rb', '')
+      if len(s:find_file(parent))
+        return parent
+      endif
+    endif
+  endif
+  return file
+endfunction
+
 function! s:ruby_cfile() abort
   let buffer = rails#buffer()
 
@@ -2453,14 +2472,14 @@ function! s:ruby_cfile() abort
   if len(res)|return s:simplify(res)|endif
 
   let res = s:match_it('\v\s*<%(include|extend)\(=\s*<([[:alnum:]_:]+)>','\1')
-  if len(res)|return rails#underscore(res, 1).".rb"|endif
+  if len(res)|return s:file_for_nested_constant(res)|endif
 
   let res = s:match_method('require')
   if len(res)|return res.(res !~ '\.[^\/.]\+$' ? '.rb' : '')|endif
 
   if !empty(s:match_method('\w\+'))
     let class = s:match_it('^[^;#]*,\s*\%(:class_name\s*=>\|class_name:\)\s*["'':]\=\([[:alnum:]_:]\+\)','\1')
-    if len(class)|return rails#underscore(class, 1).".rb"|endif
+    if len(class)|return s:file_for_nested_constant(class)|endif
   endif
 
   let res = s:match_method('belongs_to\|has_one\|embedded_in\|embeds_one\|composed_of\|validates_associated\|scaffold')
@@ -2631,7 +2650,7 @@ function! s:ruby_cfile() abort
   if cfile =~# '^\l\w*#\w\+$'
     let cfile = s:sub(cfile, '#', '_controller.rb#')
   elseif cfile =~# '\u'
-    let cfile = rails#underscore(cfile, 1) . '.rb'
+    let cfile = s:file_for_nested_constant(cfile)
   elseif cfile =~# '^\w*_\%(path\|url\)$' && synid != hlID('rubyString')
     let route = s:gsub(cfile, '^hash_for_|_%(path|url)$', '')
     let cfile = s:active() ? rails#app().named_route_file(route) : ''
@@ -3331,8 +3350,8 @@ function! s:findcmdfor(cmd) abort
     let cmd = a:cmd
   endif
   let cmd = s:mods(cmd)
-  let num = matchstr(cmd, '.\{-\}\ze\a*$')
-  let cmd = matchstr(cmd, '\a*$')
+  let num = matchstr(cmd, '.\{-\}\ze\a\+')
+  let cmd = matchstr(cmd, '\a\+.*')
   if cmd == '' || cmd == 'E' || cmd == 'F'
     return num.'find'.bang
   elseif cmd == 'S'
@@ -4811,7 +4830,7 @@ call s:add_methods('app', ['internal_load_path'])
 nnoremap <SID>: :<C-U><C-R>=v:count ? v:count : ''<CR>
 function! s:map_gf() abort
   let pattern = '^$\|_gf(v:count\|[Rr]uby\|[Rr]ails'
-  if mapcheck('gf', 'n') =~# pattern
+  if mapcheck('gf', 'n') =~# pattern.'\|^gf$'
     nmap <buffer><silent> gf         <SID>:find <Plug><cfile><CR>
     let b:undo_ftplugin .= "|sil! exe 'nunmap <buffer> gf'"
   endif

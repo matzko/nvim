@@ -3,8 +3,13 @@ if !exists('g:test#javascript#jasmine#file_pattern')
 endif
 
 function! test#javascript#jasmine#test_file(file) abort
-  return a:file =~? g:test#javascript#jasmine#file_pattern
-    \ && test#javascript#has_package('jasmine')
+  if a:file =~? g:test#javascript#jasmine#file_pattern
+      if exists('g:test#javascript#runner')
+          return g:test#javascript#runner ==# 'jasmine'
+      else
+        return test#javascript#has_package('jasmine')
+      endif
+  endif
 endfunction
 
 function! test#javascript#jasmine#build_position(type, position) abort
@@ -21,10 +26,10 @@ function! test#javascript#jasmine#build_position(type, position) abort
   endif
 endfunction
 
-function! test#javascript#jasmine#build_args(args) abort
+function! test#javascript#jasmine#build_args(args, color) abort
   let args = a:args
 
-  if test#base#no_colors()
+  if !a:color
     let args = ['--no-color'] + args
   endif
 

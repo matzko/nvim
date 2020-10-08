@@ -3,8 +3,13 @@ if !exists('g:test#javascript#reactscripts#file_pattern')
 endif
 
 function! test#javascript#reactscripts#test_file(file) abort
-  return a:file =~# g:test#javascript#reactscripts#file_pattern
-    \ && test#javascript#has_package('react-scripts')
+  if a:file =~# g:test#javascript#reactscripts#file_pattern
+      if exists('g:test#javascript#runner')
+          return g:test#javascript#runner ==# 'reactscripts'
+      else
+        return test#javascript#has_package('react-scripts')
+      endif
+  endif
 endfunction
 
 function! test#javascript#reactscripts#build_position(type, position) abort
@@ -32,7 +37,9 @@ function! test#javascript#reactscripts#build_args(args) abort
 endfunction
 
 function! test#javascript#reactscripts#executable() abort
-  if filereadable('node_modules/.bin/react-scripts')
+  if filereadable('node_modules/.bin/react-app-rewired')
+    return 'node_modules/.bin/react-app-rewired test'
+  elseif filereadable('node_modules/.bin/react-scripts')
     return 'node_modules/.bin/react-scripts test'
   else
     return 'react-scripts test'

@@ -1,4 +1,13 @@
-# vim-elm-syntax
+# ~~vim-elm-syntax~~ (deprecated in favour of [Vim](https://github.com/vim/vim/blob/master/runtime/syntax/elm.vim))
+
+`vim-elm-syntax` _only_ provides syntax highlighting. Other functionality (like compiling code) is provided by [`elm-language-server`](https://github.com/elm-tooling/elm-language-server).
+
+## Important: Elm Syntax is included in Vim
+
+Starting with Vim 8.2 patch 929 `Elm` syntax is **part of `Vim`**. No need to install this plugin. If you use an older version you can still use this plugin.
+
+- <https://github.com/vim/vim/blob/master/runtime/ftplugin/elm.vim>
+- <https://github.com/vim/vim/blob/master/runtime/syntax/elm.vim>
 
 ## Features
 
@@ -8,7 +17,7 @@
 ### Missing features
 
 Compiling, linting, formatting and other features aren't included in this plugin.
-Have a look at [elm-tooling/elm-vim](https://github.com/elm-tooling/elm-vim).
+Have a look at [elm-tooling/elm-vim](https://github.com/elm-tooling/elm-vim) for general instructions how to setup Vim with Elm.
 
 ## Installation
 
@@ -16,6 +25,7 @@ Have a look at [elm-tooling/elm-vim](https://github.com/elm-tooling/elm-vim).
 - Vundle: `Plugin 'andys8/vim-elm-syntax'`
 - NeoBundle: `NeoBundle 'andys8/vim-elm-syntax'`
 - Pathogen: `cd ~/.vim/bundle && git clone https://github.com/andys8/vim-elm-syntax`
+- Vim 8+: `git clone --depth 1 https://github.com/andys8/vim-elm-syntax.git ~/.vim/pack/git-plugins/start/vim-elm-syntax`
 
 ### Note about vim-polyglot
 

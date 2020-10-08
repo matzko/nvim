@@ -3,8 +3,14 @@ if !exists('g:test#javascript#karma#file_pattern')
 endif
 
 function! test#javascript#karma#test_file(file) abort
-  return a:file =~? g:test#javascript#karma#file_pattern
-    \ && test#javascript#has_package('karma')
+  if a:file =~? g:test#javascript#karma#file_pattern
+      if exists('g:test#javascript#runner')
+          return g:test#javascript#runner ==# 'karma'
+      else
+        return test#javascript#has_package('karma')
+                    \&& !test#javascript#has_package('@angular/cli')
+      endif
+  endif
 endfunction
 
 function! test#javascript#karma#build_position(type, position) abort
@@ -29,14 +35,14 @@ function! test#javascript#karma#build_position(type, position) abort
   endif
 endfunction
 
-function! test#javascript#karma#build_args(args) abort
+function! test#javascript#karma#build_args(args, color) abort
   let args = a:args
 
   " reduce clutter in the output by only reporting tests and only run once so
   " we take less time & therefore annoy the user less
   call extend(args, ['--single-run', '--no-auto-watch', '--log-level=disable'])
 
-  if test#base#no_colors()
+  if !a:color
     let args = ['--no-color'] + args
   endif
 

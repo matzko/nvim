@@ -12,7 +12,9 @@ function! deoplete#handler#_init() abort
   augroup END
 
   for event in [
-        \ 'InsertEnter', 'BufReadPost', 'BufWritePost', 'VimLeavePre',
+        \ 'InsertEnter', 'InsertLeave',
+        \ 'BufReadPost', 'BufWritePost',
+        \ 'VimLeavePre',
         \ ]
     call s:define_on_event(event)
   endfor
@@ -48,12 +50,11 @@ endfunction
 function! deoplete#handler#_do_complete() abort
   let context = g:deoplete#_context
   let event = get(context, 'event', '')
-  let modes = (event ==# 'InsertEnter') ? ['n', 'i'] : ['i']
-  if s:is_exiting() || index(modes, mode()) < 0 || s:check_input_method()
+  if s:is_exiting() || v:insertmode !=# 'i' || s:check_input_method()
     return
   endif
 
-  if empty(get(context, 'candidates', []))
+  if !has_key(context, 'candidates')
         \ || deoplete#util#get_input(context.event) !=# context.input
     return
   endif
@@ -65,13 +66,23 @@ function! deoplete#handler#_do_complete() abort
   let prev.complete_position = context.complete_position
   let prev.linenr = line('.')
 
-  if context.event ==# 'Manual'
-    let context.event = ''
-  elseif !exists('g:deoplete#_saved_completeopt')
-    call deoplete#mapping#_set_completeopt()
+  let auto_popup = deoplete#custom#_get_option(
+        \ 'auto_complete_popup') !=# 'manual'
+
+  " Enable auto refresh when popup is displayed
+  if deoplete#util#check_popup()
+    let auto_popup = v:true
   endif
 
-  call feedkeys("\<Plug>_", 'i')
+  if context.event ==# 'Manual'
+    let context.event = ''
+  elseif !exists('g:deoplete#_saved_completeopt') && auto_popup
+    call deoplete#mapping#_set_completeopt(context.is_async)
+  endif
+
+  if auto_popup
+    call feedkeys("\<Plug>_", 'i')
+  endif
 endfunction
 
 function! deoplete#handler#_check_omnifunc(context) abort
@@ -82,6 +93,7 @@ function! deoplete#handler#_check_omnifunc(context) abort
         \ || index(blacklist, &l:omnifunc) >= 0
         \ || prev.input ==# a:context.input
         \ || s:check_input_method()
+        \ || deoplete#custom#_get_option('auto_complete_popup') ==# 'manual'
     return
   endif
 
@@ -96,9 +108,8 @@ function! deoplete#handler#_check_omnifunc(context) abort
         let prev.input = a:context.input
         let prev.candidates = []
 
-        call deoplete#mapping#_set_completeopt()
+        call deoplete#mapping#_set_completeopt(v:true)
         call feedkeys("\<C-x>\<C-o>", 'in')
-        return 1
       endif
     endfor
   endfor
@@ -141,7 +152,7 @@ function! s:check_prev_completion(event) abort
     return
   endif
 
-  call deoplete#mapping#_set_completeopt()
+  call deoplete#mapping#_set_completeopt(v:false)
 
   let mode = deoplete#custom#_get_option('prev_completion_mode')
   let candidates = copy(prev.candidates)
@@ -198,7 +209,17 @@ function! s:is_skip(event) abort
     return 1
   endif
 
+  " Note: The check is needed for <C-y> mapping
+  if s:is_skip_prev_text(a:event)
+    return 1
+  endif
+
   if s:is_skip_text(a:event)
+    " Close the popup
+    if deoplete#util#check_popup()
+      call feedkeys("\<Plug>_", 'i')
+    endif
+
     return 1
   endif
 
@@ -207,19 +228,41 @@ function! s:is_skip(event) abort
   if &paste
         \ || (a:event !=# 'Manual' && a:event !=# 'Update' && !auto_complete)
         \ || (&l:completefunc !=# '' && &l:buftype =~# 'nofile')
-        \ || (a:event !=# 'InsertEnter' && mode() !=# 'i')
+        \ || v:insertmode !=# 'i'
     return 1
   endif
 
   return 0
 endfunction
-function! s:check_eskk_phase_henkan(input) abort
-  let preedit = eskk#get_preedit()
-  let phase = preedit.get_henkan_phase()
-  return phase is g:eskk#preedit#PHASE_HENKAN && a:input !~# '\w$'
+function! s:is_skip_prev_text(event) abort
+  let input = deoplete#util#get_input(a:event)
+
+  " Note: Use g:deoplete#_context is needed instead of
+  " g:deoplete#_prev_completion
+  let prev_input = get(g:deoplete#_context, 'input', '')
+  if input ==# prev_input
+        \ && input !=# ''
+        \ && a:event !=# 'Manual'
+        \ && a:event !=# 'Async'
+        \ && a:event !=# 'Update'
+        \ && a:event !=# 'TextChangedP'
+    return 1
+  endif
+
+  " Note: It fixes insert first candidate automatically problem
+  if a:event ==# 'Update' && prev_input !=# '' && input !=# prev_input
+    return 1
+  endif
+
+  return 0
 endfunction
 function! s:is_skip_text(event) abort
   let input = deoplete#util#get_input(a:event)
+  if !has('nvim') && iconv(iconv(input, 'utf-8', 'utf-16'),
+        \ 'utf-16', 'utf-8') !=# input
+    " In Vim8, invalid bytes brokes nvim-yarp.
+    return 1
+  endif
 
   let lastchar = matchstr(input, '.$')
   let skip_multibyte = deoplete#custom#_get_option('skip_multibyte')
@@ -228,31 +271,14 @@ function! s:is_skip_text(event) abort
     return 1
   endif
 
-  " Note: Use g:deoplete#_context is needed instead of
-  " g:deoplete#_prev_completion
-  let prev_input = get(g:deoplete#_context, 'input', '')
-  if input ==# prev_input
-        \ && a:event !=# 'Manual'
-        \ && a:event !=# 'Async'
-        \ && a:event !=# 'Update'
-        \ && a:event !=# 'TextChangedP'
-    return 1
-  endif
-  if a:event ==# 'Update' && prev_input !=# '' && input !=# prev_input
-    return 1
-  endif
-
-  if (exists('b:eskk') && !empty(b:eskk)
-        \     && !s:check_eskk_phase_henkan(input))
-    return 1
-  endif
-
   let displaywidth = strdisplaywidth(input) + 1
+  let is_virtual = virtcol('.') >= displaywidth
   if &l:formatoptions =~# '[tca]' && &l:textwidth > 0
         \     && displaywidth >= &l:textwidth
     if &l:formatoptions =~# '[ta]'
           \ || !empty(filter(deoplete#util#get_syn_names(),
           \                  "v:val ==# 'Comment'"))
+          \ || is_virtual
       return 1
     endif
   endif
@@ -272,8 +298,7 @@ function! s:define_on_event(event) abort
   endif
 
   execute 'autocmd deoplete' a:event
-        \ '* if !&l:previewwindow | call deoplete#send_event('
-        \ .string(a:event).') | endif'
+        \ '* call deoplete#send_event('.string(a:event).')'
 endfunction
 function! s:define_completion_via_timer(event) abort
   if !exists('##' . a:event)
@@ -288,25 +313,33 @@ function! s:on_insert_leave() abort
   call deoplete#mapping#_restore_completeopt()
   let g:deoplete#_context = {}
   call deoplete#init#_prev_completion()
+
+  if &cpoptions =~# '$'
+    " If 'cpoptions' includes '$' with popup, redraw problem exists.
+    redraw
+  endif
 endfunction
 
 function! s:on_complete_done() abort
   if get(v:completed_item, 'word', '') ==# ''
     return
   endif
+
   call deoplete#handler#_skip_next_completion()
 
-  if get(v:completed_item, 'user_data', '') !=# ''
-    try
-      if type(v:completed_item.user_data) == type('')
-        call s:substitute_suffix(json_decode(v:completed_item.user_data))
-      endif
-    catch /.*/
-    endtry
+  let user_data = get(v:completed_item, 'user_data', '')
+  if type(user_data) !=# v:t_string || user_data ==# ''
+    return
   endif
+
+  try
+    call s:substitute_suffix(json_decode(user_data))
+  catch /.*/
+  endtry
 endfunction
 function! s:substitute_suffix(user_data) abort
-  if !has_key(a:user_data, 'old_suffix')
+  if !deoplete#custom#_get_option('complete_suffix')
+        \ || !has_key(a:user_data, 'old_suffix')
         \ || !has_key(a:user_data, 'new_suffix')
     return
   endif

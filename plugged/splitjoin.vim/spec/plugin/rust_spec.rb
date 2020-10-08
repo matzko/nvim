@@ -3,10 +3,6 @@ require 'spec_helper'
 describe "rust" do
   let(:filename) { 'test.rs' }
 
-  before :each do
-    pending "Broken on TravisCI due to old Vim version" if ENV['TRAVIS_CI']
-  end
-
   specify "match clauses with trailing comma" do
     set_file_contents <<~EOF
       match one {
@@ -400,6 +396,9 @@ describe "rust" do
       SomeStruct { foo, bar, ..Default::default() }
     EOF
 
+    # No trailing comma on the default regardless of setting:
+    vim.command('let b:splitjoin_trailing_comma = 1')
+
     vim.search('foo')
     split
 
@@ -415,6 +414,53 @@ describe "rust" do
 
     assert_file_contents <<~EOF
       SomeStruct { foo, bar, ..Default::default() }
+    EOF
+  end
+
+  specify "structs with item attributes" do
+    set_file_contents <<~EOF
+      SomeStruct { foo, #[arg] #[cfg(test)] bar: "baz" }
+    EOF
+
+    vim.search('foo')
+    split
+
+    assert_file_contents <<~EOF
+      SomeStruct {
+          foo,
+          #[arg]
+          #[cfg(test)]
+          bar: "baz"
+      }
+    EOF
+
+    join
+
+    assert_file_contents <<~EOF
+      SomeStruct { foo, #[arg] #[cfg(test)] bar: "baz" }
+    EOF
+  end
+
+  specify "structs with visibility modifiers" do
+    set_file_contents <<~EOF
+      SomeStruct { foo, pub bar: "baz", pub(crate) baz }
+    EOF
+
+    vim.search('foo')
+    split
+
+    assert_file_contents <<~EOF
+      SomeStruct {
+          foo,
+          pub bar: "baz",
+          pub(crate) baz
+      }
+    EOF
+
+    join
+
+    assert_file_contents <<~EOF
+      SomeStruct { foo, pub bar: "baz", pub(crate) baz }
     EOF
   end
 
@@ -587,43 +633,358 @@ describe "rust" do
     EOF
   end
 
-  specify "if-let into match" do
-    set_file_contents <<~EOF
-      if let Some(value) = iterator.next() {
-          println!("do something with {}", value);
-      }
-    EOF
+  describe "imports" do
+    specify "with cursor in curly brackets" do
+      set_file_contents <<~EOF
+        use std::io::{Read as R, foo::{Bar, Baz}, Write};
+      EOF
 
-    vim.search('let')
-    split
+      vim.search('Read as R')
+      split
 
-    assert_file_contents <<~EOF
-      match iterator.next() {
-          Some(value) =>  {
-              println!("do something with {}", value);
-          },
-          _ => (),
-      }
-    EOF
+      assert_file_contents <<~EOF
+        use std::io::{
+            Read as R,
+            foo::{Bar, Baz},
+            Write
+        };
+      EOF
+
+      vim.search('io::{')
+      join
+
+      assert_file_contents <<~EOF
+        use std::io::{Read as R, foo::{Bar, Baz}, Write};
+      EOF
+    end
+
+    specify "with cursor outside curly brackets" do
+      set_file_contents <<~EOF
+        use std::io::{Read, foo::{Bar, Baz}, Write};
+      EOF
+
+      vim.search('io::')
+      split
+
+      assert_file_contents <<~EOF
+        use std::io::Read;
+        use std::io::foo::{Bar, Baz};
+        use std::io::Write;
+      EOF
+
+      vim.search('io::Read')
+      join
+
+      assert_file_contents <<~EOF
+        use std::io::{Read, foo::{Bar, Baz}, Write};
+      EOF
+    end
+
+    specify "aliases" do
+      set_file_contents <<~EOF
+        use std::io::{Read as R, Write as W};
+      EOF
+
+      vim.search('io::')
+      split
+
+      assert_file_contents <<~EOF
+        use std::io::Read as R;
+        use std::io::Write as W;
+      EOF
+
+      vim.search('io::Read')
+      join
+
+      assert_file_contents <<~EOF
+        use std::io::{Read as R, Write as W};
+      EOF
+    end
+
+    specify "join until next best match" do
+      set_file_contents <<~EOF
+        use std::io::Read;
+        use std::fs::File;
+        use std::io::Write;
+      EOF
+
+      vim.search('io::Read')
+      join
+
+      assert_file_contents <<~EOF
+        use std::{io::Read, fs::File, io::Write};
+      EOF
+
+      set_file_contents <<~EOF
+        use std::io::Read;
+        use std::io::Write;
+        use std::fs::File;
+      EOF
+
+      vim.search('io::Read')
+      join
+
+      assert_file_contents <<~EOF
+        use std::io::{Read, Write};
+        use std::fs::File;
+      EOF
+    end
+
+    specify "merges curly brackets, doing some deduplication" do
+      set_file_contents <<~EOF
+        use std::io::{Read, Write};
+        use std::io::{Write, Process, Read};
+      EOF
+
+      vim.search('io::{Read')
+      join
+
+      assert_file_contents <<~EOF
+        use std::io::{Read, Write, Process, Read};
+      EOF
+    end
+
+    specify "deletes duplicate lines" do
+      set_file_contents <<~EOF
+        use std::io::Read;
+        use std::io::Read;
+        use std::io::Write;
+      EOF
+
+      vim.search('io::Read')
+      join
+
+      assert_file_contents <<~EOF
+        use std::io::Read;
+        use std::io::Write;
+      EOF
+    end
+
+    specify 'correctly splits a `self` import' do
+      set_file_contents 'use std::io::{self, Write};'
+      split
+
+      assert_file_contents <<~EOF
+        use std::io;
+        use std::io::Write;
+      EOF
+
+      set_file_contents 'use std::io::{Read, self, Write};'
+      split
+
+      assert_file_contents <<~EOF
+        use std::io::Read;
+        use std::io;
+        use std::io::Write;
+      EOF
+    end
+
+    specify 'correctly joins a `self` import' do
+      # As the first arg
+      set_file_contents <<~EOF
+        use std::io;
+        use std::io::Read;
+        use std::io::Write;
+      EOF
+      vim.normal('gg')
+      join
+      assert_file_contents 'use std::io::{self, Read, Write};'
+
+      # As the second arg
+      set_file_contents <<~EOF
+        use std::io::Read;
+        use std::io;
+        use std::io::Write;
+      EOF
+      vim.normal('gg')
+      join
+      assert_file_contents 'use std::io::{Read, self, Write};'
+
+      # After the second arg
+      set_file_contents <<~EOF
+        use std::io::Read;
+        use std::io::Write;
+        use std::io;
+      EOF
+      vim.normal('gg')
+      join
+      assert_file_contents 'use std::io::{Read, Write, self};'
+    end
   end
 
-  specify "match into if-let" do
-    set_file_contents <<~EOF
-      match iterator.next() {
-          Some(value) =>  {
-              println!("do something with {}", value);
-          },
-          _ => (),
-      }
-    EOF
+  describe "if-let and match" do
+    specify "basic if-let into match" do
+      set_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            println!("do something with {}", value);
+        }
+      EOF
 
-    vim.search('match')
-    join
+      vim.search('let')
+      split
 
-    assert_file_contents <<~EOF
-      if let Some(value) = iterator.next() {
-          println!("do something with {}", value);
-      }
-    EOF
+      assert_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => {
+                println!("do something with {}", value);
+            },
+            _ => (),
+        }
+      EOF
+    end
+
+    specify "if-let with else" do
+      set_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            Some("Okay")
+        } else {
+            None
+        }
+      EOF
+
+      vim.search('let')
+      split
+
+      assert_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => Some("Okay"),
+            _ => None,
+        }
+      EOF
+    end
+
+    specify "if-let with multi-line else" do
+      set_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            Some("Okay")
+        } else {
+            println!("None");
+            None
+        }
+      EOF
+
+      vim.search('let')
+      split
+
+      assert_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => Some("Okay"),
+            _ => {
+                println!("None");
+                None
+            },
+        }
+      EOF
+    end
+
+    specify "if-let with else with semicolon" do
+      set_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            println!("do something with {}", value);
+        } else {
+            println!("Nothing!");
+        }
+      EOF
+
+      vim.search('let')
+      split
+
+      assert_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => {
+                println!("do something with {}", value);
+            },
+            _ => {
+                println!("Nothing!");
+            },
+        }
+      EOF
+    end
+
+    specify "empty match with block into if-let" do
+      set_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => {
+                println!("do something with {}", value);
+            },
+            _ => (),
+        }
+      EOF
+
+      vim.search('match')
+      join
+
+      assert_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            println!("do something with {}", value);
+        }
+      EOF
+    end
+
+    specify "empty match on one line into if-let" do
+      set_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => Some(value * 2),
+            _ => (),
+        }
+      EOF
+
+      vim.search('match')
+      join
+
+      assert_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            Some(value * 2)
+        }
+      EOF
+    end
+
+    specify "match into if-let-else" do
+      set_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => Some(value * 2),
+            _ => None,
+        }
+      EOF
+
+      vim.search('match')
+      join
+
+      assert_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            Some(value * 2)
+        } else {
+            None
+        }
+      EOF
+    end
+
+    specify "match into multiline if-let-else" do
+      set_file_contents <<~EOF
+        match iterator.next() {
+            Some(value) => {
+                println!("if");
+                Some(value * 2)
+            },
+            _ => {
+                println!("if");
+                None
+            },
+        }
+      EOF
+
+      vim.search('match')
+      join
+
+      assert_file_contents <<~EOF
+        if let Some(value) = iterator.next() {
+            println!("if");
+            Some(value * 2)
+        } else {
+            println!("if");
+            None
+        }
+      EOF
+    end
   end
 end

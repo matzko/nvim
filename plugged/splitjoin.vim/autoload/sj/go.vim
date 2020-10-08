@@ -41,11 +41,100 @@ function! sj#go#JoinVars()
 endfunction
 
 function! sj#go#SplitStruct()
-  return s:splitStructOrFuncCall('{', '}')
+  let [start, end] = sj#LocateBracesAroundCursor('{', '}', ['goString', 'goComment'])
+  if start < 0 && end < 0
+    return 0
+  endif
+
+  let args = sj#ParseJsonObjectBody(start + 1, end - 1)
+
+  for arg in args
+    if arg !~ '^\k\+\s*:'
+      " this is not really a struct instantiation
+      return 0
+    end
+  endfor
+
+  call sj#ReplaceCols(start + 1, end - 1, "\n".join(args, ",\n").",\n")
+  return 1
 endfunction
 
 function! sj#go#JoinStruct()
-  return s:joinStructOrFunc('{', '}')
+  let start_lineno = line('.')
+
+  if search('{$', 'Wc', line('.')) <= 0
+    return 0
+  endif
+
+  normal! %
+  let end_lineno = line('.')
+
+  if start_lineno == end_lineno
+    " we haven't moved, brackets not found
+    return 0
+  endif
+
+  let arguments = []
+  for line in getbufline('%', start_lineno + 1, end_lineno - 1)
+    let argument = substitute(line, ',$', '', '')
+    let argument = sj#Trim(argument)
+
+    if argument !~ '^\k\+\s*:'
+      " this is not really a struct instantiation
+      return 0
+    end
+
+    if sj#settings#Read('normalize_whitespace')
+      let argument = substitute(argument, '^\k\+\zs:\s\+', ': ', 'g')
+    endif
+
+    call add(arguments, argument)
+  endfor
+
+  if sj#settings#Read('curly_brace_padding')
+    let padding = ' '
+  else
+    let padding = ''
+  endif
+
+  let replacement = '{' . padding . join(arguments, ', ') . padding . '}'
+  call sj#ReplaceMotion('va{', replacement)
+  return 1
+endfunction
+
+function! sj#go#SplitSingleLineCurlyBracketBlock()
+  let [start, end] = sj#LocateBracesAroundCursor('{', '}', ['goString', 'goComment'])
+  if start < 0 && end < 0
+    return 0
+  endif
+
+  let body = sj#GetMotion('vi{')
+  call sj#ReplaceMotion('va{', "{\n".sj#Trim(body)."\n}")
+  return 1
+endfunction
+
+function! sj#go#JoinSingleLineFunctionBody()
+  let start_lineno = line('.')
+
+  if search('{$', 'Wc', line('.')) <= 0
+    return 0
+  endif
+
+  normal! %
+  let end_lineno = line('.')
+
+  if start_lineno == end_lineno
+    " we haven't moved, brackets not found
+    return 0
+  endif
+
+  if end_lineno - start_lineno > 2
+    " more than one line between them, can't join
+    return 0
+  endif
+
+  normal! va{J
+  return 1
 endfunction
 
 function! sj#go#SplitFunc()
@@ -96,16 +185,8 @@ function! sj#go#SplitFunc()
   endif
 endfunction
 
-function! sj#go#JoinFuncCallOrDefinition()
-  return s:joinStructOrFunc('(', ')')
-endfunction
-
 function! sj#go#SplitFuncCall()
-  return s:splitStructOrFuncCall('(', ')')
-endfunction
-
-function! s:splitStructOrFuncCall(openBrace, closeBrace)
-  let [start, end] = sj#LocateBracesAroundCursor(a:openBrace, a:closeBrace, ['goString', 'goComment'])
+  let [start, end] = sj#LocateBracesAroundCursor('(', ')', ['goString', 'goComment'])
   if start < 0 && end < 0
     return 0
   endif
@@ -115,10 +196,10 @@ function! s:splitStructOrFuncCall(openBrace, closeBrace)
   return 1
 endfunction
 
-function! s:joinStructOrFunc(openBrace, closeBrace)
+function! sj#go#JoinFuncCallOrDefinition()
   let start_lineno = line('.')
 
-  if search(a:openBrace.'$', 'Wc', line('.')) <= 0
+  if search('($', 'Wc', line('.')) <= 0
     return 0
   endif
 
@@ -137,13 +218,7 @@ function! s:joinStructOrFunc(openBrace, closeBrace)
     call add(arguments, argument)
   endfor
 
-  if a:openBrace == '{' && sj#settings#Read('curly_brace_padding')
-    let padding = ' '
-  else
-    let padding = ''
-  endif
-
-  let replacement = a:openBrace . padding . join(arguments, ', ') . padding . a:closeBrace
-  call sj#ReplaceMotion('va'.a:openBrace, replacement)
+  let replacement = '(' . join(arguments, ', ') . ')'
+  call sj#ReplaceMotion('va(', replacement)
   return 1
 endfunction
