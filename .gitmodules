@@ -4,3 +4,27 @@
 [submodule "plugged/splitjoin.vim/spec/support/rust.vim"]
 	path = plugged/splitjoin.vim/spec/support/rust.vim
 	url = https://github.com/rust-lang/rust.vim
+[submodule "plugged/coc-eslint"]
+	path = plugged/coc-eslint
+	url = https://github.com/neoclide/coc-eslint.git
+[submodule "plugged/coc-prettier"]
+	path = plugged/coc-prettier
+	url = https://github.com/neoclide/coc-prettier.git
+[submodule "plugged/coc-tsserver"]
+	path = plugged/coc-tsserver
+	url = https://github.com/neoclide/coc-tsserver.git
+[submodule "plugged/coc.nvim"]
+	path = plugged/coc.nvim
+	url = https://github.com/neoclide/coc.nvim.git
+[submodule "plugged/haskell-vim"]
+	path = plugged/haskell-vim
+	url = https://github.com/neovimhaskell/haskell-vim.git
+[submodule "plugged/neoformat"]
+	path = plugged/neoformat
+	url = https://github.com/sbdchd/neoformat.git
+[submodule "plugged/vim-hindent"]
+	path = plugged/vim-hindent
+	url = https://github.com/alx741/vim-hindent.git
+[submodule "plugged/vim-sandwich"]
+	path = plugged/vim-sandwich
+	url = https://github.com/machakann/vim-sandwich.git
