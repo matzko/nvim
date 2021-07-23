@@ -31,3 +31,6 @@
 [submodule "plugged/vim-test"]
 	path = plugged/vim-test
 	url = https://github.com/vim-test/vim-test.git
+[submodule "plugged/vim-polyglot"]
+	path = plugged/vim-polyglot
+	url = https://github.com/sheerun/vim-polyglot.git
