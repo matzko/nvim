@@ -76,3 +76,6 @@
 [submodule "plugged/haskell-vim"]
 	path = plugged/haskell-vim
 	url = https://github.com/neovimhaskell/haskell-vim.git
+[submodule "plugged/elm-vim"]
+	path = plugged/elm-vim
+	url = https://github.com/elmcast/elm-vim.git
