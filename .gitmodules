@@ -1,9 +1,6 @@
 [submodule "plugged/deoplete-elm"]
 	path = plugged/deoplete-elm
 	url = https://github.com/pbogut/deoplete-elm.git
-[submodule "plugged/splitjoin.vim/spec/support/rust.vim"]
-	path = plugged/splitjoin.vim/spec/support/rust.vim
-	url = https://github.com/rust-lang/rust.vim
 [submodule "plugged/coc-eslint"]
 	path = plugged/coc-eslint
 	url = https://github.com/neoclide/coc-eslint.git
@@ -40,3 +37,6 @@
 [submodule "plugged/vim-fugitive"]
 	path = plugged/vim-fugitive
 	url = https://github.com/tpope/vim-fugitive.git
+[submodule "plugged/splitjoin.vim"]
+	path = plugged/splitjoin.vim
+	url = https://github.com/AndrewRadev/splitjoin.vim.git
