@@ -1,5 +1,6 @@
 {
   "coc.preferences.currentFunctionSymbolAutoUpdate": true,
+  "git.addGBlameToVirtualText": true,
   "git.enableGutters": true,
   "git.addedSign.text": ":sparkles:",
   "git.addedSign.hlGroup": "LineNr",
