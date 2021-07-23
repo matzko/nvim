@@ -70,3 +70,6 @@
 [submodule "plugged/vim-airline"]
 	path = plugged/vim-airline
 	url = https://github.com/vim-airline/vim-airline.git
+[submodule "plugged/nerdtree-git-plugin"]
+	path = plugged/nerdtree-git-plugin
+	url = https://github.com/Xuyuanp/nerdtree-git-plugin.git
