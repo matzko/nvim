@@ -40,3 +40,6 @@
 [submodule "plugged/splitjoin.vim"]
 	path = plugged/splitjoin.vim
 	url = https://github.com/AndrewRadev/splitjoin.vim.git
+[submodule "plugged/neomake"]
+	path = plugged/neomake
+	url = https://github.com/neomake/neomake.git
