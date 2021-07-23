@@ -1,5 +1,5 @@
-[submodule "plugged/deplete-elm"]
-	path = plugged/deplete-elm
+[submodule "plugged/deoplete-elm"]
+	path = plugged/deoplete-elm
 	url = https://github.com/pbogut/deoplete-elm.git
 [submodule "plugged/splitjoin.vim/spec/support/rust.vim"]
 	path = plugged/splitjoin.vim/spec/support/rust.vim
@@ -28,3 +28,6 @@
 [submodule "plugged/vim-sandwich"]
 	path = plugged/vim-sandwich
 	url = https://github.com/machakann/vim-sandwich.git
+[submodule "plugged/vim-test"]
+	path = plugged/vim-test
+	url = https://github.com/vim-test/vim-test.git
