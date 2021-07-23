@@ -34,3 +34,6 @@
 [submodule "plugged/vim-polyglot"]
 	path = plugged/vim-polyglot
 	url = https://github.com/sheerun/vim-polyglot.git
+[submodule "plugged/vim-sayonara"]
+	path = plugged/vim-sayonara
+	url = https://github.com/mhinz/vim-sayonara.git
