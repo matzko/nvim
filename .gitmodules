@@ -55,3 +55,6 @@
 [submodule "plugged/vim-grepper"]
 	path = plugged/vim-grepper
 	url = https://github.com/mhinz/vim-grepper.git
+[submodule "plugged/vim-elm-syntax"]
+	path = plugged/vim-elm-syntax
+	url = https://github.com/andys8/vim-elm-syntax.git
