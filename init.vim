@@ -45,7 +45,7 @@ Plug 'tpope/vim-endwise'
 Plug 'tpope/vim-fugitive'
 Plug 'tpope/vim-rails'
 Plug 'tpope/vim-surround'
-Plug 'janko-m/vim-test'
+Plug 'vim-test/vim-test'
 Plug 'machakann/vim-highlightedyank'
 Plug 'neomake/neomake'
 Plug 'codeindulgence/vim-tig'
@@ -56,6 +56,10 @@ Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'neovimhaskell/haskell-vim'
 Plug 'sbdchd/neoformat'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
+
+Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
+" nnoremap <silent> <c-x><c-k> :Sayonara!<CR>
+nnoremap <silent> <c-k> :Sayonara!<CR>
 
 Plug 'machakann/vim-sandwich'
 
@@ -74,6 +78,17 @@ map <Leader>a :TestSuite<CR>
 map <Leader>v :TestVisit<CR>
 
 let test#strategy = "neovim"
+
+" open the test results in a buffer
+function! BufferTermStrategy(cmd)
+  exec 'te ' . a:cmd
+endfunction
+let g:test#custom_strategies = {'bufferterm': function('BufferTermStrategy')}
+let g:test#strategy = 'bufferterm'
+
+nmap <silent> <c-h> :bn<cr>
+nmap <silent> <c-l> :bp<cr>
+
 
 " let g:deoplete#enable_at_startup = 1
 " deoplete select on tab
