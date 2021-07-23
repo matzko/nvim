@@ -64,3 +64,6 @@
 [submodule "plugged/vim-commentary"]
 	path = plugged/vim-commentary
 	url = https://github.com/tpope/vim-commentary.git
+[submodule "plugged/vim-airline-themes"]
+	path = plugged/vim-airline-themes
+	url = https://github.com/vim-airline/vim-airline-themes.git
