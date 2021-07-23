@@ -43,3 +43,6 @@
 [submodule "plugged/neomake"]
 	path = plugged/neomake
 	url = https://github.com/neomake/neomake.git
+[submodule "plugged/ale"]
+	path = plugged/ale
+	url = https://github.com/dense-analysis/ale.git
