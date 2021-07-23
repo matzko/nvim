@@ -49,3 +49,6 @@
 [submodule "plugged/vim-tig"]
 	path = plugged/vim-tig
 	url = https://github.com/codeindulgence/vim-tig.git
+[submodule "plugged/vim-rails"]
+	path = plugged/vim-rails
+	url = https://github.com/tpope/vim-rails.git
