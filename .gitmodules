@@ -58,3 +58,6 @@
 [submodule "plugged/vim-elm-syntax"]
 	path = plugged/vim-elm-syntax
 	url = https://github.com/andys8/vim-elm-syntax.git
+[submodule "plugged/vim-endwise"]
+	path = plugged/vim-endwise
+	url = https://github.com/tpope/vim-endwise.git
