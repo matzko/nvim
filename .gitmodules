@@ -13,9 +13,6 @@
 [submodule "plugged/coc.nvim"]
 	path = plugged/coc.nvim
 	url = https://github.com/neoclide/coc.nvim.git
-[submodule "plugged/haskell-vim"]
-	path = plugged/haskell-vim
-	url = https://github.com/neovimhaskell/haskell-vim.git
 [submodule "plugged/vim-hindent"]
 	path = plugged/vim-hindent
 	url = https://github.com/alx741/vim-hindent.git
@@ -76,3 +73,6 @@
 [submodule "plugged/neoformat"]
 	path = plugged/neoformat
 	url = https://github.com/sbdchd/neoformat.git
+[submodule "plugged/haskell-vim"]
+	path = plugged/haskell-vim
+	url = https://github.com/neovimhaskell/haskell-vim.git
