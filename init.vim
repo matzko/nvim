@@ -337,3 +337,17 @@ nmap <silent> gd <Plug>(coc-definition)
 
 nnoremap <backspace> <c-^>
 nmap <leader>a  <Plug>(coc-codeaction)
+
+" Stuff to keep buffer from closing when ending test
+"" Terminals {{{
+au TermOpen * setlocal listchars= nonumber norelativenumber
+au TermOpen * startinsert
+au BufLeave term://* stopinsert
+au BufEnter,BufWinEnter,WinEnter term://* if !has_key(b:, '_termdone') | startinsert | endif
+au TermClose * ++nested stopinsert | let b:_termdone = 1 | au TermEnter <buffer> stopinsert
+
+tnoremap <Esc> <C-\><C-n>
+tnoremap <c-q>> <Esc>
+tnoremap <silent> <c-h> <C-\><C-n>:bp<CR>
+tnoremap <silent> <c-l> <C-\><C-n>:bn<CR>
+"" }}}
