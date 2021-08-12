@@ -22,10 +22,12 @@
   "languageserver": {
     "elmLS": {
       "command": "elm-language-server",
+      "elmReviewPath": "/home/austin/workspace/wecounsel/microservices/frontend/node_modules/.bin/elm-review",
       "filetypes": ["elm"],
       "rootPatterns": ["elm.json"],
       "initializationOptions": {
-        "elmAnalyseTrigger": "save"
+        "elmAnalyseTrigger": "save",
+        "elmReviewDiagnostics": "warning"
       }
     },
     "haskell": {
