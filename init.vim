@@ -36,6 +36,7 @@ Plug 'neoclide/coc-tsserver'
 Plug 'elmcast/elm-vim'
 " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
 " Plug 'fishbullet/deoplete-ruby'
+Plug 'windwp/nvim-autopairs'
 Plug 'mhinz/vim-grepper'
 Plug 'vim-airline/vim-airline'
 Plug 'vim-airline/vim-airline-themes'

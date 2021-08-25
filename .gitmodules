@@ -79,3 +79,6 @@
 [submodule "plugged/coc.nvim"]
 	path = plugged/coc.nvim
 	url = https://github.com/neoclide/coc.nvim.git
+[submodule "plugged/nvim-autopairs"]
+	path = plugged/nvim-autopairs
+	url = https://github.com/windwp/nvim-autopairs.git
