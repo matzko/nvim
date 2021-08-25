@@ -352,3 +352,6 @@ tnoremap <c-q>> <Esc>
 tnoremap <silent> <c-h> <C-\><C-n>:bp<CR>
 tnoremap <silent> <c-l> <C-\><C-n>:bn<CR>
 "" }}}
+
+
+lua require('nvim-autopairs').setup{}
