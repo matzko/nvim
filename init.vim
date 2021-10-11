@@ -29,6 +29,7 @@ call plug#begin('~/.config/nvim/plugged')
 
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'andys8/vim-elm-syntax'
+Plug 'mhinz/vim-mix-format'
 Plug 'neoclide/coc-eslint'
 Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
@@ -127,6 +128,8 @@ let g:tig_open_command = 'vnew'
 
 let g:elm_format_autosave = 1
 let g:elm_make_output_file = "build/elm.js"
+
+let g:mix_format_on_save = 1
 
 " let g:ale_fixers = {
 " \   'elm': ['elm-format'],

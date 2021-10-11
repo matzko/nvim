@@ -82,3 +82,6 @@
 [submodule "plugged/nvim-autopairs"]
 	path = plugged/nvim-autopairs
 	url = https://github.com/windwp/nvim-autopairs.git
+[submodule "plugged/vim-mix-format"]
+	path = plugged/vim-mix-format
+	url = https://github.com/mhinz/vim-mix-format.git

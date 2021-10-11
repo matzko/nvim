@@ -1,8 +1,9 @@
 # Notes
 
- * Put in ~/.config  as nvim directory:
+- Put in ~/.config as nvim directory:
 
 ## Install plugged for neovim
+
 ```
 
 sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
@@ -14,4 +15,10 @@ sh -c 'curl -fLo "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.
 ```
 pip2 install --user neovim
 pip3 install --user neovim
+```
+
+## Install Elixir language server
+
+```
+:CocInstall coc-elixir
 ```
