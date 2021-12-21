@@ -97,3 +97,6 @@
 [submodule "plugged/fzf-checkout.vim"]
 	path = plugged/fzf-checkout.vim
 	url = https://github.com/stsewd/fzf-checkout.vim.git
+[submodule "plugged/vim-rooter"]
+	path = plugged/vim-rooter
+	url = https://github.com/airblade/vim-rooter.git

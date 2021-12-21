@@ -57,6 +57,8 @@ Plug 'neomake/neomake'
 Plug 'codeindulgence/vim-tig'
 Plug 'gcmt/taboo.vim'
 
+Plug 'airblade/vim-rooter'
+
 Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'neovimhaskell/haskell-vim'
