@@ -18,7 +18,7 @@
   "solargraph.hover": true,
   "eslint.filetypes": ["vue", "svelte", "javascript", "jsx", "typescript"],
   "eslint.autoFixOnSave": true,
-  "coc.preferences.formatOnSaveFiletypes": ["css", "javascript", "elm", "markdown"],
+  "coc.preferences.formatOnSaveFiletypes": ["scss", "css", "javascript", "elm", "markdown"],
   "languageserver": {
     "elmLS": {
       "command": "elm-language-server",
