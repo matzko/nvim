@@ -33,6 +33,11 @@ Plug 'mhinz/vim-mix-format'
 Plug 'neoclide/coc-eslint'
 Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
+
+" fzf stuff
+Plug 'junegunn/fzf'
+Plug 'chengzeyi/fzf-preview.vim'
+
 " Plug 'dense-analysis/ale'
 Plug 'elmcast/elm-vim'
 " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
