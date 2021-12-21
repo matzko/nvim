@@ -100,3 +100,6 @@
 [submodule "plugged/vim-rooter"]
 	path = plugged/vim-rooter
 	url = https://github.com/airblade/vim-rooter.git
+[submodule "plugged/wilder.nvim"]
+	path = plugged/wilder.nvim
+	url = https://github.com/gelguy/wilder.nvim.git

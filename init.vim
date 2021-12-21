@@ -37,6 +37,9 @@ Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
 
 
+Plug 'gelguy/wilder.nvim', { 'do': ':UpdateRemotePlugins' }
+
+
 " Plug 'dense-analysis/ale'
 Plug 'elmcast/elm-vim'
 " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -145,6 +148,8 @@ nnoremap <silent> <leader><leader> :Files!<CR>
 
 " Initialize plugin system
 call plug#end()
+
+call wilder#setup({'modes': [':', '/', '?']})
 
 let g:airline_theme='zenburn'
 
