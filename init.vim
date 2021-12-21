@@ -25,6 +25,8 @@ let g:airline_theme = 'one'
 let g:python_host_prog = '/usr/bin/python2'
 let g:python3_host_prog = '/usr/bin/python3'
 
+:let mapleader=","
+
 call plug#begin('~/.config/nvim/plugged')
 
 Plug 'AndrewRadev/splitjoin.vim'
@@ -34,10 +36,6 @@ Plug 'neoclide/coc-eslint'
 Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
 
-" fzf stuff
-Plug 'junegunn/fzf'
-Plug 'junegunn/fzf.vim'
-Plug 'chengzeyi/fzf-preview.vim'
 
 " Plug 'dense-analysis/ale'
 Plug 'elmcast/elm-vim'
@@ -71,11 +69,82 @@ nnoremap <silent> <c-k> :Sayonara!<CR>
 
 Plug 'machakann/vim-sandwich'
 
+
+"" FZF {{{
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+Plug 'chengzeyi/fzf-preview.vim'
+Plug 'stsewd/fzf-checkout.vim'
+
+let g:fzf_colors =
+\ { 'fg':      ['fg', 'Normal'],
+  \ 'bg':      ['bg', 'Normal'],
+  \ 'hl':      ['fg', 'Comment'],
+  \ 'fg+':     ['fg', 'CursorLine', 'CursorColumn', 'Normal'],
+  \ 'bg+':     ['bg', 'Normal'],
+  \ 'hl+':     ['fg', 'Statement'],
+  \ 'info':    ['fg', 'PreProc'],
+  \ 'border':  ['fg', 'Ignore'],
+  \ 'prompt':  ['fg', 'Conditional'],
+  \ 'pointer': ['fg', 'Exception'],
+  \ 'marker':  ['fg', 'Keyword'],
+  \ 'spinner': ['fg', 'Label'],
+  \ 'header':  ['fg', 'Comment'] }
+
+let g:fzf_preview_window = ['up:50%', 'ctrl-/']
+
+function! s:getVisualSelection()
+  let [line_start, column_start] = getpos("'<")[1:2]
+  let [line_end, column_end] = getpos("'>")[1:2]
+  let lines = getline(line_start, line_end)
+
+  if len(lines) == 0
+    return ""
+  endif
+
+  let lines[-1] = lines[-1][:column_end - (&selection == "inclusive" ? 1 : 2)]
+  let lines[0] = lines[0][column_start - 1:]
+
+  return join(lines, "\n")
+endfunction
+
+function! InsertEmoji(emoji)
+    let @a = system('cut -d " " -f 1 | emoji-fzf get', a:emoji)
+    normal! "agP
+endfunction
+
+command! -bang Emoji
+  \ call fzf#run({
+      \ 'source': 'emoji-fzf preview',
+      \ 'options': '--preview ''emoji-fzf get {1}''',
+      \ 'sink': function('InsertEmoji')
+      \ })
+
+nnoremap <leader>e :Emoj<CR>
+map <C-e> :Emoj<CR>
+imap <C-e> <C-o><C-e>
+
+command! -count=10 HFiles call fzf#run({ 'source': 'git log HEAD -n <count> --diff-filter=MA --name-only --pretty=format: | sed -e /^$/d', 'sink': 'edit'})
+
+"" Can do like :Rip -g '*.rb' ''
+command! -bang -nargs=* Rip call fzf#vim#grep("rg --column --line-number --no-heading --color=always --smart-case ".<q-args>, 1, <bang>0)
+nnoremap <leader>? :Rip! -g '*.' ''<left><left><left><left>
+
+nnoremap <leader><enter> :FZFMarks!<CR>
+nnoremap <leader>/ :FZFRg!<CR>
+vnoremap <leader>/ :<C-U>FZFRg! <C-R>=<SID>getVisualSelection()<CR><CR>
+
+nnoremap <silent> <leader>bl :Lines!<CR>
+nnoremap <silent> <leader>hh :Helptags!<CR>
+" nnoremap <silent> <leader>fr :FZFHistory!<CR>
+nnoremap <silent> <leader>fr :CocList mru<CR>
+nnoremap <silent> <leader><leader> :Files!<CR>
+"" }}}
+
 " Initialize plugin system
 call plug#end()
 
 let g:airline_theme='zenburn'
-:let mapleader=","
 
 let g:neoformat_enabled_haskell = ['brittany']
 
@@ -97,9 +166,6 @@ let g:test#strategy = 'bufferterm'
 nmap <silent> <c-h> :bn<cr>
 nmap <silent> <c-l> :bp<cr>
 
-" fzf
-nnoremap <leader>/ :FZFRg!<CR>
-vnoremap <leader>/ :<C-U>FZFRg! <C-R>=<SID>getVisualSelection()<CR><CR>
 
 
 " let g:deoplete#enable_at_startup = 1

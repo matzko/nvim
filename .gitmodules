@@ -94,3 +94,6 @@
 [submodule "plugged/fzf.vim"]
 	path = plugged/fzf.vim
 	url = https://github.com/junegunn/fzf.vim.git
+[submodule "plugged/fzf-checkout.vim"]
+	path = plugged/fzf-checkout.vim
+	url = https://github.com/stsewd/fzf-checkout.vim.git
