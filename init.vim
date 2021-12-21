@@ -36,6 +36,7 @@ Plug 'neoclide/coc-tsserver'
 
 " fzf stuff
 Plug 'junegunn/fzf'
+Plug 'junegunn/fzf.vim'
 Plug 'chengzeyi/fzf-preview.vim'
 
 " Plug 'dense-analysis/ale'
@@ -95,6 +96,10 @@ let g:test#strategy = 'bufferterm'
 
 nmap <silent> <c-h> :bn<cr>
 nmap <silent> <c-l> :bp<cr>
+
+" fzf
+nnoremap <leader>/ :FZFRg!<CR>
+vnoremap <leader>/ :<C-U>FZFRg! <C-R>=<SID>getVisualSelection()<CR><CR>
 
 
 " let g:deoplete#enable_at_startup = 1
