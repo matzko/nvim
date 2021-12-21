@@ -22,8 +22,8 @@ colorscheme zenburn
 colors zenburn
 
 let g:airline_theme = 'one'
-let g:python_host_prog = '/usr/bin/python2'
-let g:python3_host_prog = '/usr/bin/python3'
+let g:python_host_prog = 'python2'
+let g:python3_host_prog = 'python3'
 
 :let mapleader=","
 
