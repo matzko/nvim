@@ -40,6 +40,7 @@ Plug 'neoclide/coc-tsserver'
 Plug 'gelguy/wilder.nvim', { 'do': ':UpdateRemotePlugins' }
 
 
+
 " Plug 'dense-analysis/ale'
 Plug 'elmcast/elm-vim'
 " Plug 'Shougo/deoplete.nvim', { 'do': ':UpdateRemotePlugins' }
@@ -146,6 +147,7 @@ nnoremap <silent> <leader>fr :CocList mru<CR>
 nnoremap <silent> <leader><leader> :Files!<CR>
 "" }}}
 
+Plug 'kevinhwang91/nvim-bqf'
 " Initialize plugin system
 call plug#end()
 

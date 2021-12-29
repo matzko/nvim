@@ -103,3 +103,6 @@
 [submodule "plugged/wilder.nvim"]
 	path = plugged/wilder.nvim
 	url = https://github.com/gelguy/wilder.nvim.git
+[submodule "plugged/nvim-bqf"]
+	path = plugged/nvim-bqf
+	url = https://github.com/kevinhwang91/nvim-bqf.git
