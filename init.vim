@@ -424,6 +424,9 @@ nmap <silent> <leader>u <Plug>(coc-references)
 nmap <silent> <leader>p :call CocActionAsync('format')<CR>
 
 
+nmap <silent> <leader>n             :call CocAction('diagnosticNext')<CR>
+nmap <silent> <leader>p             :call CocAction('diagnosticPrevious')<CR>
+
 nmap <silent> gr <Plug>(coc-references)
 nmap <silent> gd <Plug>(coc-definition)
 
@@ -443,7 +446,6 @@ tnoremap <c-q>> <Esc>
 tnoremap <silent> <c-h> <C-\><C-n>:bp<CR>
 tnoremap <silent> <c-l> <C-\><C-n>:bn<CR>
 "" }}}
-
 
 
 function! ToggleQuickFix()
