@@ -445,4 +445,18 @@ tnoremap <silent> <c-l> <C-\><C-n>:bn<CR>
 "" }}}
 
 
+
+function! ToggleQuickFix()
+    if getqflist({'winid' : 0}).winid
+        cclose
+    else
+        copen
+    endif
+endfunction
+
+command! -nargs=0 -bar ToggleQuickFix call ToggleQuickFix()
+
+nnoremap yoq :ToggleQuickFix<CR>
+
+
 lua require('nvim-autopairs').setup{}
