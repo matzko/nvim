@@ -37,6 +37,10 @@ Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
 
 
+" progress plugin:
+Plug 'j-hui/fidget.nvim'
+
+
 Plug 'gelguy/wilder.nvim', { 'do': ':UpdateRemotePlugins' }
 
 

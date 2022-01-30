@@ -106,3 +106,6 @@
 [submodule "plugged/nvim-bqf"]
 	path = plugged/nvim-bqf
 	url = https://github.com/kevinhwang91/nvim-bqf.git
+[submodule "plugged/fidget.nvim"]
+	path = plugged/fidget.nvim
+	url = https://github.com/j-hui/fidget.nvim.git
