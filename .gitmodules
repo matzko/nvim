@@ -109,3 +109,6 @@
 [submodule "plugged/fidget.nvim"]
 	path = plugged/fidget.nvim
 	url = https://github.com/j-hui/fidget.nvim.git
+[submodule "plugged/vim-highlightedyank"]
+	path = plugged/vim-highlightedyank
+	url = https://github.com/machakann/vim-highlightedyank.git
