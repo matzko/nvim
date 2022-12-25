@@ -127,3 +127,6 @@
 [submodule "plugged/plenary.nvim"]
 	path = plugged/plenary.nvim
 	url = https://github.com/nvim-lua/plenary.nvim.git
+[submodule "plugged/starlark.vim"]
+	path = plugged/starlark.vim
+	url = https://github.com/cappyzawa/starlark.vim.git

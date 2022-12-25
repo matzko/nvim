@@ -39,6 +39,7 @@ Plug 'neoclide/coc-eslint'
 Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
 Plug 'neovim/nvim-lspconfig'
+Plug 'cappyzawa/starlark.vim'
 
 
 " progress plugin:
