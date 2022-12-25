@@ -18,6 +18,7 @@ set expandtab
 syntax on
 set foldmethod=indent
 set diffopt+=iwhite
+set mouse=r
 colorscheme zenburn
 colors zenburn
 
