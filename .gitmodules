@@ -112,3 +112,18 @@
 [submodule "plugged/vim-highlightedyank"]
 	path = plugged/vim-highlightedyank
 	url = https://github.com/machakann/vim-highlightedyank.git
+[submodule "plugged/coc-elixir"]
+	path = plugged/coc-elixir
+	url = https://github.com/elixir-lsp/coc-elixir.git
+[submodule "plugged/diffview.nvim"]
+	path = plugged/diffview.nvim
+	url = https://github.com/sindrets/diffview.nvim.git
+[submodule "plugged/nvim-lspconfig"]
+	path = plugged/nvim-lspconfig
+	url = https://github.com/neovim/nvim-lspconfig.git
+[submodule "plugged/nvim-web-devicons"]
+	path = plugged/nvim-web-devicons
+	url = https://github.com/kyazdani42/nvim-web-devicons.git
+[submodule "plugged/plenary.nvim"]
+	path = plugged/plenary.nvim
+	url = https://github.com/nvim-lua/plenary.nvim.git
