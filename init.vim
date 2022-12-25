@@ -77,9 +77,11 @@ Plug 'neovimhaskell/haskell-vim'
 Plug 'sbdchd/neoformat'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
-Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
+Plug 'mhinz/vim-sayonara'
+" Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
 " nnoremap <silent> <c-x><c-k> :Sayonara!<CR>
 nnoremap <silent> <c-k> :Sayonara!<CR>
+com! BD :Sayonara!
 
 Plug 'machakann/vim-sandwich'
 
