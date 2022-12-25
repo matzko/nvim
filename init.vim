@@ -85,6 +85,11 @@ com! BD :Sayonara!
 
 Plug 'machakann/vim-sandwich'
 
+"" For diffview
+Plug 'nvim-lua/plenary.nvim'
+Plug 'kyazdani42/nvim-web-devicons'
+Plug 'sindrets/diffview.nvim'
+
 
 "" FZF {{{
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
