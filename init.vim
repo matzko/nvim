@@ -75,7 +75,6 @@ Plug 'scrooloose/nerdtree'
 Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'neovimhaskell/haskell-vim'
 Plug 'sbdchd/neoformat'
-Plug 'neoclide/coc.nvim', {'branch': 'release'}
 
 Plug 'mhinz/vim-sayonara'
 " Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
