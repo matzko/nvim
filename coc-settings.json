@@ -3,6 +3,7 @@
   "diagnostic.warningSign": "⚠️",
   "diagnostic.errorSign": "✘",
   "diagnostic.infoSign": "",
+  "elixir.pathToElixirLS": "~/bin/elixir-ls/language_server.sh",
   "git.addGBlameToVirtualText": true,
   "git.enableGutters": true,
   "git.addedSign.text": ":sparkles:",

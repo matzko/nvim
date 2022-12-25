@@ -32,9 +32,12 @@ call plug#begin('~/.config/nvim/plugged')
 Plug 'AndrewRadev/splitjoin.vim'
 Plug 'andys8/vim-elm-syntax'
 Plug 'mhinz/vim-mix-format'
+Plug 'neoclide/coc.nvim', {'branch': 'release'}
+Plug 'elixir-lsp/coc-elixir', {'do': 'yarn install && yarn prepack'}
 Plug 'neoclide/coc-eslint'
 Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
+Plug 'neovim/nvim-lspconfig'
 
 
 " progress plugin:
@@ -61,7 +64,7 @@ Plug 'tpope/vim-rails'
 " Plug 'tpope/vim-surround'
 Plug 'vim-test/vim-test'
 Plug 'machakann/vim-highlightedyank'
-Plug 'neomake/neomake'
+" Plug 'neomake/neomake'
 Plug 'codeindulgence/vim-tig'
 Plug 'gcmt/taboo.vim'
 
@@ -189,10 +192,10 @@ nmap <silent> <c-l> :bp<cr>
 " inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
 " inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
 
-let g:neomake_open_list = 0
-let g:neomake_list_height = 1
-let g:neomake_elixir_enabled_makers = ['mix', 'credo']
-let g:neomake_ruby_enabled_makers = []
+" let g:neomake_open_list = 0
+" let g:neomake_list_height = 1
+" let g:neomake_elixir_enabled_makers = ['mix', 'credo']
+" let g:neomake_ruby_enabled_makers = []
 
 let g:grepper           = {}
 let g:grepper.highlight = 1
@@ -287,11 +290,15 @@ endif
 " Use tab for trigger completion with characters ahead and navigate.
 " NOTE: Use command ':verbose imap <tab>' to make sure tab is not mapped by
 " other plugin before putting this into your config.
-inoremap <silent><expr> <TAB>
-      \ pumvisible() ? "\<C-n>" :
-      \ <SID>check_back_space() ? "\<TAB>" :
+" inoremap <silent><expr> <TAB>
+"       \ pumvisible() ? "\<C-n>" :
+"       \ <SID>check_back_space() ? "\<TAB>" :
+"       \ coc#refresh()
+inoremap <silent><expr> <Tab>
+      \ coc#pum#visible() ? coc#pum#next(1) :
+      \ check_back_space() ? "\<Tab>" :
       \ coc#refresh()
-inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
+" inoremap <expr><S-TAB> pumvisible() ? "\<C-p>" : "\<C-h>"
 
 function! s:check_back_space() abort
   let col = col('.') - 1
@@ -469,6 +476,7 @@ nnoremap yoq :ToggleQuickFix<CR>
 
 lua require('nvim-autopairs').setup{}
 
+lua require('elixirls_lspconfig')
 
 "here is a more exotic version of my original Kwbd script
 "delete the buffer; keep windows; create a scratch buffer if no buffers left
