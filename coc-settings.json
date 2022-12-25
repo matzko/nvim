@@ -40,6 +40,7 @@
       "filetypes": ["haskell", "lhaskell"]
     }
   },
+  "suggest.noselect": true,
   "suggest.completionItemKindLabels": {
     "keyword": "\uf1de", //  sliders
     "variable": "\ue79b", //  isometric box
