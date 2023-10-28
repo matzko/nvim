@@ -130,3 +130,6 @@
 [submodule "plugged/starlark.vim"]
 	path = plugged/starlark.vim
 	url = https://github.com/cappyzawa/starlark.vim.git
+[submodule "pack/github/start/copilot.vim"]
+	path = pack/github/start/copilot.vim
+	url = https://github.com/github/copilot.vim.git
