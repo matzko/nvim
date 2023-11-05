@@ -136,3 +136,6 @@
 [submodule "plugged/nvim-tree.lua"]
 	path = plugged/nvim-tree.lua
 	url = https://github.com/nvim-tree/nvim-tree.lua.git
+[submodule "plugged/tig-explorer.vim"]
+	path = plugged/tig-explorer.vim
+	url = https://github.com/iberianpig/tig-explorer.vim.git
