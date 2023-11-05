@@ -72,10 +72,15 @@ Plug 'gcmt/taboo.vim'
 
 Plug 'airblade/vim-rooter'
 
-Plug 'scrooloose/nerdtree'
-Plug 'Xuyuanp/nerdtree-git-plugin'
 Plug 'neovimhaskell/haskell-vim'
 Plug 'sbdchd/neoformat'
+
+" File explorer
+Plug 'nvim-tree/nvim-web-devicons' " optional
+Plug 'nvim-tree/nvim-tree.lua'
+nnoremap <leader>w :NvimTreeToggle<CR>
+" Plug 'scrooloose/nerdtree'
+" Plug 'Xuyuanp/nerdtree-git-plugin'
 
 Plug 'mhinz/vim-sayonara'
 " Plug 'mhinz/vim-sayonara', { 'on': 'Sayonara' }
@@ -224,7 +229,7 @@ let g:grepper.tools = ['ag', 'git', 'ack', 'ack-grep', 'grep', 'findstr', 'rg', 
 nmap gs  <plug>(GrepperOperator)
 xmap gs  <plug>(GrepperOperator)
 
-let NERDTreeHijackNetrw=1
+" let NERDTreeHijackNetrw=1
 
 :set inccommand=split
 let g:tig_open_command = 'vnew'
@@ -361,7 +366,7 @@ nmap <leader>rn <Plug>(coc-rename)
 xmap <leader>f  <Plug>(coc-format-selected)
 nmap <leader>f  <Plug>(coc-format-selected)
 
-nmap <leader>w  <Plug>(coc-float-jump)
+" nmap <leader>w  <Plug>(coc-float-jump)
 
 augroup mygroup
   autocmd!
@@ -485,6 +490,7 @@ nnoremap yoq :ToggleQuickFix<CR>
 lua require('nvim-autopairs').setup{}
 
 lua require('elixirls_lspconfig')
+lua require("nvim-tree").setup()
 
 "here is a more exotic version of my original Kwbd script
 "delete the buffer; keep windows; create a scratch buffer if no buffers left
