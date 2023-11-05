@@ -26,7 +26,7 @@
   "languageserver": {
     "elmLS": {
       "command": "elm-language-server",
-      "elmReviewPath": "/home/austin/workspace/wecounsel/microservices/frontend/node_modules/.bin/elm-review",
+      "elmReviewPath": "/home/austin/workspace/wecounsel/microservices/frontend/node_modules/elm-review/bin/elm-review",
       "filetypes": ["elm"],
       "rootPatterns": ["elm.json"],
       "initializationOptions": {
