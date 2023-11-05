@@ -34,6 +34,7 @@ Plug 'andys8/vim-elm-syntax'
 Plug 'mhinz/vim-mix-format'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'elixir-lsp/coc-elixir', {'do': 'yarn install && yarn prepack'}
+Plug 'gleam-lang/gleam.vim'
 Plug 'neoclide/coc-eslint'
 Plug 'neoclide/coc-prettier'
 Plug 'neoclide/coc-tsserver'
